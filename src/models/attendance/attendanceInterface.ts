@@ -3,13 +3,13 @@ import { attendanceStatus, approvalStatus } from "./attendanceSchema";
 
 interface IAttendance {
   userId: Types.ObjectId; 
-  tanggal: Date;           
+  date: Date;           
   status: attendanceStatus;  
   approvalStatus: approvalStatus;  
-  reason: string;  
-  buktiImageLink: string;  
-  createdAt?: Date;  
-  updatedAt?: Date;
+  reason?: string;  
+  proveImage?: string;
+  checkIn?: Date;
+  checkOut?: Date;  
 } 
 
 export default IAttendance;

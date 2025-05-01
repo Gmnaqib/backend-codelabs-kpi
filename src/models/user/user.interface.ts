@@ -10,6 +10,8 @@ interface IUser {
   years: string;
   status: string;
   research: string;
+  telegram_id?: string;
+  telegram_username?: string;
   createdAt: Date;
   updatedAt: Date;
 }

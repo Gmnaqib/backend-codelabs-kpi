@@ -1,5 +1,5 @@
-import { Schema } from "mongoose";
-import IUser from "./userInterface";
+import { Schema, model } from "mongoose";
+import IUser from "./user.interface";
 import mongoose from "mongoose";
 
 const userSchema = new Schema<IUser>({
@@ -42,6 +42,14 @@ const userSchema = new Schema<IUser>({
   research: {
     type: String,
   },
+  telegram_id: {
+    type: String,
+    required: false,
+  },
+  telegram_username: {
+    type: String,
+    required: false,
+  },
   createdAt: {
     type: Date,
     default: Date.now,
@@ -52,4 +60,7 @@ const userSchema = new Schema<IUser>({
   },
 });
 
-export default userSchema;
+
+const User = model<IUser>("User", userSchema);
+export default User;
+

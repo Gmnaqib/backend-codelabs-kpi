@@ -1,9 +1,9 @@
 import { Router } from "express";
-import { createAbsensi } from "../controllers/attendanceController";
+import { createAttendance } from "../controllers/attendanceController";
 import { authenticateToken } from "../middlewares/authMiddlewares";
 const attendanceRouter = Router();
 
-attendanceRouter.post("/checkin", createAbsensi);
+attendanceRouter.post("/checkin", createAttendance);
 
 
 export default attendanceRouter;

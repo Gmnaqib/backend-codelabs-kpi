@@ -1,4 +1,4 @@
-import { Schema } from "mongoose";
+import { Schema, model } from "mongoose";
 import IRole from "./roleInterface";  // Mengimpor interface IRole
 
 const roleSchema = new Schema<IRole>({
@@ -13,4 +13,6 @@ const roleSchema = new Schema<IRole>({
   },
 }, { timestamps: true });
 
-export default roleSchema;
+const Role = model<IRole>("Role", roleSchema);
+
+export default Role;
