@@ -1,5 +1,6 @@
 import { Schema, model } from "mongoose";
 import IAttendance from "./attendanceInterface"; 
+import mongoose from "mongoose";
 
 enum attendanceStatus {
   PRESENT = "present",
@@ -16,11 +17,11 @@ enum approvalStatus {
 
 const attendanceSchema = new Schema<IAttendance>({
   userId: {
-    type: Schema.Types.ObjectId,
+    type: mongoose.Schema.Types.ObjectId,
     ref: "User", 
     required: true,
   },
-  tanggal: {
+  date: {
     type: Date,
     required: true,
   },
@@ -34,15 +35,21 @@ const attendanceSchema = new Schema<IAttendance>({
     enum: Object.values(approvalStatus),
     default: approvalStatus.PENDING, 
   },
+  checkIn: {
+    type: Date
+  },
+   checkOut: {
+    type: Date
+  },
   reason: {
     type: String,
-    default: "",
+    required:false,
   },
-  buktiImageLink: {
+  proveImage: {
     type: String,
-    default: "",
+    required: false,
   },
-}, { timestamps: true });
+});
 
 
 attendanceSchema.pre("save", function(next) {
@@ -51,7 +58,7 @@ attendanceSchema.pre("save", function(next) {
       return next(new Error("Reason is required for sick or excuse"));
     }
 
-    if (!this.buktiImageLink) {
+    if (!this.proveImage) {
       return next(new Error("Image link is required for sick or excuse"));
     }
   }
@@ -59,6 +66,8 @@ attendanceSchema.pre("save", function(next) {
   next();
 });
 
-const attendance = model("attendance", attendanceSchema);
+// const attendance = model("attendance", attendanceSchema);
+const Attendance = model<IAttendance>("Attendace", attendanceSchema);
+// export default Attendance;
 
-export { attendance, attendanceStatus, approvalStatus, attendanceSchema };
+export { Attendance, attendanceStatus, approvalStatus, attendanceSchema };
