@@ -1,22 +1,18 @@
 import express, { Request, Response } from 'express';
 import 'dotenv/config';
-const app = express()
+const app = express();
 const port = process.env.PORT;
 import { connectDB } from './config/db';
 import authRouter from './routes/authRoute';
 import userRouter from './routes/userRoute';
-import roleRouter from './routes/roleRoute';
 import attendanceRouter from './routes/attendanceRoute';
 
 connectDB();
 app.use(express.json());
-app.use('/auth',authRouter )
-app.use('/users',userRouter )
-app.use('/roles',roleRouter )
-app.use('/attendance',attendanceRouter )
-
-
+app.use('/auth', authRouter);
+app.use('/users', userRouter);
+app.use('/attendance', attendanceRouter);
 
 app.listen(port, () => {
-  console.log(`App listening on http://localhost:${port}`)
-})
+  console.log(`App listening on http://localhost:${port}`);
+});

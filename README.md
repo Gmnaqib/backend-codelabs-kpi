@@ -1,6 +1,6 @@
 ## Tech Stack (Essentially)
 
-- Express.js 
+- Express.js
 - Typescript
 
 ## Installation
@@ -22,4 +22,3 @@ Run the development server:
 ```bash
 npm run dev
 ```
-

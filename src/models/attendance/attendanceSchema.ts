@@ -1,73 +1,70 @@
-import { Schema, model } from "mongoose";
-import IAttendance from "./attendanceInterface"; 
-import mongoose from "mongoose";
-
-enum attendanceStatus {
-  PRESENT = "present",
-  SICK = "sick",
-  EXCUSE = "excuse",
-  ABSENT = "absent",
-}
-
-enum approvalStatus {
-  PENDING = "pending", 
-  ACCEPT = "accept",         
-  REJECT = "reject",  
-}
+import { Schema, model } from 'mongoose';
+import IAttendance from './attendanceInterface';
+import mongoose from 'mongoose';
 
 const attendanceSchema = new Schema<IAttendance>({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "User", 
-    required: true,
-  },
-  date: {
-    type: Date,
+    ref: 'User',
     required: true,
   },
   status: {
     type: String,
-    enum: Object.values(attendanceStatus),
+    enum: ['present', 'sick', 'leave', 'absent'],
+    default: 'present',
     required: true,
   },
   approvalStatus: {
     type: String,
-    enum: Object.values(approvalStatus),
-    default: approvalStatus.PENDING, 
+    enum: ['pending', 'accept', 'reject'],
+    default: 'pending',
   },
   checkIn: {
-    type: Date
+    type: Date,
   },
-   checkOut: {
-    type: Date
+  checkOut: {
+    type: Date,
   },
   reason: {
     type: String,
-    required:false,
+    required: false,
   },
   proveImage: {
     type: String,
     required: false,
   },
+  startDate: {
+    type: Date,
+    required: false,
+  },
+  endDate: {
+    type: Date,
+    required: false,
+  },
 });
 
-
-attendanceSchema.pre("save", function(next) {
-  if (this.status === attendanceStatus.EXCUSE || this.status === attendanceStatus.SICK) {
+attendanceSchema.pre('save', function (this: IAttendance, next) {
+  if (this.status === 'leave' || this.status === 'sick') {
     if (!this.reason) {
-      return next(new Error("Reason is required for sick or excuse"));
+      return next(new Error('Reason is required for sick or leave'));
     }
 
     if (!this.proveImage) {
-      return next(new Error("Image link is required for sick or excuse"));
+      return next(new Error('Image link is required for sick or leave'));
+    }
+
+    if (!this.startDate) {
+      return next(new Error('start date is required for sick or leave'));
+    }
+
+    if (!this.endDate) {
+      return next(new Error('end date is required for sick or leave'));
     }
   }
 
   next();
 });
 
-// const attendance = model("attendance", attendanceSchema);
-const Attendance = model<IAttendance>("Attendace", attendanceSchema);
-// export default Attendance;
+const Attendance = model<IAttendance>('Attendance', attendanceSchema);
 
-export { Attendance, attendanceStatus, approvalStatus, attendanceSchema };
+export default Attendance;

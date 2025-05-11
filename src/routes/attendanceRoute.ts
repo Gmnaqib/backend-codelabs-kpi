@@ -1,10 +1,10 @@
-import { Router } from "express";
-import { createAttendance } from "../controllers/attendanceController";
-import { authenticateToken } from "../middlewares/authMiddlewares";
+import { Router } from 'express';
+import attendanceController from '../controllers/attendanceController';
+import { authenticateToken } from '../middlewares/authMiddlewares';
 const attendanceRouter = Router();
 
-attendanceRouter.post("/checkin", createAttendance);
-
+attendanceRouter.post('/checkin', authenticateToken, attendanceController.checkin);
+attendanceRouter.post('/request', authenticateToken, attendanceController.checkin);
+attendanceRouter.patch('/checkout', authenticateToken, attendanceController.checkOut);
 
 export default attendanceRouter;
-
