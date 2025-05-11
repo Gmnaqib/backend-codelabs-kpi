@@ -1,12 +1,11 @@
-import { Router } from "express";
-import { register, login, me, createMultipleUsers } from "../controllers/authController";
-import { authenticateToken } from "../middlewares/authMiddlewares";
+import { Router } from 'express';
+import authController from '../controllers/authController';
+import { authenticateToken } from '../middlewares/authMiddlewares';
 const authRouter = Router();
 
-authRouter.post("/register", register);
-authRouter.post("/multiple-register", createMultipleUsers);
-authRouter.post("/login", login);
-authRouter.get("/me", authenticateToken, me);
+authRouter.post('/register', authController.register);
+authRouter.post('/multiple-register', authController.createMultipleUsers);
+authRouter.post('/login', authController.login);
+authRouter.get('/me', authenticateToken, authController.me);
 
 export default authRouter;
-

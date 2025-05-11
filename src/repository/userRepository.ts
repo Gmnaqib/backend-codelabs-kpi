@@ -1,5 +1,12 @@
-import User from "../models/user/user.schema";
-import IUser from "../models/user/user.interface";
+import User from '../models/user/user.schema';
+import IUser from '../models/user/user.interface';
 
-export const createUser = (userData: IUser) => User.create(userData);
-export const findUser = (filter: Partial<IUser>) => User.findOne(filter);
+const userRepository = {
+  findAll: () => User.find().select('-password'),
+  findById: (id: string) => User.findById(id).select('-password'),
+  createUser: (userData: IUser) => User.create(userData),
+  findUser: (filter: Partial<IUser>) => User.findOne(filter),
+  updateOne: (userData: any) => User.updateOne(userData),
+};
+
+export default userRepository;

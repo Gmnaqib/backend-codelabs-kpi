@@ -1,10 +1,10 @@
-import { Response } from "express";
+import { Response } from 'express';
 
 interface ResponseParams {
   res: Response;
   code: number;
   message: string;
-  data: any;
+  data?: any;
 }
 
 const response = ({ res, code, message, data }: ResponseParams): Response => {
