@@ -6,8 +6,10 @@ import { connectDB } from "./config/db";
 import authRouter from "./routes/authRoute";
 import userRouter from "./routes/userRoute";
 import attendanceRouter from "./routes/attendanceRoute";
+import cors from "cors";
 
 connectDB();
+app.use(cors());
 app.use(express.json());
 app.use("/auth", authRouter);
 app.use("/users", userRouter);
