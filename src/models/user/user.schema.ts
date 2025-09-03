@@ -1,5 +1,5 @@
-import { Schema, model } from 'mongoose';
-import IUser from './user.interface';
+import { Schema, model } from "mongoose";
+import IUser from "./user.interface";
 
 const userSchema = new Schema<IUser>(
   {
@@ -24,19 +24,19 @@ const userSchema = new Schema<IUser>(
     role: {
       type: String,
       enum: [
-        'admin',
-        'lecturer',
-        'minister of research',
-        'minister of competition',
-        'minister of branding',
-        'minister of operation',
-        'president',
-        'minister of research and operation',
-        'minister of research and competition',
-        'vice president',
-        'user',
+        "admin",
+        "lecturer",
+        "minister of research",
+        "minister of competition",
+        "minister of branding",
+        "minister of operation",
+        "president",
+        "minister of research and operation",
+        "minister of research and competition",
+        "vice president",
+        "user",
       ],
-      default: 'user',
+      default: "user",
     },
     majors: {
       type: String,
@@ -48,11 +48,13 @@ const userSchema = new Schema<IUser>(
     },
     status: {
       type: String,
-      enum: ['active', 'inactive', 'graduated'],
-      default: 'active',
+      enum: ["active", "inactive", "graduated"],
+      default: "active",
     },
     research: {
       type: String,
+      enum: ["website", "mobile", "game", "ui/ux", "data", "other"],
+      required: false,
     },
     telegram_id: {
       type: String,
@@ -64,7 +66,6 @@ const userSchema = new Schema<IUser>(
     },
     device_id: {
       type: String,
-      unique: true,
       required: false,
     },
     change_device_id: {
@@ -72,8 +73,8 @@ const userSchema = new Schema<IUser>(
       default: true,
     },
   },
-  { timestamps: true },
+  { timestamps: true }
 );
 
-const User = model<IUser>('User', userSchema);
+const User = model<IUser>("User", userSchema);
 export default User;
