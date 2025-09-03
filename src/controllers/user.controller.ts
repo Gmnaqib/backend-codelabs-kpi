@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { AuthRequest } from "../middlewares/authMiddlewares";
 import User from "../models/user/user.schema";
 import response from "../helper/response";
-import userRepository from "../repository/userRepository";
+import userRepository from "../repository/user.repository";
 import bcrypt from "bcrypt";
 
 const userController = {

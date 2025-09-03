@@ -1,8 +1,8 @@
 import { Request, Response } from "express";
 import response from "../helper/response";
-import attendanceRepository from "../repository/attendanceRepository";
-import IAttendance from "../models/attendance/attendanceInterface";
-import { approvalStatus } from "../models/attendance/attendanceInterface";
+import attendanceRepository from "../repository/attendance.repository";
+import IAttendance from "../models/attendance/attendance.Interface";
+import { approvalStatus } from "../models/attendance/attendance.Interface";
 import { AuthRequest } from "../middlewares/authMiddlewares";
 import attendanceValidate from "../validators/attendance.validator";
 

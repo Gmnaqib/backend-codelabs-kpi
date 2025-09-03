@@ -1,5 +1,5 @@
-import Attendance from '../models/attendance/attendanceSchema';
-import IAttendance from '../models/attendance/attendanceInterface';
+import Attendance from "../models/attendance/attendance.schema";
+import IAttendance from "../models/attendance/attendance.Interface";
 
 const attendanceRepository = {
   createAttendance: (attendanceData: IAttendance) => Attendance.create(attendanceData),

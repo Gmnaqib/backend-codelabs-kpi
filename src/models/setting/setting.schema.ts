@@ -1,5 +1,5 @@
 import { Schema, model } from "mongoose";
-import ISetting from "./settingInterface";
+import ISetting from "./setting.interface";
 
 const settingSchema = new Schema<ISetting>({
   code: {

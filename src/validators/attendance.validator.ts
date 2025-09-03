@@ -1,7 +1,6 @@
 // import { getEndOfDayWIB, getStartOfDayWIB, getTimeTodayWIB, getNowWIBAsDateTime } from '../helper/dateHelper';
-import attendanceRepository from "../repository/attendanceRepository";
+import attendanceRepository from "../repository/attendance.repository";
 import dateHelper from "../helper/dateHelper";
-import { error } from "console";
 
 export const attendanceValidate = {
   checkIn: async (userId: string): Promise<void> => {

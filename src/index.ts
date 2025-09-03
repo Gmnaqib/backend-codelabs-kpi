@@ -3,9 +3,9 @@ import "dotenv/config";
 const app = express();
 const port = process.env.PORT;
 import { connectDB } from "./config/db";
-import authRouter from "./routes/authRoute";
-import userRouter from "./routes/userRoute";
-import attendanceRouter from "./routes/attendanceRoute";
+import authRouter from "./routes/auth.route";
+import userRouter from "./routes/user.route";
+import attendanceRouter from "./routes/attendance.route";
 import cors from "cors";
 
 connectDB();

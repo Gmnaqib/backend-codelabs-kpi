@@ -1,4 +1,4 @@
-import userRepository from "../repository/userRepository";
+import userRepository from "../repository/user.repository";
 import { AuthRequest } from "../middlewares/authMiddlewares";
 import { Request, Response } from "express";
 import IUser from "../models/user/user.interface";
