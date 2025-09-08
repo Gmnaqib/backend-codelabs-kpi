@@ -1,27 +1,19 @@
-import { Types } from 'mongoose';
+import { Types } from "mongoose";
 
 interface IAttendance {
   userId: Types.ObjectId;
+  date?: Date;
   status?: attendanceStatus;
-  approvalStatus?: approvalStatus;
-  reason?: string;
-  proveImage?: string;
   checkIn?: Date;
   checkOut?: Date | null;
-  startDate?: Date;
-  endDate?: Date;
+  leaveRequestId?: Types.ObjectId;
 }
 
-enum attendanceStatus {
-  PRESENT = 'present',
-  SICK = 'sick',
-  LEAVE = 'leave',
-  ABSENT = 'absent',
+export enum attendanceStatus {
+  PRESENT = "present",
+  SICK = "sick",
+  LEAVE = "leave",
+  ABSENT = "absent",
 }
 
-export enum approvalStatus {
-  PENDING = 'pending',
-  ACCEPT = 'accept',
-  REJECT = 'reject',
-}
 export default IAttendance;

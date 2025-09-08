@@ -1,23 +1,23 @@
-import { Request, Response, NextFunction } from 'express';
-import jwt from 'jsonwebtoken';
-import 'dotenv/config';
+import { Request, Response, NextFunction } from "express";
+import jwt from "jsonwebtoken";
+import "dotenv/config";
 
 export interface AuthRequest extends Request {
   user?: any;
 }
 
 export const authenticateToken = (req: AuthRequest, res: Response, next: NextFunction): void => {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
+  const authHeader = req.headers["authorization"];
+  const token = authHeader && authHeader.split(" ")[1];
 
   if (!token) {
-    res.status(401).json({ message: 'Access denied, token missing' });
+    res.status(401).json({ message: "Access denied, token missing" });
   }
 
   try {
     const secret = process.env.JWT_SECRET;
     if (!secret) {
-      throw new Error('JWT_SECRET is not defined in environment variables');
+      throw new Error("JWT_SECRET is not defined in environment variables");
     }
     const decoded: any = jwt.verify(token as string, secret);
     req.user = {
@@ -29,6 +29,7 @@ export const authenticateToken = (req: AuthRequest, res: Response, next: NextFun
       years: decoded.years,
       status: decoded.status,
       research: decoded.research,
+      device_id: decoded.device_id,
     };
     next();
   } catch (err: any) {
