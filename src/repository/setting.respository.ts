@@ -7,6 +7,7 @@ const settingRepository = {
   findById: (id: string) => Setting.findById(id),
   findAll: () => Setting.find(),
   delete: (id: string) => Setting.deleteOne({ _id: id }),
+  findByCode: (code: string) => Setting.findOne({ code }),
 };
 
 export default settingRepository;
