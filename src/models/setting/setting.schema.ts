@@ -5,6 +5,7 @@ const settingSchema = new Schema<ISetting>({
   code: {
     type: String,
     required: true,
+    unique: true,
   },
   name: {
     type: String,
@@ -17,6 +18,6 @@ const settingSchema = new Schema<ISetting>({
   },
 });
 
-const Setting = model<ISetting>("Attendance", settingSchema);
+const Setting = model<ISetting>("Setting", settingSchema);
 
 export default Setting;

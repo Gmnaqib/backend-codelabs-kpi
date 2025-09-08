@@ -6,6 +6,7 @@ import { connectDB } from "./config/db";
 import authRouter from "./routes/auth.route";
 import userRouter from "./routes/user.route";
 import attendanceRouter from "./routes/attendance.route";
+import settingRouter from "./routes/setting.route";
 import cors from "cors";
 
 connectDB();
@@ -14,6 +15,7 @@ app.use(express.json());
 app.use("/auth", authRouter);
 app.use("/users", userRouter);
 app.use("/attendance", attendanceRouter);
+app.use("/setting", settingRouter);
 
 app.listen(port, () => {
   console.log(`App listening on http://localhost:${port}`);
