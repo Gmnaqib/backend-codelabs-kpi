@@ -53,7 +53,7 @@ const userSchema = new Schema<IUser>(
     },
     research: {
       type: String,
-      enum: ["website", "mobile", "game", "ui/ux", "data", "other"],
+      enum: ["website", "mobile", "game", "ui/ux", "data", "IoT", "other"],
       required: false,
     },
     telegram_id: {

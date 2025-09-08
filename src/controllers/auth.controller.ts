@@ -133,6 +133,7 @@ const authController = {
           years: user.years,
           status: user.status,
           research: user.research,
+          device_id: user.device_id,
         },
         secret,
         { expiresIn: "1d" }

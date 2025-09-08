@@ -25,6 +25,7 @@ enum Role {
   MinisterOfResearchAndOperation = "minister of research and operation",
   MinisterOfResearchAndCompetition = "minister of research and competition",
   VicePresident = "vice president",
+  Secretary = "secretary",
   User = "user",
 }
 
