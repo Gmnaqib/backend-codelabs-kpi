@@ -3,11 +3,12 @@ import response from "../helper/response";
 import attendanceRepository from "../repository/attendance.repository";
 import leaveRequestRepository from "../repository/leave.request.repository";
 import IAttendance from "../models/attendance/attendance.Interface";
-import IleaveRequest, { approvalStatus } from "../models/attendance/leave.request.interface";
+import IleaveRequest from "../models/attendance/leave.request.interface";
 import { AuthRequest } from "../middlewares/authMiddlewares";
 import attendanceValidate from "../validators/attendance.validator";
-import LeaveRequest from "../models/attendance/leave.request.schema";
 import { attendanceStatus } from "../models/attendance/attendance.Interface";
+import userRepository from "../repository/user.repository";
+import dateHelper from "../helper/dateHelper";
 import { Types } from "mongoose";
 
 const mapLeaveTypeToAttendanceStatus = (type: "sick" | "leave"): attendanceStatus => {
@@ -24,8 +25,26 @@ const attendanceController = {
     try {
       const userId = req.user?.id;
       const device_id = req.body;
+      const now = dateHelper.getNowWIBAsDateTime();
+      const timeLimit = dateHelper.getTimeTodayWIB(23);
+      const timeLate = dateHelper.getTimeTodayWIB(24);
 
       await attendanceValidate.checkIn(userId, device_id);
+
+      if (now > timeLimit && now < timeLate) {
+        const reason = req.body.reason;
+        if (!reason) {
+          throw new Error("Reason is required for late check-in");
+        }
+        const newAttendance: IAttendance = await attendanceRepository.createAttendance({
+          userId,
+          date: new Date(),
+          checkIn: new Date(),
+          checkOut: null,
+          reason: reason,
+        });
+        return response({ res, code: 201, message: "Checkin success" });
+      }
 
       const newAttendance: IAttendance = await attendanceRepository.createAttendance({
         userId,
@@ -127,6 +146,55 @@ const attendanceController = {
       }
 
       return response({ res, code: 200, message: "Leave request reviewed successfully" });
+    } catch (error: any) {
+      return response({ res, code: 500, message: error.message });
+    }
+  },
+
+  getAttendanceMonthly: async (req: Request, res: Response): Promise<any> => {
+    try {
+      const { month, year } = req.query;
+      const monthNum = parseInt(month as string);
+      const yearNum = parseInt(year as string);
+
+      if (!month || !year) {
+        const attendances = await attendanceRepository.findAll();
+        return response({ res, code: 200, message: "Get all attendance success", data: attendances });
+      }
+
+      const attendances = await attendanceRepository.findMonthlyAttendance(monthNum, yearNum);
+
+      return response({ res, code: 200, message: "Monthly attendance retrieved successfully", data: attendances });
+    } catch (error: any) {
+      return response({ res, code: 500, message: error.message });
+    }
+  },
+  getAttendanceSummary: async (req: Request, res: Response): Promise<any> => {
+    try {
+      const { year, month } = req.query;
+
+      if (!month || !year) {
+        const summary = await attendanceRepository.getSummary();
+        return response({ res, code: 200, message: "Attendance summary retrieved successfully", data: summary });
+      }
+      const summary = await attendanceRepository.getMonthlySummary(Number(year), Number(month));
+
+      return response({ res, code: 200, message: "Attendance summary retrieved successfully", data: summary });
+    } catch (error: any) {
+      return response({ res, code: 500, message: error.message });
+    }
+  },
+  getAttendanceByStatus: async (req: Request, res: Response): Promise<any> => {
+    try {
+      const { status, month, year } = req.query;
+      const { id: userId } = req.params;
+
+      if (!month || !year) {
+        const attendance = await attendanceRepository.getSummaryWithDates(String(userId));
+        return response({ res, code: 200, message: "Attendance details retrieved successfully", data: attendance });
+      }
+      const attendance = await attendanceRepository.findDetailsByStatus(String(userId), String(status), Number(month), Number(year));
+      return response({ res, code: 200, message: "Attendance details retrieved successfully", data: attendance });
     } catch (error: any) {
       return response({ res, code: 500, message: error.message });
     }

@@ -24,6 +24,9 @@ const attendanceSchema = new Schema<IAttendance>({
   checkOut: {
     type: Date,
   },
+  reason: {
+    type: String,
+  },
   leaveRequestId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "LeaveRequest",

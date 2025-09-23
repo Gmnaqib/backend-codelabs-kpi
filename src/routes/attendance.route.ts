@@ -4,6 +4,9 @@ import { authenticateToken } from "../middlewares/authMiddlewares";
 import { roleMiddlewares } from "../middlewares/role.middlewares";
 const attendanceRouter = Router();
 
+attendanceRouter.get("/", authenticateToken, roleMiddlewares(["admin", "minister of operation", "user"]), attendanceController.getAttendanceMonthly);
+attendanceRouter.get("/summary", authenticateToken, roleMiddlewares(["admin", "minister of operation", "user"]), attendanceController.getAttendanceSummary);
+attendanceRouter.get("/summary/:id", authenticateToken, roleMiddlewares(["admin", "minister of operation", "user"]), attendanceController.getAttendanceByStatus);
 attendanceRouter.post("/checkin", authenticateToken, attendanceController.checkin);
 attendanceRouter.post("/request", authenticateToken, attendanceController.submitLeaveOrSick);
 attendanceRouter.patch("/checkout", authenticateToken, attendanceController.checkOut);

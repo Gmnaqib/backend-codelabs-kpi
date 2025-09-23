@@ -10,14 +10,14 @@ export const attendanceValidate = {
     const startOfDay = dateHelper.getStartOfDayWIB();
     const endOfDay = dateHelper.getEndOfDayWIB();
     const timeIn = dateHelper.getTimeTodayWIB(6);
-    const timeLimit = dateHelper.getTimeTodayWIB(9);
+    const timeLate = dateHelper.getTimeTodayWIB(22);
     const { device_id } = device;
 
     if (now < timeIn) {
       throw new Error("You can check in after 6:00 AM");
     }
 
-    if (now > timeLimit) {
+    if (now > timeLate) {
       throw new Error("It’s too late to check in");
     }
 
@@ -87,11 +87,15 @@ export const attendanceValidate = {
 
   leaveOrSick: async (userId: string, type: string, reason: string, attachmentUrl: string, startDate: Date, endDate: Date) => {
     const now = dateHelper.getNowWIBAsDateTime();
+    let timeLimit = dateHelper.getTimeTodayWIB(12);
 
     if (!type || !reason || !attachmentUrl || !startDate || !endDate) {
       throw new Error("All fields are required");
     }
 
+    if (now > timeLimit) {
+      throw new Error("It’s too late to submit a leave or sick request today");
+    }
     const userAttendance = await attendanceRepository.findAttendance({
       userId,
       startDate: {
@@ -112,3 +116,8 @@ export default attendanceValidate;
 // ("IS_RAMADHAN");
 // name;
 // ("Ramadhan");
+
+// code;
+// ("SEMESTER_HOLIDAY");
+// name;
+// ("Semester Holiday");
