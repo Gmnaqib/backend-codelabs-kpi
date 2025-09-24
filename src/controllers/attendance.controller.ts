@@ -97,6 +97,71 @@ const attendanceController = {
       return response({ res, code: 500, message: error.message });
     }
   },
+
+  // New leave request fetching endpoints
+  getAllLeaveRequests: async (req: Request, res: Response): Promise<any> => {
+    try {
+      const requests = await attendanceService.getAllLeaveRequests();
+
+      return response({
+        res,
+        code: 200,
+        message: "All leave requests retrieved successfully",
+        data: requests,
+      });
+    } catch (error: any) {
+      return response({ res, code: 500, message: error.message });
+    }
+  },
+
+  getTodayLeaveRequests: async (req: Request, res: Response): Promise<any> => {
+    try {
+      const requests = await attendanceService.getTodayLeaveRequests();
+
+      return response({
+        res,
+        code: 200,
+        message: "Today's leave requests retrieved successfully",
+        data: requests,
+      });
+    } catch (error: any) {
+      return response({ res, code: 500, message: error.message });
+    }
+  },
+
+  getLeaveRequestsByStatus: async (req: Request, res: Response): Promise<any> => {
+    try {
+      const { status } = req.query;
+
+      const requests = await attendanceService.getLeaveRequestsByStatus(status as any);
+
+      return response({
+        res,
+        code: 200,
+        message: `Leave requests with status '${status}' retrieved successfully`,
+        data: requests,
+      });
+    } catch (error: any) {
+      return response({ res, code: 500, message: error.message });
+    }
+  },
+
+  getLeaveRequestsByUser: async (req: AuthRequest, res: Response): Promise<any> => {
+    try {
+      const userId = req.user?.id;
+
+      const requests = await attendanceService.getLeaveRequestsByUserId(userId);
+
+      return response({
+        res,
+        code: 200,
+        message: "User leave requests retrieved successfully",
+        data: requests,
+      });
+    } catch (error: any) {
+      return response({ res, code: 500, message: error.message });
+    }
+  },
 };
 
 export default attendanceController;

@@ -2,7 +2,6 @@ import LeaveRequest from "../models/attendance/leave.request.schema";
 import IleaveRequest, { attendanceType, approvalStatus } from "../models/attendance/leave.request.interface";
 import { Types } from "mongoose";
 
-// Type-safe filter interface using proper enums
 interface LeaveRequestFilter {
   _id?: Types.ObjectId | string;
   userId?: Types.ObjectId | string;
@@ -14,10 +13,8 @@ interface LeaveRequestFilter {
 }
 
 const leaveRequestRepository = {
-  // Create operations
   createLeaveRequest: (leaveRequestData: Partial<IleaveRequest>) => LeaveRequest.create(leaveRequestData),
 
-  // Find operations
   findAllLeaveRequests: () => LeaveRequest.find().sort({ createdAt: -1 }),
 
   findLeaveRequestById: (id: string) => LeaveRequest.findById(id),
@@ -42,12 +39,15 @@ const leaveRequestRepository = {
       ],
     }).sort({ createdAt: -1 }),
 
-  // Update operations
+  findTodayLeaveRequests: (todayStart: Date, todayEnd: Date) =>
+    LeaveRequest.find({
+      $and: [{ startDate: { $lte: todayEnd } }, { endDate: { $gte: todayStart } }],
+    }).sort({ createdAt: -1 }),
+
   updateLeaveRequestById: (id: string, updateData: Partial<IleaveRequest>) => LeaveRequest.findByIdAndUpdate(id, updateData, { new: true }),
 
   updateLeaveRequest: (filter: LeaveRequestFilter, updateData: Partial<IleaveRequest>) => LeaveRequest.updateOne(filter, updateData),
 
-  // Delete operations
   deleteLeaveRequestById: (id: string) => LeaveRequest.findByIdAndDelete(id),
 
   deleteLeaveRequest: (filter: LeaveRequestFilter) => LeaveRequest.deleteOne(filter),

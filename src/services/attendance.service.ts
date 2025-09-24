@@ -236,6 +236,98 @@ const attendanceService = {
       records: attendanceRecords,
     };
   },
+
+  getAllLeaveRequests: async (): Promise<any[]> => {
+    const leaveRequests = await leaveRequestRepository.findAllLeaveRequests();
+
+    const uniqueUserIds = [...new Set(leaveRequests.map((request) => request.userId.toString()))];
+
+    const userMap = new Map();
+    for (const userId of uniqueUserIds) {
+      try {
+        const user = await userRepository.findUserById(userId);
+        if (user) {
+          userMap.set(userId, user.name);
+        }
+      } catch (error) {
+        userMap.set(userId, "Unknown User");
+      }
+    }
+
+    return leaveRequests.map((request) => ({
+      ...request.toObject(),
+      userName: userMap.get(request.userId.toString()) || "Unknown User",
+    }));
+  },
+
+  getTodayLeaveRequests: async (): Promise<any[]> => {
+    const dateHelper = (await import("../helper/dateHelper")).default;
+    const todayStart = dateHelper.getStartOfDayWIB();
+    const todayEnd = dateHelper.getEndOfDayWIB();
+
+    const leaveRequests = await leaveRequestRepository.findTodayLeaveRequests(todayStart, todayEnd);
+
+    const uniqueUserIds = [...new Set(leaveRequests.map((request) => request.userId.toString()))];
+
+    const userMap = new Map();
+    for (const userId of uniqueUserIds) {
+      try {
+        const user = await userRepository.findUserById(userId);
+        if (user) {
+          userMap.set(userId, user.name);
+        }
+      } catch (error) {
+        userMap.set(userId, "Unknown User");
+      }
+    }
+
+    return leaveRequests.map((request) => ({
+      ...request.toObject(),
+      userName: userMap.get(request.userId.toString()) || "Unknown User",
+    }));
+  },
+
+  getLeaveRequestsByStatus: async (status: approvalStatus): Promise<any[]> => {
+    const leaveRequests = await leaveRequestRepository.findLeaveRequestsByStatus(status);
+
+    const uniqueUserIds = [...new Set(leaveRequests.map((request) => request.userId.toString()))];
+
+    const userMap = new Map();
+    for (const userId of uniqueUserIds) {
+      try {
+        const user = await userRepository.findUserById(userId);
+        if (user) {
+          userMap.set(userId, user.name);
+        }
+      } catch (error) {
+        userMap.set(userId, "Unknown User");
+      }
+    }
+
+    return leaveRequests.map((request) => ({
+      ...request.toObject(),
+      userName: userMap.get(request.userId.toString()) || "Unknown User",
+    }));
+  },
+
+  getLeaveRequestsByUserId: async (userId: string): Promise<any[]> => {
+    const leaveRequests = await leaveRequestRepository.findLeaveRequestsByUserId(userId);
+
+    let userName = "Unknown User";
+    try {
+      const user = await userRepository.findUserById(userId);
+      if (user) {
+        userName = user.name;
+      }
+    } catch (error) {
+      userName = "Unknown User";
+    }
+
+    return leaveRequests.map((request) => ({
+      ...request.toObject(),
+      userName,
+    }));
+  },
 };
 
 export default attendanceService;
