@@ -7,6 +7,7 @@ import authRouter from "./routes/auth.route";
 import userRouter from "./routes/user.route";
 import attendanceRouter from "./routes/attendance.route";
 import settingRouter from "./routes/setting.route";
+import scheduleRouter from "./routes/schedule.route";
 import cors from "cors";
 
 connectDB();
@@ -16,6 +17,7 @@ app.use("/auth", authRouter);
 app.use("/users", userRouter);
 app.use("/attendance", attendanceRouter);
 app.use("/setting", settingRouter);
+app.use("/schedules", scheduleRouter);
 
 app.listen(port, () => {
   console.log(`App listening on http://localhost:${port}`);
