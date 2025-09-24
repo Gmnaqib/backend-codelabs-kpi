@@ -2,43 +2,40 @@ import Setting from "../models/setting/setting.schema";
 import ISetting from "../models/setting/setting.interface";
 import { Types } from "mongoose";
 
-// Type-safe filter and update interfaces
+// Type-safe filter interface
 interface SettingFilter {
   _id?: Types.ObjectId | string;
   code?: string;
   name?: string;
-  value?: boolean | any;
-}
-
-interface SettingUpdate {
-  code?: string;
-  name?: string;
-  value?: boolean | any;
+  value?: boolean;
 }
 
 const settingRepository = {
+  // Create operations
   createSetting: (settingData: Partial<ISetting>) => Setting.create(settingData),
 
+  // Find operations
   findAllSettings: () => Setting.find(),
 
   findSettingById: (id: string) => Setting.findById(id),
 
   findSetting: (filter: SettingFilter) => Setting.findOne(filter),
 
+  findSettingsByFilter: (filter: SettingFilter) => Setting.find(filter),
+
   findSettingByCode: (code: string) => Setting.findOne({ code }),
 
-  updateSetting: (filter: SettingFilter, updateData: SettingUpdate) => Setting.updateOne(filter, updateData),
+  // Update operations
+  updateSettingById: (id: string, updateData: Partial<ISetting>) => Setting.findByIdAndUpdate(id, updateData, { new: true }),
 
-  updateSettingById: (id: string, updateData: SettingUpdate) => Setting.findByIdAndUpdate(id, updateData, { new: true }),
+  updateSetting: (filter: SettingFilter, updateData: Partial<ISetting>) => Setting.updateOne(filter, updateData),
 
-  deleteSetting: (id: string) => Setting.findByIdAndDelete(id),
+  updateSettingByCode: (code: string, updateData: Partial<ISetting>) => Setting.findOneAndUpdate({ code }, updateData, { new: true, upsert: true }),
 
-  deleteSettingByFilter: (filter: SettingFilter) => Setting.deleteOne(filter),
+  // Delete operations
+  deleteSettingById: (id: string) => Setting.findByIdAndDelete(id),
 
-  // Specific helper methods
-  toggleSettingValue: (code: string) => Setting.findOneAndUpdate({ code }, [{ $set: { value: { $not: "$value" } } }], { new: true }),
-
-  setSettingValue: (code: string, value: boolean | any) => Setting.findOneAndUpdate({ code }, { value }, { new: true, upsert: true }),
+  deleteSetting: (filter: SettingFilter) => Setting.deleteOne(filter),
 };
 
 export default settingRepository;

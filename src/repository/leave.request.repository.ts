@@ -2,7 +2,7 @@ import LeaveRequest from "../models/attendance/leave.request.schema";
 import IleaveRequest, { attendanceType, approvalStatus } from "../models/attendance/leave.request.interface";
 import { Types } from "mongoose";
 
-// Type-safe filter and update interfaces
+// Type-safe filter interface using proper enums
 interface LeaveRequestFilter {
   _id?: Types.ObjectId | string;
   userId?: Types.ObjectId | string;
@@ -13,19 +13,11 @@ interface LeaveRequestFilter {
   endDate?: Date | { $gte?: Date; $lte?: Date };
 }
 
-interface LeaveRequestUpdate {
-  type?: attendanceType;
-  reason?: string;
-  attachmentUrl?: string;
-  startDate?: Date;
-  endDate?: Date;
-  approvalStatus?: approvalStatus;
-  approvedBy?: Types.ObjectId | string;
-}
-
 const leaveRequestRepository = {
+  // Create operations
   createLeaveRequest: (leaveRequestData: Partial<IleaveRequest>) => LeaveRequest.create(leaveRequestData),
 
+  // Find operations
   findAllLeaveRequests: () => LeaveRequest.find().sort({ createdAt: -1 }),
 
   findLeaveRequestById: (id: string) => LeaveRequest.findById(id),
@@ -34,18 +26,7 @@ const leaveRequestRepository = {
 
   findLeaveRequestsByFilter: (filter: LeaveRequestFilter) => LeaveRequest.find(filter).sort({ createdAt: -1 }),
 
-  updateLeaveRequest: (filter: LeaveRequestFilter, updateData: LeaveRequestUpdate) => LeaveRequest.updateOne(filter, updateData),
-
-  updateLeaveRequestById: (id: string, updateData: LeaveRequestUpdate) => LeaveRequest.findByIdAndUpdate(id, updateData, { new: true }),
-
-  deleteLeaveRequest: (id: string) => LeaveRequest.findByIdAndDelete(id),
-
-  deleteLeaveRequestByFilter: (filter: LeaveRequestFilter) => LeaveRequest.deleteOne(filter),
-
-  // Specific helper methods
-  findLeaveRequestsByUser: (userId: string) => LeaveRequest.find({ userId: new Types.ObjectId(userId) }).sort({ createdAt: -1 }),
-
-  findPendingLeaveRequests: () => LeaveRequest.find({ approvalStatus: approvalStatus.PENDING }).sort({ createdAt: -1 }),
+  findLeaveRequestsByUserId: (userId: string) => LeaveRequest.find({ userId: new Types.ObjectId(userId) }).sort({ createdAt: -1 }),
 
   findLeaveRequestsByStatus: (status: approvalStatus) => LeaveRequest.find({ approvalStatus: status }).sort({ createdAt: -1 }),
 
@@ -59,27 +40,17 @@ const leaveRequestRepository = {
           endDate: { $gte: endDate },
         },
       ],
-    }),
+    }).sort({ createdAt: -1 }),
 
-  approveLeaveRequest: (id: string, approvedBy: string) =>
-    LeaveRequest.findByIdAndUpdate(
-      id,
-      {
-        approvalStatus: approvalStatus.APPROVED,
-        approvedBy: new Types.ObjectId(approvedBy),
-      },
-      { new: true }
-    ),
+  // Update operations
+  updateLeaveRequestById: (id: string, updateData: Partial<IleaveRequest>) => LeaveRequest.findByIdAndUpdate(id, updateData, { new: true }),
 
-  rejectLeaveRequest: (id: string, approvedBy: string) =>
-    LeaveRequest.findByIdAndUpdate(
-      id,
-      {
-        approvalStatus: approvalStatus.REJECTED,
-        approvedBy: new Types.ObjectId(approvedBy),
-      },
-      { new: true }
-    ),
+  updateLeaveRequest: (filter: LeaveRequestFilter, updateData: Partial<IleaveRequest>) => LeaveRequest.updateOne(filter, updateData),
+
+  // Delete operations
+  deleteLeaveRequestById: (id: string) => LeaveRequest.findByIdAndDelete(id),
+
+  deleteLeaveRequest: (filter: LeaveRequestFilter) => LeaveRequest.deleteOne(filter),
 };
 
 export default leaveRequestRepository;

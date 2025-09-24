@@ -37,15 +37,15 @@ const settingService = {
     return setting;
   },
 
-  deleteSetting: async (id: string): Promise<ISetting> => {
+  deleteSetting: async (id: string): Promise<ISetting | null> => {
     const setting = await settingRepository.findSettingById(id);
 
     if (!setting) {
       throw new Error("setting not found");
     }
 
-    const deletedSetting = await settingRepository.deleteSetting(id);
-    return deletedSetting || setting;
+    const deletedSetting = await settingRepository.deleteSettingById(id);
+    return deletedSetting;
   },
 };
 

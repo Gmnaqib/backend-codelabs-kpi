@@ -1,5 +1,6 @@
 import attendanceRepository from "../repository/attendance.repository";
 import leaveRequestRepository from "../repository/leave.request.repository";
+import userRepository from "../repository/user.repository";
 import attendanceValidate from "../validators/attendance.validator";
 import leaveRequestValidate from "../validators/leaveRequest.validator";
 import { Types } from "mongoose";
@@ -17,16 +18,14 @@ const mapLeaveTypeToAttendanceStatus = (type: attendanceType): attendanceStatus 
 
 const attendanceService = {
   checkIn: async (userId: string, deviceData: { device_id: string }, reason?: string): Promise<IAttendance> => {
-    // Call validator
     const validationResult = await attendanceValidate.checkIn(userId, deviceData, reason);
-
-    // Call repository
     const userObjectId = new Types.ObjectId(userId);
 
     if (validationResult.isLateCheckIn) {
       return await attendanceRepository.createAttendance({
         userId: userObjectId,
         date: new Date(),
+        status: attendanceStatus.PRESENT,
         checkIn: new Date(),
         checkOut: null,
         reason: reason,
@@ -36,16 +35,14 @@ const attendanceService = {
     return await attendanceRepository.createAttendance({
       userId: userObjectId,
       date: new Date(),
+      status: attendanceStatus.PRESENT,
       checkIn: new Date(),
       checkOut: null,
     });
   },
 
   checkOut: async (userId: string, deviceData: { device_id: string }): Promise<IAttendance> => {
-    // Call validator
     await attendanceValidate.checkOut(userId, deviceData);
-
-    // Call repository
     const userAttendance = await attendanceRepository.findAttendance({ userId });
 
     if (!userAttendance) {
@@ -58,12 +55,8 @@ const attendanceService = {
   },
 
   submitLeaveOrSick: async (userId: string, type: attendanceType, reason: string, attachmentUrl: string, startDate: Date, endDate: Date): Promise<IleaveRequest> => {
-    // Call validator
     await attendanceValidate.leaveOrSick(userId, type, reason, attachmentUrl, startDate, endDate);
-
-    // Call repository
     const userObjectId = new Types.ObjectId(userId);
-
     return await leaveRequestRepository.createLeaveRequest({
       userId: userObjectId,
       type,
@@ -75,10 +68,7 @@ const attendanceService = {
   },
 
   reviewLeaveRequest: async (reviewerUserId: string, requestId: string, approvalStatus: approvalStatus): Promise<void> => {
-    // Call validator
     await leaveRequestValidate.reviewLeaveRequest(reviewerUserId, requestId, approvalStatus);
-
-    // Call repository
     const objectId = new Types.ObjectId(requestId);
     const reviewerObjectId = new Types.ObjectId(reviewerUserId);
     const searchLeaveRequest = await leaveRequestRepository.findLeaveRequestById(requestId);
@@ -86,7 +76,6 @@ const attendanceService = {
     const startDate = searchLeaveRequest!.startDate;
     const endDate = searchLeaveRequest!.endDate;
 
-    // Update the leave request
     searchLeaveRequest!.approvedBy = reviewerObjectId;
     searchLeaveRequest!.approvalStatus = approvalStatus;
     await searchLeaveRequest!.save();
@@ -113,17 +102,139 @@ const attendanceService = {
   },
 
   getAttendanceSummary: async (year?: number, month?: number): Promise<any> => {
+    let attendanceRecords: IAttendance[];
     if (!month || !year) {
-      return await attendanceRepository.getAttendanceSummary();
+      attendanceRecords = await attendanceRepository.findAllAttendances();
+    } else {
+      attendanceRecords = await attendanceRepository.findMonthlyAttendances(month, year);
     }
-    return await attendanceRepository.getAttendanceMonthlySummary(year, month);
+
+    const userGroups = new Map<string, IAttendance[]>();
+
+    attendanceRecords.forEach((record) => {
+      const userIdStr = record.userId.toString();
+      if (!userGroups.has(userIdStr)) {
+        userGroups.set(userIdStr, []);
+      }
+      userGroups.get(userIdStr)!.push(record);
+    });
+
+    const uniqueUserIds = Array.from(userGroups.keys());
+
+    const userMap = new Map();
+    for (const userId of uniqueUserIds) {
+      try {
+        const user = await userRepository.findUserById(userId);
+        if (user) {
+          userMap.set(userId, user.name);
+        }
+      } catch (error) {
+        userMap.set(userId, "Unknown User");
+      }
+    }
+
+    const summaryResults = Array.from(userGroups.entries()).map(([userId, records]) => {
+      // Count each status using array filter + .length
+      const presentCount = records.filter((r) => r.status === "present" && !r.reason).length;
+      const lateCount = records.filter((r) => r.status === "present" && r.reason).length;
+      const sickCount = records.filter((r) => r.status === "sick").length;
+      const leaveCount = records.filter((r) => r.status === "leave").length;
+      const absentCount = records.filter((r) => r.status === "absent").length;
+
+      // Build counts object with all statuses
+      const counts: any = {};
+      if (presentCount > 0) counts.present = presentCount;
+      if (lateCount > 0) counts.late = lateCount;
+      if (sickCount > 0) counts.sick = sickCount;
+      if (leaveCount > 0) counts.leave = leaveCount;
+      if (absentCount > 0) counts.absent = absentCount;
+
+      return {
+        userId,
+        userName: userMap.get(userId) || "Unknown User",
+        counts,
+      };
+    });
+
+    return summaryResults;
   },
 
   getAttendanceByStatus: async (userId: string, status?: string, month?: number, year?: number): Promise<any> => {
     if (!month || !year) {
-      return await attendanceRepository.getAttendanceSummaryWithDates(userId);
+      const filter = { userId: new Types.ObjectId(userId) };
+      const attendanceRecords = await attendanceRepository.findAttendancesByFilter(filter);
+      const user = await userRepository.findUserById(userId);
+      const userName = user?.name || "Unknown User";
+
+      const statusGroups: any = {};
+
+      const presentRecords = attendanceRecords.filter((r) => r.status === "present" && !r.reason);
+      const lateRecords = attendanceRecords.filter((r) => r.status === "present" && r.reason);
+      const sickRecords = attendanceRecords.filter((r) => r.status === "sick");
+      const leaveRecords = attendanceRecords.filter((r) => r.status === "leave");
+      const absentRecords = attendanceRecords.filter((r) => r.status === "absent");
+
+      if (presentRecords.length > 0) {
+        statusGroups.present = {
+          count: presentRecords.length,
+          dates: presentRecords.map((r) => r.date),
+        };
+      }
+
+      if (lateRecords.length > 0) {
+        statusGroups.late = {
+          count: lateRecords.length,
+          dates: lateRecords.map((r) => r.date),
+        };
+      }
+
+      if (sickRecords.length > 0) {
+        statusGroups.sick = {
+          count: sickRecords.length,
+          dates: sickRecords.map((r) => r.date),
+        };
+      }
+
+      if (leaveRecords.length > 0) {
+        statusGroups.leave = {
+          count: leaveRecords.length,
+          dates: leaveRecords.map((r) => r.date),
+        };
+      }
+
+      if (absentRecords.length > 0) {
+        statusGroups.absent = {
+          count: absentRecords.length,
+          dates: absentRecords.map((r) => r.date),
+        };
+      }
+
+      const result = Object.entries(statusGroups).map(([status, data]: [string, any]) => ({
+        status,
+        count: data.count,
+        dates: data.dates,
+      }));
+
+      return {
+        userId,
+        userName,
+        statusSummary: result,
+      };
     }
-    return await attendanceRepository.findAttendanceDetailsByStatus(userId, status!, month, year);
+
+    const attendanceRecords = await attendanceRepository.findAttendanceDetailsByStatus(userId, status!, month, year);
+
+    const user = await userRepository.findUserById(userId);
+    const userName = user?.name || "Unknown User";
+
+    return {
+      userId,
+      userName,
+      status,
+      month,
+      year,
+      records: attendanceRecords,
+    };
   },
 };
 

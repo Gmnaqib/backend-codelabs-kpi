@@ -17,12 +17,9 @@ const userService = {
   },
 
   updateByUser: async (userId: string, userData: { name?: string; password?: string }): Promise<IUser> => {
-    // Call validator
     await userValidate.updateByUser(userId, userData);
-
-    // Call repository
     const { name, password } = userData;
-    const user = await userRepository.findUserById(userId, true); // Include password for update
+    const user = await userRepository.findUserById(userId, true);
 
     if (password) {
       const hashedPassword = await bcrypt.hash(password, 10);
@@ -45,12 +42,10 @@ const userService = {
       change_device_id?: boolean;
     }
   ): Promise<IUser> => {
-    // Call validator
     await userValidate.updateByAdmin(userId, userData);
 
-    // Call repository
     const { name, password, role, status, research, change_device_id } = userData;
-    const user = await userRepository.findUserById(userId, true); // Include password for update
+    const user = await userRepository.findUserById(userId, true);
 
     if (password) {
       const hashedPassword = await bcrypt.hash(password, 10);
@@ -68,11 +63,9 @@ const userService = {
   },
 
   updateDeviceId: async (userId: string, deviceId: string): Promise<IUser> => {
-    // Call validator
     await userValidate.updateDeviceId(userId, deviceId);
 
-    // Call repository
-    const user = await userRepository.findUserById(userId, true); // Include password for update
+    const user = await userRepository.findUserById(userId, true);
 
     user!.device_id = deviceId;
     user!.change_device_id = false;
@@ -81,23 +74,19 @@ const userService = {
   },
 
   updateUserRole: async (userId: string, role: Role): Promise<IUser> => {
-    // Call validator
     await userValidate.updateUserRole(userId, role);
 
-    // Call repository
-    const user = await userRepository.findUserById(userId, true); // Include password for update
+    const user = await userRepository.findUserById(userId, true);
 
     user!.role = role;
     await user!.save();
     return user!;
   },
 
-  deleteUser: async (userId: string): Promise<IUser> => {
-    // Call validator
+  deleteUser: async (userId: string): Promise<IUser | null> => {
     await userValidate.deleteUser(userId);
 
-    // Call repository
-    const user = await userRepository.deleteUser(userId);
+    const user = await userRepository.deleteUserById(userId);
     if (!user) {
       throw new Error("User not found");
     }

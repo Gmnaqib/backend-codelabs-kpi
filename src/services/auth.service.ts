@@ -7,10 +7,7 @@ import "dotenv/config";
 
 const authService = {
   createMultipleUsers: async (emails: string[]): Promise<{ createdUsers: IUser[]; skippedUsers: string[] }> => {
-    // Call validator
     await authValidate.createMultipleUsers(emails);
-
-    // Call repository
     const password: string = "password";
     const createdUsers: IUser[] = [];
     const skippedUsers: string[] = [];
@@ -62,10 +59,8 @@ const authService = {
     telegram_id?: string;
     telegram_username?: string;
   }): Promise<IUser> => {
-    // Call validator
     await authValidate.register(userData);
 
-    // Call repository
     const { name, email, password, nim, majors, years, research, telegram_id, telegram_username } = userData;
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -84,10 +79,8 @@ const authService = {
   },
 
   login: async (nim: string, password: string): Promise<{ user: any; token: string }> => {
-    // Call validator
     await authValidate.login(nim, password);
 
-    // Call repository
     const user = await userRepository.findUserByNim(nim, true); // Include password for login
 
     const isPasswordValid = await bcrypt.compare(password, user!.password);
@@ -129,10 +122,7 @@ const authService = {
   },
 
   getMe: (user: any): any => {
-    // Call validator
     authValidate.getMe(user);
-
-    // Return result
     return user;
   },
 };
