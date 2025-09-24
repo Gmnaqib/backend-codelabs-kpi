@@ -1,8 +1,10 @@
 import { Types } from "mongoose";
 
+export type attendanceType = "sick" | "leave";
+
 interface IleaveRequest {
   userId: Types.ObjectId;
-  type: "sick" | "leave";
+  type: attendanceType;
   reason: string;
   attachmentUrl: string;
   startDate: Date;

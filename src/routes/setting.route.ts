@@ -1,6 +1,6 @@
 import { Router } from "express";
 import settingController from "../controllers/setting.controller";
-import { authenticateToken } from "../middlewares/authMiddlewares";
+import { authenticateToken } from "../middlewares/auth.middlewares";
 import { roleMiddlewares } from "../middlewares/role.middlewares";
 const settingRouter = Router();
 

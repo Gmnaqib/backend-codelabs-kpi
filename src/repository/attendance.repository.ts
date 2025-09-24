@@ -1,23 +1,46 @@
 import Attendance from "../models/attendance/attendance.schema";
 import IAttendance from "../models/attendance/attendance.Interface";
-import mongoose from "mongoose";
+import { Types } from "mongoose";
+
+// Type-safe filter interfaces
+interface AttendanceFilter {
+  userId?: Types.ObjectId | string;
+  date?: Date | { $gte?: Date; $lte?: Date; $lt?: Date };
+  status?: string;
+  checkIn?: Date | { $gte?: Date; $lte?: Date; $lt?: Date };
+  checkOut?: Date | { $gte?: Date; $lte?: Date; $lt?: Date } | null;
+  leaveRequestId?: Types.ObjectId;
+}
+
+interface AttendanceUpdate {
+  userId?: Types.ObjectId;
+  date?: Date;
+  status?: string;
+  checkIn?: Date;
+  checkOut?: Date | null;
+  reason?: string;
+  leaveRequestId?: Types.ObjectId;
+}
 
 const attendanceRepository = {
-  createAttendance: (attendanceData: IAttendance) => Attendance.create(attendanceData),
-  updateOne: (attendanceData: any) => Attendance.updateOne(attendanceData),
-  findAttendance: (filter: any) => Attendance.findOne(filter),
-  findAll: () => Attendance.find().sort({ date: 1 }),
-  findMonthlyAttendance: (month: number, year: number, status?: string) => {
+  createAttendance: (attendanceData: Partial<IAttendance>) => Attendance.create(attendanceData),
+  updateAttendance: (filter: AttendanceFilter, updateData: AttendanceUpdate) => Attendance.updateOne(filter, updateData),
+  findAttendance: (filter: AttendanceFilter) => Attendance.findOne(filter),
+  findAllAttendances: () => Attendance.find().sort({ date: 1 }),
+  findAttendancesByFilter: (filter: AttendanceFilter) => Attendance.find(filter).sort({ date: 1 }),
+
+  findMonthlyAttendances: (month: number, year: number, status?: string) => {
     const start = new Date(year, month - 1, 1, 0, 0, 0);
     const end = new Date(year, month, 0, 23, 59, 59);
 
-    const filter: any = { date: { $gte: start, $lte: end } };
+    const filter: AttendanceFilter = { date: { $gte: start, $lte: end } };
     if (status) filter.status = status;
 
     return Attendance.find(filter).sort({ date: 1 });
   },
 
-  getMonthlySummary: (year: number, month: number) => {
+  // rekap absensi bulanan per user
+  getAttendanceMonthlySummary: (year: number, month: number) => {
     const start = new Date(year, month - 1, 1, 0, 0, 0);
     const end = new Date(year, month, 0, 23, 59, 59);
 
@@ -60,7 +83,7 @@ const attendanceRepository = {
     ]);
   },
 
-  getSummary: () => {
+  getAttendanceSummary: () => {
     return Attendance.aggregate([
       {
         $group: {
@@ -97,19 +120,20 @@ const attendanceRepository = {
     ]);
   },
 
-  findDetailsByStatus: (userId: string, status: string, year: number, month: number) => {
+  findAttendanceDetailsByStatus: (userId: string, status: string, year: number, month: number) => {
     const start = new Date(year, month - 1, 1, 0, 0, 0);
     const end = new Date(year, month, 0, 23, 59, 59);
 
     return Attendance.find({
-      userId: new mongoose.Types.ObjectId(userId),
+      userId: new Types.ObjectId(userId),
       status,
       date: { $gte: start, $lte: end },
     }).sort({ date: 1 });
   },
-  getSummaryWithDates: (userId: string) => {
+
+  getAttendanceSummaryWithDates: (userId: string) => {
     return Attendance.aggregate([
-      { $match: { userId } },
+      { $match: { userId: new Types.ObjectId(userId) } },
       {
         $group: {
           _id: "$status",
@@ -127,6 +151,8 @@ const attendanceRepository = {
       },
     ]);
   },
+
+  deleteAttendance: (id: string) => Attendance.findByIdAndDelete(id),
 };
 
 export default attendanceRepository;

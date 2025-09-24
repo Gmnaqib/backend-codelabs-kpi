@@ -1,6 +1,6 @@
 import { Router } from "express";
 import attendanceController from "../controllers/attendance.controller";
-import { authenticateToken } from "../middlewares/authMiddlewares";
+import { authenticateToken } from "../middlewares/auth.middlewares";
 import { roleMiddlewares } from "../middlewares/role.middlewares";
 const attendanceRouter = Router();
 

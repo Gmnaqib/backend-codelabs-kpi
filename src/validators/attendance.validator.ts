@@ -1,24 +1,26 @@
-// import { getEndOfDayWIB, getStartOfDayWIB, getTimeTodayWIB, getNowWIBAsDateTime } from '../helper/dateHelper';
 import attendanceRepository from "../repository/attendance.repository";
 import userRepository from "../repository/user.repository";
 import settingRepository from "../repository/setting.respository";
 import dateHelper from "../helper/dateHelper";
+import { Types } from "mongoose";
+import { attendanceType } from "../models/attendance/leave.request.interface";
 
 export const attendanceValidate = {
-  checkIn: async (userId: string, device: { device_id: string }): Promise<void> => {
+  checkIn: async (userId: string, device: { device_id: string }, reason?: string): Promise<{ isLateCheckIn: boolean }> => {
     const now = dateHelper.getNowWIBAsDateTime();
     const startOfDay = dateHelper.getStartOfDayWIB();
     const endOfDay = dateHelper.getEndOfDayWIB();
     const timeIn = dateHelper.getTimeTodayWIB(6);
-    const timeLate = dateHelper.getTimeTodayWIB(22);
+    const timeLimit = dateHelper.getTimeTodayWIB(9);
+    const timeLateLimit = dateHelper.getTimeTodayWIB(10);
     const { device_id } = device;
 
     if (now < timeIn) {
       throw new Error("You can check in after 6:00 AM");
     }
 
-    if (now > timeLate) {
-      throw new Error("It’s too late to check in");
+    if (now > timeLateLimit) {
+      throw new Error("It's too late to check in");
     }
 
     const userDevice = await userRepository.findUserDevice(userId);
@@ -42,6 +44,14 @@ export const attendanceValidate = {
     if (userAttendance) {
       throw new Error("You have already checked in");
     }
+
+    // Check if it's a late check-in and validate reason requirement
+    const isLateCheckIn = now > timeLimit && now < timeLateLimit;
+    if (isLateCheckIn && !reason) {
+      throw new Error("Reason is required for late check-in");
+    }
+
+    return { isLateCheckIn };
   },
 
   checkOut: async (userId: string, device: { device_id: string }): Promise<void> => {
@@ -51,10 +61,9 @@ export const attendanceValidate = {
     let timeOut = dateHelper.getTimeTodayWIB(17);
     const { device_id } = device;
 
-    const isRamadhan = await settingRepository.findByCode("RAMADHAN");
-    const isSemesterHoliday = await settingRepository.findByCode("SEMESTER_HOLIDAY");
+    const isRamadhan = await settingRepository.findSettingByCode("RAMADHAN");
 
-    if (isRamadhan?.value === true || isSemesterHoliday?.value === true) {
+    if (isRamadhan?.value === true) {
       timeOut = dateHelper.getTimeTodayWIB(16);
     }
 
@@ -85,39 +94,41 @@ export const attendanceValidate = {
     }
   },
 
-  leaveOrSick: async (userId: string, type: string, reason: string, attachmentUrl: string, startDate: Date, endDate: Date) => {
+  leaveOrSick: async (userId: string, type: attendanceType, reason: string, attachmentUrl: string, startDate: Date, endDate: Date): Promise<void> => {
     const now = dateHelper.getNowWIBAsDateTime();
-    let timeLimit = dateHelper.getTimeTodayWIB(12);
+    let timeLimit = dateHelper.getTimeTodayWIB(24);
+    const userObjectId = new Types.ObjectId(userId);
 
     if (!type || !reason || !attachmentUrl || !startDate || !endDate) {
       throw new Error("All fields are required");
     }
 
     if (now > timeLimit) {
-      throw new Error("It’s too late to submit a leave or sick request today");
+      throw new Error("It's too late to submit a leave or sick request today");
     }
-    const userAttendance = await attendanceRepository.findAttendance({
-      userId,
-      startDate: {
-        $gte: now.toISODate(),
-      },
-    });
 
-    if (userAttendance) {
-      throw new Error("A leave request already exists for this date");
+    // Check for existing attendance in the date range
+    for (let d = new Date(startDate); d <= new Date(endDate); d.setDate(d.getDate() + 1)) {
+      const existingAttendance = await attendanceRepository.findAttendance({
+        userId: userObjectId,
+        date: d,
+      });
+
+      if (existingAttendance) {
+        throw new Error("Anda sudah absen pada tanggal " + d.toISOString().split("T")[0]);
+      }
     }
-    return userAttendance;
+  },
+
+  reviewLeaveRequest: async (requestId: string): Promise<void> => {
+    if (!requestId) {
+      throw new Error("Request ID is required");
+    }
+
+    if (!Types.ObjectId.isValid(requestId)) {
+      throw new Error("Invalid request ID format");
+    }
   },
 };
 
 export default attendanceValidate;
-
-// code;
-// ("IS_RAMADHAN");
-// name;
-// ("Ramadhan");
-
-// code;
-// ("SEMESTER_HOLIDAY");
-// name;
-// ("Semester Holiday");
