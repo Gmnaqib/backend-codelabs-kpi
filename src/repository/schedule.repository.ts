@@ -11,20 +11,12 @@ interface ScheduleFilter {
 }
 
 const scheduleRepository = {
-  // Create operations
   createSchedule: (scheduleData: Partial<ISchedule>) => Schedule.create(scheduleData),
-
-  // Find operations
   findAllSchedules: () => Schedule.find().sort({ createdAt: -1 }),
-
   findScheduleById: (id: string) => Schedule.findById(id),
-
   findSchedule: (filter: ScheduleFilter) => Schedule.findOne(filter),
-
   findSchedulesByFilter: (filter: ScheduleFilter) => Schedule.find(filter).sort({ createdAt: -1 }),
-
   findSchedulesByType: (type: ScheduleType) => Schedule.find({ type }).sort({ createdAt: -1 }),
-
   findSchedulesByDate: (date: Date) => {
     const startOfDay = new Date(date);
     startOfDay.setHours(0, 0, 0, 0);
@@ -56,14 +48,9 @@ const scheduleRepository = {
     }).sort({ date: 1 });
   },
 
-  // Update operations
   updateScheduleById: (id: string, updateData: Partial<ISchedule>) => Schedule.findByIdAndUpdate(id, updateData, { new: true }),
-
   updateSchedule: (filter: ScheduleFilter, updateData: Partial<ISchedule>) => Schedule.updateOne(filter, updateData),
-
-  // Delete operations
   deleteScheduleById: (id: string) => Schedule.findByIdAndDelete(id),
-
   deleteSchedule: (filter: ScheduleFilter) => Schedule.deleteOne(filter),
 };
 
