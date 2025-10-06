@@ -27,7 +27,6 @@ jobs:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
     - run: |
-        cd app/my-codelabs-api-v2
         git pull origin main
         npm ci
         npm run build
