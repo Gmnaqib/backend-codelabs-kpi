@@ -14,7 +14,7 @@ interface IUser {
   change_device_id?: boolean;
 }
 
-enum Role {
+export enum Role {
   Admin = "admin",
   Lecturer = "lecturer",
   MinisterOfResearch = "minister of research",
@@ -29,13 +29,13 @@ enum Role {
   User = "user",
 }
 
-enum Status {
+export enum Status {
   active = "active",
   inactive = "inactive",
   graduated = "graduated",
 }
 
-enum Research {
+export enum Research {
   website = "website",
   mobile = "mobile",
   game = "game",

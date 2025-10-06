@@ -6,6 +6,7 @@ interface IAttendance {
   status?: attendanceStatus;
   checkIn?: Date;
   checkOut?: Date | null;
+  reason?: string;
   leaveRequestId?: Types.ObjectId;
 }
 

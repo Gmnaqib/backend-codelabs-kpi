@@ -1,7 +1,7 @@
 interface ISetting {
   code: string;
   name: string;
-  value: boolean;
+  value?: boolean;
 }
 
 export default ISetting;
