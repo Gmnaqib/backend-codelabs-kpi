@@ -1,7 +1,4 @@
-# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
-
-name: Node.js CI
+name: Node.js CI/CD
 
 on:
   push:
@@ -16,28 +13,24 @@ jobs:
     strategy:
       matrix:
         node-version: [22.x]
-        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
     steps:
       - uses: actions/checkout@v4
-      - name: Use Node.js ${{ matrix.node-version }}
+
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
           cache: "npm"
-      - run: |
+
+      - name: Build project
+        run: |
           git pull origin main
           npm ci
           npm run build
-          sshpass -p "${{ secrets.VPS_PASSWORD }}" ssh -o StrictHostKeyChecking=no -p ${{ secrets.VPS_PORT }} ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOSTNAME }} <<'EOF'
-          git pull origin main
-          pm2 restart all
-          EOF
 
-      - name: Debug SSH config (temporary)
+      - name: Deploy to VPS
         run: |
-          echo "HOSTNAME: ${{ secrets.VPS_HOSTNAME }}"
-          echo "PORT: ${{ secrets.VPS_PORT }}"
-          echo "USERNAME: ${{ secrets.VPS_USERNAME }}"
-
-
+          sshpass -p "${{ secrets.VPS_PASSWORD }}" ssh -o StrictHostKeyChecking=no \
+            -p ${{ secrets.VPS_PORT }} ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOSTNAME }} \
+            "cd app/my-codelabs-api-v2 && git pull origin main && pm2 restart all"
