@@ -33,3 +33,11 @@ jobs:
           git pull origin main
           pm2 restart all
           EOF
+
+
+      - name: Debug SSH config (temporary)
+      - run: |
+          echo "HOSTNAME: ${{ secrets.VPS_HOSTNAME }}"
+          echo "PORT: ${{ secrets.VPS_PORT }}"
+          echo "USERNAME: ${{ secrets.VPS_USERNAME }}"
+
