@@ -35,7 +35,7 @@ jobs:
           EOF
 
       - name: Debug SSH config (temporary)
-      - run: |
+        run: |
           echo "HOSTNAME: ${{ secrets.VPS_HOSTNAME }}"
           echo "PORT: ${{ secrets.VPS_PORT }}"
           echo "USERNAME: ${{ secrets.VPS_USERNAME }}"
