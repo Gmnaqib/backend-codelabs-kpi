@@ -33,13 +33,11 @@ const scheduleService = {
     return populated[0];
   },
 
-  // Get all schedules with user names
   getAllSchedules: async (): Promise<IScheduleWithUserNames[]> => {
     const schedules = await scheduleRepository.findAllSchedules();
     return await scheduleService.populateUserNames(schedules);
   },
 
-  // Get schedule by ID with user names
   getScheduleById: async (id: string): Promise<IScheduleWithUserNames | null> => {
     const schedule = await scheduleRepository.findScheduleById(id);
     if (!schedule) return null;
@@ -48,19 +46,16 @@ const scheduleService = {
     return populated[0] || null;
   },
 
-  // Get schedules by type with user names
   getSchedulesByType: async (type: ScheduleType): Promise<IScheduleWithUserNames[]> => {
     const schedules = await scheduleRepository.findSchedulesByType(type);
     return await scheduleService.populateUserNames(schedules);
   },
 
-  // Get schedules by date with user names
   getSchedulesByDate: async (date: Date): Promise<IScheduleWithUserNames[]> => {
     const schedules = await scheduleRepository.findSchedulesByDate(date);
     return await scheduleService.populateUserNames(schedules);
   },
 
-  // Get active thematic schedules (future dates) with user names
   getActiveThematicSchedules: async (): Promise<IScheduleWithUserNames[]> => {
     const currentDate = new Date();
     const schedules = await scheduleRepository.findActiveThematicSchedules(currentDate);
