@@ -11,6 +11,7 @@ import scheduleRouter from "./routes/schedule.route";
 import operationalRecordRouter from "./routes/operationalRecord.route";
 import researchRouter from "./routes/research.route";
 import competitionRouter from "./routes/competition.route";
+import brandingRouter from "./routes/branding.route";
 import cors from "cors";
 
 connectDB();
@@ -24,6 +25,7 @@ app.use("/schedules", scheduleRouter);
 app.use("/operational-records", operationalRecordRouter);
 app.use("/research", researchRouter);
 app.use("/competition", competitionRouter);
+app.use("/branding", brandingRouter);
 
 app.listen(port, () => {
   console.log(`App listening on http://localhost:${port}`);

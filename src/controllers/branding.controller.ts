@@ -1,0 +1,65 @@
+import { Request, Response } from "express";
+import { AuthRequest } from "../middlewares/auth.middlewares";
+import response from "../helper/response";
+import BrandingService from "../services/branding.service";
+
+const brandingController = {
+  addBranding: async (req: AuthRequest, res: Response): Promise<any> => {
+    try {
+      const userId = req.user?.id;
+      const { name, description, link, status, research, level } = req.body;
+      const newBranding = await BrandingService.addBranding(userId, name, description, link, status, research, level);
+      return response({ res, code: 201, message: "Branding success created", data: newBranding });
+    } catch (error: any) {
+      return response({ res, code: 500, message: error.message, data: null });
+    }
+  },
+
+  findAllBrandings: async (req: Request, res: Response): Promise<any> => {
+    try {
+      const filter = req.query;
+      if (!filter) {
+        const Brandings = await BrandingService.findAllBrandings();
+        return response({ res, code: 201, message: "get all Brandings success", data: Brandings });
+      }
+      const Brandings = await BrandingService.findBrandingsByFilter(filter);
+      return response({ res, code: 200, message: "Get Brandings by filter success", data: Brandings });
+    } catch (error: any) {
+      return response({ res, code: 500, message: error.message, data: null });
+    }
+  },
+
+  findBrandingById: async (req: Request, res: Response): Promise<any> => {
+    try {
+      const { id } = req.params;
+      const Branding = await BrandingService.findBrandingById(id);
+      return response({ res, code: 201, message: "get Brandings by id success", data: Branding });
+    } catch (error: any) {
+      return response({ res, code: error.message === "Branding not found" ? 404 : 500, message: error.message, data: null });
+    }
+  },
+
+  updateBranding: async (req: Request, res: Response): Promise<any> => {
+    try {
+      const { id } = req.params;
+      const { name, description, link, status, research, level } = req.body;
+
+      const Branding = await BrandingService.updateBranding(id, { name, description, link, status, research, level });
+      return response({ res, code: 201, message: "update Brandings success", data: Branding });
+    } catch (error: any) {
+      return response({ res, code: error.message === "Branding not found" ? 400 : 500, message: error.message, data: null });
+    }
+  },
+
+  deleteBranding: async (req: Request, res: Response): Promise<any> => {
+    try {
+      const { id } = req.params;
+      const deletedBranding = await BrandingService.deleteBranding(id);
+      return response({ res, code: 201, message: "delete Brandings success", data: deletedBranding });
+    } catch (error: any) {
+      return response({ res, code: error.message === "Branding not found" ? 400 : 500, message: error.message, data: null });
+    }
+  },
+};
+
+export default brandingController;
