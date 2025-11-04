@@ -8,9 +8,9 @@ import { Types } from "mongoose";
 const operationalRecordController = {
   createOperationalRecord: async (req: Request, res: Response): Promise<any> => {
     try {
-      const { userId, type } = req.body;
+      const { userId, type, date } = req.body;
 
-      if (!userId || !type) {
+      if (!userId || !type || !date) {
         return response({
           res,
           code: 400,
@@ -37,7 +37,7 @@ const operationalRecordController = {
       const recordData: IOperationalRecord = {
         userId: new Types.ObjectId(userId),
         type,
-        date: new Date(),
+        date: new Date(date),
       };
 
       if (isNaN(recordData.date.getTime())) {

@@ -1,6 +1,5 @@
 import IOperationalRecord from "../models/operationalRecord/operational.interface";
 import operationalRepository from "../repository/operationalRecord.repository";
-import userRepository from "../repository/user.repository";
 import { ScheduleType } from "../models/schedule/schedule.interface";
 
 const operationalRecordService = {
@@ -8,7 +7,7 @@ const operationalRecordService = {
     const existingRecord = await operationalRepository.findDuplicateRecord(recordData.userId.toString(), recordData.type, recordData.date);
 
     if (existingRecord) {
-      throw new Error(`Operational record already exists for user ${recordData.userId} on ${recordData.date} with type ${recordData.type}`);
+      throw new Error(`Operational record already exists`);
     }
 
     const newRecord = await operationalRepository.createRecord(recordData);
