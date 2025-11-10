@@ -74,7 +74,7 @@ const operationalRecordController = {
       }
     }
   },
-
+  // test
   getAllOperationalRecords: async (req: Request, res: Response): Promise<any> => {
     try {
       const { userId, type, date, startDate, endDate } = req.query;
