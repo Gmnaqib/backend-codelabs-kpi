@@ -90,7 +90,7 @@ const researchController = {
 
   getAllResearch: async (req: Request, res: Response): Promise<any> => {
     try {
-      const { week, category, progress, status, research_type } = req.query;
+      const { week, category, progress, status, research_type, date } = req.query;
 
       const filters: any = {};
 
@@ -141,6 +141,21 @@ const researchController = {
 
       if (research_type) {
         filters.research_type = research_type as string;
+      }
+
+      if (date) {
+        const parsedDate = new Date(date as string);
+        if (isNaN(parsedDate.getTime())) {
+          return response({
+            res,
+            code: 400,
+            message: "Invalid date format",
+          });
+        }
+        
+        const year = parsedDate.getFullYear();
+        const month = parsedDate.getMonth() + 1;
+        filters.date = { year, month };
       }
 
       const research = await researchService.getAllResearch(filters);

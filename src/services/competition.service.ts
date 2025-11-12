@@ -15,8 +15,33 @@ const CompetitionService = {
     });
   },
 
-  findAllCompetitions: async (): Promise<ICompetition[]> => {
-    return await competitionRepository.findAllCompetitions();
+  findAllCompetitions: async (filters?: any): Promise<ICompetition[]> => {
+    if (!filters || Object.keys(filters).length === 0) {
+      return await competitionRepository.findAllCompetitions();
+    }
+
+    const formattedFilter: any = { ...filters };
+
+    if (filters.userId) {
+      formattedFilter.userId = new Types.ObjectId(filters.userId);
+    }
+
+    // Handle date parsing and validation
+    let dateFilter: { year: number; month: number } | undefined;
+    if (filters.date) {
+      const parsedDate = new Date(filters.date);
+      if (isNaN(parsedDate.getTime())) {
+        throw new Error("Invalid date format");
+      }
+      const year = parsedDate.getFullYear();
+      const month = parsedDate.getMonth() + 1;
+      dateFilter = { year, month };
+    }
+
+    // Remove date from formattedFilter and pass it separately
+    const { date, ...queryFilter } = formattedFilter;
+
+    return await competitionRepository.findCompetitionsByFilter(queryFilter, dateFilter);
   },
 
   findCompetitionById: async (id: string): Promise<ICompetition> => {

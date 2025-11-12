@@ -17,12 +17,8 @@ const brandingController = {
 
   findAllBrandings: async (req: Request, res: Response): Promise<any> => {
     try {
-      const filter = req.query;
-      if (!filter) {
-        const Brandings = await BrandingService.findAllBrandings();
-        return response({ res, code: 201, message: "get all Brandings success", data: Brandings });
-      }
-      const Brandings = await BrandingService.findBrandingsByFilter(filter);
+      const filters = req.query;
+      const Brandings = await BrandingService.findBrandingsByFilter(filters);
       return response({ res, code: 200, message: "Get Brandings by filter success", data: Brandings });
     } catch (error: any) {
       return response({ res, code: 500, message: error.message, data: null });

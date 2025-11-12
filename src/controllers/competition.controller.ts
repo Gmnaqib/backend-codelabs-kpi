@@ -17,8 +17,9 @@ const competitionController = {
 
   findAllCompetition: async (req: Request, res: Response): Promise<any> => {
     try {
-      const Competitions = await CompetitionService.findAllCompetitions();
-      return response({ res, code: 201, message: "get all Competitions success", data: Competitions });
+      const filters = req.query;
+      const Competitions = await CompetitionService.findAllCompetitions(filters);
+      return response({ res, code: 200, message: "get all Competitions success", data: Competitions });
     } catch (error: any) {
       return response({ res, code: 500, message: error.message, data: null });
     }

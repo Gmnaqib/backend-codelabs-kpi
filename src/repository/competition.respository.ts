@@ -18,7 +18,20 @@ const competitionRepository = {
   findAllCompetitions: () => Competition.find(),
   findCompetitionById: (id: string) => Competition.findById(id),
   findCompetition: (filter: CompetitionFilter) => Competition.findOne(filter),
-  findCompetitionsByFilter: (filter: CompetitionFilter) => Competition.find(filter),
+  findCompetitionsByFilter: (filter: CompetitionFilter, date?: { year: number; month: number }) => {
+    const query: any = { ...filter };
+
+    if (date) {
+      const startDate = new Date(date.year, date.month - 1, 1);
+      const endDate = new Date(date.year, date.month, 0, 23, 59, 59, 999);
+      query.createdAt = {
+        $gte: startDate,
+        $lte: endDate,
+      };
+    }
+
+    return Competition.find(query);
+  },
   updateCompetitionById: (id: string, updateData: Partial<ICompetition>) => Competition.findByIdAndUpdate(id, updateData, { new: true }),
   updateCompetition: (filter: CompetitionFilter, updateData: Partial<ICompetition>) => Competition.updateOne(filter, updateData),
   deleteCompetitionById: (id: string) => Competition.findByIdAndDelete(id),

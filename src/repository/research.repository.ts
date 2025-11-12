@@ -25,7 +25,15 @@ const researchRepository = {
   findResearchByCategory: (category: CategoryType) => Research.find({ category }).populate("userId", "name").sort({ createdAt: -1 }),
   findResearchByProgress: (progress: progressStatus) => Research.find({ progress }).populate("userId", "name").sort({ createdAt: -1 }),
   findResearchByStatus: (status: statusResearch) => Research.find({ status }).populate("userId", "name").sort({ createdAt: -1 }),
-  findResearchWithFilters: (filters: { userId?: string; week?: number; category?: CategoryType; progress?: progressStatus; status?: statusResearch; research_type?: string }) => {
+  findResearchWithFilters: (filters: {
+    userId?: string;
+    week?: number;
+    category?: CategoryType;
+    progress?: progressStatus;
+    status?: statusResearch;
+    research_type?: string;
+    date?: { year: number; month: number };
+  }) => {
     const query: any = {};
 
     if (filters.userId) query.userId = filters.userId;
@@ -34,6 +42,14 @@ const researchRepository = {
     if (filters.progress) query.progress = filters.progress;
     if (filters.status) query.status = filters.status;
     if (filters.research_type) query.research_type = { $regex: filters.research_type, $options: "i" };
+    if (filters.date) {
+      const startDate = new Date(filters.date.year, filters.date.month - 1, 1);
+      const endDate = new Date(filters.date.year, filters.date.month, 0, 23, 59, 59, 999);
+      query.createdAt = {
+        $gte: startDate,
+        $lte: endDate,
+      };
+    }
 
     return Research.find(query).populate("userId", "name").sort({ createdAt: -1 });
   },
@@ -53,7 +69,15 @@ const researchRepository = {
   countResearch: () => Research.countDocuments(),
   countResearchByFilter: (filter: ResearchFilter) => Research.countDocuments(filter),
 
-  countResearchWithFilters: (filters: { userId?: string; week?: number; category?: CategoryType; progress?: progressStatus; status?: statusResearch; research_type?: string }) => {
+  countResearchWithFilters: (filters: {
+    userId?: string;
+    week?: number;
+    category?: CategoryType;
+    progress?: progressStatus;
+    status?: statusResearch;
+    research_type?: string;
+    date?: { year: number; month: number };
+  }) => {
     const query: any = {};
 
     if (filters.userId) query.userId = filters.userId;
@@ -62,6 +86,14 @@ const researchRepository = {
     if (filters.progress) query.progress = filters.progress;
     if (filters.status) query.status = filters.status;
     if (filters.research_type) query.research_type = { $regex: filters.research_type, $options: "i" };
+    if (filters.date) {
+      const startDate = new Date(filters.date.year, filters.date.month - 1, 1);
+      const endDate = new Date(filters.date.year, filters.date.month, 0, 23, 59, 59, 999);
+      query.createdAt = {
+        $gte: startDate,
+        $lte: endDate,
+      };
+    }
 
     return Research.countDocuments(query);
   },

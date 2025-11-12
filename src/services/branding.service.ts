@@ -25,7 +25,20 @@ const BrandingService = {
 
     if (filter.userId) formattedFilter.userId = new Types.ObjectId(filter.userId);
 
-    return brandingRepository.findBrandingsByFilter(formattedFilter);
+    let dateFilter: { year: number; month: number } | undefined;
+    if (filter.date) {
+      const parsedDate = new Date(filter.date);
+      if (isNaN(parsedDate.getTime())) {
+        throw new Error("Invalid date format");
+      }
+      const year = parsedDate.getFullYear();
+      const month = parsedDate.getMonth() + 1;
+      dateFilter = { year, month };
+    }
+
+    const { date, ...queryFilter } = formattedFilter;
+
+    return brandingRepository.findBrandingsByFilter(queryFilter, dateFilter);
   },
 
   findBrandingById: async (id: string): Promise<IBranding> => {

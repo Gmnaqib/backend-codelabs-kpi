@@ -31,7 +31,15 @@ const researchService = {
     return newResearch;
   },
 
-  getAllResearch: async (filters?: { userId?: string; week?: number; category?: CategoryType; progress?: progressStatus; status?: statusResearch; research_type?: string }): Promise<IResearch[]> => {
+  getAllResearch: async (filters?: {
+    userId?: string;
+    week?: number;
+    category?: CategoryType;
+    progress?: progressStatus;
+    status?: statusResearch;
+    research_type?: string;
+    date?: { year: number; month: number };
+  }): Promise<IResearch[]> => {
     const research = await researchRepository.findResearchWithFilters(filters || {});
     return research;
   },
@@ -114,7 +122,15 @@ const researchService = {
     return research;
   },
 
-  getResearchCount: async (filters?: { userId?: string; week?: number; category?: CategoryType; progress?: progressStatus; status?: statusResearch; research_type?: string }): Promise<number> => {
+  getResearchCount: async (filters?: {
+    userId?: string;
+    week?: number;
+    category?: CategoryType;
+    progress?: progressStatus;
+    status?: statusResearch;
+    research_type?: string;
+    date?: { year: number; month: number };
+  }): Promise<number> => {
     return researchRepository.countResearchWithFilters(filters || {});
   },
 
