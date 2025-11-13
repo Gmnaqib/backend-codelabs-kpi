@@ -21,7 +21,20 @@ const leaveRequestRepository = {
 
   findLeaveRequest: (filter: LeaveRequestFilter) => LeaveRequest.findOne(filter),
 
-  findLeaveRequestsByFilter: (filter: LeaveRequestFilter) => LeaveRequest.find(filter).sort({ createdAt: -1 }),
+  findLeaveRequestsByFilter: (filter: LeaveRequestFilter, date?: { year: number; month: number }) => {
+    const query: any = { ...filter };
+
+    if (date) {
+      const startDate = new Date(date.year, date.month - 1, 1);
+      const endDate = new Date(date.year, date.month, 0, 23, 59, 59, 999);
+      query.createdAt = {
+        $gte: startDate,
+        $lte: endDate,
+      };
+    }
+
+    return LeaveRequest.find(query).sort({ createdAt: -1 });
+  },
 
   findLeaveRequestsByUserId: (userId: string) => LeaveRequest.find({ userId: new Types.ObjectId(userId) }).sort({ createdAt: -1 }),
 

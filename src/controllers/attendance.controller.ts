@@ -98,10 +98,10 @@ const attendanceController = {
     }
   },
 
-  // New leave request fetching endpoints
   getAllLeaveRequests: async (req: Request, res: Response): Promise<any> => {
     try {
-      const requests = await attendanceService.getAllLeaveRequests();
+      const filters = req.query;
+      const requests = await attendanceService.getAllLeaveRequests(filters);
 
       return response({
         res,

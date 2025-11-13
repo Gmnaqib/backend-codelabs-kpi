@@ -237,8 +237,35 @@ const attendanceService = {
     };
   },
 
-  getAllLeaveRequests: async (): Promise<any[]> => {
-    const leaveRequests = await leaveRequestRepository.findAllLeaveRequests();
+  getAllLeaveRequests: async (filters?: any): Promise<any[]> => {
+    let leaveRequests;
+
+    if (!filters || Object.keys(filters).length === 0) {
+      leaveRequests = await leaveRequestRepository.findAllLeaveRequests();
+    } else {
+      const formattedFilter: any = { ...filters };
+
+      if (filters.userId) {
+        formattedFilter.userId = new Types.ObjectId(filters.userId);
+      }
+
+      // Handle date parsing and validation
+      let dateFilter: { year: number; month: number } | undefined;
+      if (filters.date) {
+        const parsedDate = new Date(filters.date);
+        if (isNaN(parsedDate.getTime())) {
+          throw new Error("Invalid date format");
+        }
+        const year = parsedDate.getFullYear();
+        const month = parsedDate.getMonth() + 1;
+        dateFilter = { year, month };
+      }
+
+      // Remove date from formattedFilter and pass it separately
+      const { date, ...queryFilter } = formattedFilter;
+
+      leaveRequests = await leaveRequestRepository.findLeaveRequestsByFilter(queryFilter, dateFilter);
+    }
 
     const uniqueUserIds = [...new Set(leaveRequests.map((request) => request.userId.toString()))];
 
