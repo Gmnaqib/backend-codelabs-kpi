@@ -57,11 +57,6 @@ export const authValidate = {
       throw new Error("Invalid year format");
     }
 
-    // Validate research if provided
-    if (research && !["frontend", "backend", "mobile", "uiux", "devops"].includes(research)) {
-      throw new Error("Invalid research. Must be one of: frontend, backend, mobile, uiux, devops");
-    }
-
     // Check if NIM already exists
     const existingUser = await userRepository.findUserByNim(nim);
 

@@ -82,11 +82,6 @@ export const userValidate = {
       throw new Error("Invalid status. Must be 'active' or 'inactive'");
     }
 
-    // Validate research if provided
-    if (research !== undefined && !["frontend", "backend", "mobile", "uiux", "devops"].includes(research)) {
-      throw new Error("Invalid research. Must be one of: frontend, backend, mobile, uiux, devops");
-    }
-
     const user = await userRepository.findUserById(userId, true);
 
     if (!user) {
