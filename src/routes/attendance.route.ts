@@ -13,7 +13,7 @@ attendanceRouter.post("/leave-requests", authenticateToken, attendanceController
 attendanceRouter.get("/leave-requests", authenticateToken, roleMiddlewares(["admin", "minister of operation"]), attendanceController.getAllLeaveRequests);
 attendanceRouter.get("/leave-requests/today", authenticateToken, roleMiddlewares(["admin", "minister of operation"]), attendanceController.getTodayLeaveRequests);
 attendanceRouter.get("/leave-requests/status/:status", authenticateToken, roleMiddlewares(["admin", "minister of operation"]), attendanceController.getLeaveRequestsByStatus);
-attendanceRouter.get("/leave-requests/user", authenticateToken, attendanceController.getLeaveRequestsByUser);
+attendanceRouter.get("/leave-requests/:id", authenticateToken, attendanceController.getLeaveRequestById);
 
 attendanceRouter.post("/checkin", authenticateToken, attendanceController.checkin);
 attendanceRouter.patch("/checkout", authenticateToken, attendanceController.checkOut);

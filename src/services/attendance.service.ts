@@ -355,6 +355,42 @@ const attendanceService = {
       userName,
     }));
   },
+
+  getLeaveRequestById: async (id: string): Promise<any> => {
+    const leaveRequest = await leaveRequestRepository.findLeaveRequestById(id);
+
+    if (!leaveRequest) {
+      throw new Error("Leave request not found");
+    }
+
+    let userName = "Unknown User";
+    try {
+      const user = await userRepository.findUserById(leaveRequest.userId.toString());
+      if (user) {
+        userName = user.name;
+      }
+    } catch (error) {
+      userName = "Unknown User";
+    }
+
+    let approverName = null;
+    if (leaveRequest.approvedBy) {
+      try {
+        const approver = await userRepository.findUserById(leaveRequest.approvedBy.toString());
+        if (approver) {
+          approverName = approver.name;
+        }
+      } catch (error) {
+        approverName = "Unknown User";
+      }
+    }
+
+    return {
+      ...leaveRequest.toObject(),
+      userName,
+      approverName,
+    };
+  },
 };
 
 export default attendanceService;

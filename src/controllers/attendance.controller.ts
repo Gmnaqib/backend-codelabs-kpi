@@ -146,17 +146,15 @@ const attendanceController = {
     }
   },
 
-  getLeaveRequestsByUser: async (req: AuthRequest, res: Response): Promise<any> => {
+  getLeaveRequestById: async (req: Request, res: Response): Promise<any> => {
     try {
-      const userId = req.user?.id;
-
-      const requests = await attendanceService.getLeaveRequestsByUserId(userId);
-
+      const { id } = req.params;
+      const request = await attendanceService.getLeaveRequestById(id);
       return response({
         res,
         code: 200,
-        message: "User leave requests retrieved successfully",
-        data: requests,
+        message: "Leave request retrieved successfully",
+        data: request,
       });
     } catch (error: any) {
       return response({ res, code: 500, message: error.message });
