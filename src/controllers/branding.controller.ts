@@ -25,6 +25,43 @@ const brandingController = {
     }
   },
 
+  getMyBrandings: async (req: AuthRequest, res: Response): Promise<any> => {
+    try {
+      const userId = req.user?.id;
+
+      if (!userId) {
+        return response({ res, code: 401, message: "Authentication required", data: null });
+      }
+
+      const brandings = await BrandingService.getMyBrandings(userId);
+      return response({ res, code: 200, message: "Get my brandings success", data: brandings });
+    } catch (error: any) {
+      return response({ res, code: 500, message: error.message, data: null });
+    }
+  },
+
+  updateMybrandings: async (req: AuthRequest, res: Response): Promise<any> => {
+    try {
+      const { id } = req.params;
+      const { name, description, link, research, level } = req.body;
+      const userId = req.user?.id;
+
+      if (!userId) {
+        return response({ res, code: 401, message: "Authentication required", data: null });
+      }
+
+      const updatedBranding = await BrandingService.updateMyBranding(id, userId, { name, description, link, research, level });
+      return response({ res, code: 200, message: "Update my branding success", data: updatedBranding });
+    } catch (error: any) {
+      if (error.message === "Branding not found") {
+        return response({ res, code: 404, message: error.message, data: null });
+      } else if (error.message === "You can only update your own brandings") {
+        return response({ res, code: 403, message: error.message, data: null });
+      }
+      return response({ res, code: 500, message: error.message, data: null });
+    }
+  },
+
   findBrandingById: async (req: Request, res: Response): Promise<any> => {
     try {
       const { id } = req.params;

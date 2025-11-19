@@ -38,10 +38,48 @@ const CompetitionService = {
       dateFilter = { year, month };
     }
 
-    // Remove date from formattedFilter and pass it separately
     const { date, ...queryFilter } = formattedFilter;
 
     return await competitionRepository.findCompetitionsByFilter(queryFilter, dateFilter);
+  },
+
+  getMyCompetitions: async (userId: string): Promise<ICompetition[]> => {
+    return await competitionRepository.findMyCompetitions(userId);
+  },
+
+  updateMyCompetition: async (id: string, userId: string, updateData: { name?: string; description?: string; deadline?: string; link?: string; type?: CompetitionType }): Promise<any> => {
+    const competition = await competitionRepository.findCompetitionById(id);
+
+    if (!competition) {
+      throw new Error("Competition not found");
+    }
+
+    if (competition.userId.toString() !== userId) {
+      throw new Error("You can only update your own competitions");
+    }
+
+    const { name, description, deadline, link, type } = updateData;
+
+    if (name !== undefined) {
+      competition.name = name;
+    }
+    if (description !== undefined) {
+      competition.description = description;
+    }
+    if (deadline !== undefined) {
+      competition.deadline = new Date(deadline);
+    }
+    if (link !== undefined) {
+      competition.link = link;
+    }
+    if (type !== undefined) {
+      competition.type = type;
+    }
+
+    await competition.save();
+
+    const { _id, userId: uid, ...responseData } = competition.toObject();
+    return responseData;
   },
 
   findCompetitionById: async (id: string): Promise<ICompetition> => {

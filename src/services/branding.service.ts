@@ -41,6 +41,45 @@ const BrandingService = {
     return brandingRepository.findBrandingsByFilter(queryFilter, dateFilter);
   },
 
+  getMyBrandings: async (userId: string): Promise<IBranding[]> => {
+    return await brandingRepository.findMyBrandings(userId);
+  },
+
+  updateMyBranding: async (id: string, userId: string, updateData: { name?: string; description?: string; link?: string; research?: researchCategory; level?: brandingLevel }): Promise<any> => {
+    const branding = await brandingRepository.findBrandingById(id);
+
+    if (!branding) {
+      throw new Error("Branding not found");
+    }
+
+    if (branding.userId.toString() !== userId) {
+      throw new Error("You can only update your own brandings");
+    }
+
+    const { name, description, link, research, level } = updateData;
+
+    if (name !== undefined) {
+      branding.name = name;
+    }
+    if (description !== undefined) {
+      branding.description = description;
+    }
+    if (link !== undefined) {
+      branding.link = link;
+    }
+    if (research !== undefined) {
+      branding.research = research;
+    }
+    if (level !== undefined) {
+      branding.level = level;
+    }
+
+    await branding.save();
+
+    const { _id, userId: uid, ...responseData } = branding.toObject();
+    return responseData;
+  },
+
   findBrandingById: async (id: string): Promise<IBranding> => {
     const Branding = await brandingRepository.findBrandingById(id);
     if (!Branding) {

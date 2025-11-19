@@ -152,7 +152,7 @@ const researchController = {
             message: "Invalid date format",
           });
         }
-        
+
         const year = parsedDate.getFullYear();
         const month = parsedDate.getMonth() + 1;
         filters.date = { year, month };
@@ -181,14 +181,10 @@ const researchController = {
       const userId = req.user?.id;
 
       if (!userId) {
-        return response({
-          res,
-          code: 401,
-          message: "Authentication required",
-        });
+        return response({ res, code: 401, message: "Authentication required" });
       }
 
-      const research = await researchService.getResearchByUserId(userId);
+      const research = await researchService.getMyResearch(userId);
 
       return response({
         res,
@@ -248,7 +244,6 @@ const researchController = {
     try {
       const { id } = req.params;
       const updateData = req.body;
-      const userId = req.user?.id;
 
       if (!Types.ObjectId.isValid(id)) {
         return response({
@@ -266,14 +261,6 @@ const researchController = {
           message: "Research record not found",
         });
       }
-
-      //   if (req.user?.role !== "admin" && existingResearch.userId.toString() !== userId) {
-      //     return response({
-      //       res,
-      //       code: 403,
-      //       message: "You can only update your own research records",
-      //     });
-      //   }
 
       if (updateData.category && !Object.values(CategoryType).includes(updateData.category)) {
         return response({
@@ -316,6 +303,144 @@ const researchController = {
       }
 
       const updatedResearch = await researchService.updateResearch(id, updateData);
+
+      if (!updatedResearch) {
+        return response({
+          res,
+          code: 404,
+          message: "Research record not found",
+        });
+      }
+
+      return response({
+        res,
+        code: 200,
+        message: "Research record updated successfully",
+        data: updatedResearch,
+      });
+    } catch (error: any) {
+      console.error("Error updating research record:", error);
+
+      if (error.message?.includes("not found")) {
+        return response({
+          res,
+          code: 404,
+          message: error.message,
+        });
+      } else if (error.message?.includes("already exists") || error.message?.includes("duplicate")) {
+        return response({
+          res,
+          code: 409,
+          message: error.message,
+        });
+      } else if (error.message?.includes("Invalid") || error.message?.includes("required")) {
+        return response({
+          res,
+          code: 400,
+          message: error.message,
+        });
+      } else {
+        return response({
+          res,
+          code: 500,
+          message: "Failed to update research record",
+        });
+      }
+    }
+  },
+
+  updateMyResearch: async (req: AuthRequest, res: Response): Promise<any> => {
+    try {
+      const { id } = req.params;
+      const { week, category, research_type, title, link, progress, challenge } = req.body;
+      const userId = req.user?.id;
+
+      if (!userId) {
+        return response({
+          res,
+          code: 401,
+          message: "Authentication required",
+        });
+      }
+
+      if (!Types.ObjectId.isValid(id)) {
+        return response({
+          res,
+          code: 400,
+          message: "Invalid research ID format",
+        });
+      }
+
+      const existingResearch = await researchService.getResearchByIdWithoutPopulate(id);
+      if (!existingResearch) {
+        return response({
+          res,
+          code: 404,
+          message: "Research record not found",
+        });
+      }
+
+      if (existingResearch.userId.toString() !== userId) {
+        return response({
+          res,
+          code: 403,
+          message: "You can only update your own research records",
+        });
+      }
+
+      const updateData: any = {};
+
+      if (week !== undefined) {
+        const weekNumber = parseInt(week);
+        if (isNaN(weekNumber) || weekNumber <= 0) {
+          return response({
+            res,
+            code: 400,
+            message: "Week must be a positive integer",
+          });
+        }
+        updateData.week = weekNumber;
+      }
+
+      if (category !== undefined) {
+        if (!Object.values(CategoryType).includes(category)) {
+          return response({
+            res,
+            code: 400,
+            message: `Invalid category. Must be one of: ${Object.values(CategoryType).join(", ")}`,
+          });
+        }
+        updateData.category = category;
+      }
+
+      if (research_type !== undefined) {
+        updateData.research_type = research_type;
+      }
+
+      if (title !== undefined) {
+        updateData.title = title;
+      }
+
+      if (link !== undefined) {
+        updateData.link = link;
+      }
+
+      if (progress !== undefined) {
+        if (!Object.values(progressStatus).includes(progress)) {
+          return response({
+            res,
+            code: 400,
+            message: `Invalid progress. Must be one of: ${Object.values(progressStatus).join(", ")}`,
+          });
+        }
+        updateData.progress = progress;
+      }
+
+      if (challenge !== undefined) {
+        updateData.challenge = challenge;
+      }
+
+      const updatedResearch = await researchService.updateMyResearch(id, updateData);
 
       if (!updatedResearch) {
         return response({

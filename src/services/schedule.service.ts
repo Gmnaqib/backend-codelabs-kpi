@@ -28,7 +28,7 @@ const scheduleService = {
     if (days) scheduleData.days = days;
     if (description) scheduleData.description = description;
 
-    const createdSchedule = await scheduleRepository.createSchedule(scheduleData);
+    const createdSchedule: ISchedule = await scheduleRepository.createSchedule(scheduleData);
     const populated = await scheduleService.populateUserNames([createdSchedule]);
     return populated[0];
   },

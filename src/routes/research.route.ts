@@ -6,10 +6,11 @@ import { roleMiddlewares } from "../middlewares/role.middlewares";
 const researchRouter = Router();
 
 researchRouter.post("/", authenticateToken, researchController.createResearch);
-researchRouter.get("/my", authenticateToken, researchController.getMyResearch);
+researchRouter.get("/me", authenticateToken, researchController.getMyResearch);
 researchRouter.get("/", roleMiddlewares(["admin", "minister of operation"]), authenticateToken, researchController.getAllResearch);
 researchRouter.get("/:id", authenticateToken, researchController.getResearchById);
 researchRouter.patch("/:id", authenticateToken, researchController.updateResearch);
+researchRouter.patch("/me/:id", authenticateToken, researchController.updateMyResearch);
 researchRouter.delete("/:id", authenticateToken, researchController.deleteResearch);
 
 export default researchRouter;

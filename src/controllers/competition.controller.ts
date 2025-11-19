@@ -25,6 +25,44 @@ const competitionController = {
     }
   },
 
+
+  getMyCompetitions: async (req: AuthRequest, res: Response): Promise<any> => {
+    try {
+      const userId = req.user?.id;
+
+      if (!userId) {
+        return response({ res, code: 401, message: "Authentication required", data: null });
+      }
+
+      const competitions = await CompetitionService.getMyCompetitions(userId);
+      return response({ res, code: 200, message: "Get my competitions success", data: competitions });
+    } catch (error: any) {
+      return response({ res, code: 500, message: error.message, data: null });
+    }
+  },
+
+  updateMyCompetitions: async (req: AuthRequest, res: Response): Promise<any> => {
+    try {
+      const { id } = req.params;
+      const { name, description, deadline, link, type } = req.body;
+      const userId = req.user?.id;
+
+      if (!userId) {
+        return response({ res, code: 401, message: "Authentication required", data: null });
+      }
+
+      const updatedCompetition = await CompetitionService.updateMyCompetition(id, userId, { name, description, deadline, link, type });
+      return response({ res, code: 200, message: "Update my competition success", data: updatedCompetition });
+    } catch (error: any) {
+      if (error.message === "Competition not found") {
+        return response({ res, code: 404, message: error.message, data: null });
+      } else if (error.message === "You can only update your own competitions") {
+        return response({ res, code: 403, message: error.message, data: null });
+      }
+      return response({ res, code: 500, message: error.message, data: null });
+    }
+  },
+
   findCompetitionById: async (req: Request, res: Response): Promise<any> => {
     try {
       const { id } = req.params;

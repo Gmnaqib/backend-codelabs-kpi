@@ -16,6 +16,7 @@ interface CompetitionFilter {
 const competitionRepository = {
   createCompetition: (competitionData: Partial<ICompetition>) => Competition.create(competitionData),
   findAllCompetitions: () => Competition.find(),
+  findMyCompetitions: (userId: string) => Competition.find({ userId: new Types.ObjectId(userId) }),
   findCompetitionById: (id: string) => Competition.findById(id),
   findCompetition: (filter: CompetitionFilter) => Competition.findOne(filter),
   findCompetitionsByFilter: (filter: CompetitionFilter, date?: { year: number; month: number }) => {

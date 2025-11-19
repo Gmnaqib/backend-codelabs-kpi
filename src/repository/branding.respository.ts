@@ -16,6 +16,7 @@ interface BrandingFilter {
 const brandingRepository = {
   createBranding: (brandingData: Partial<IBranding>) => Branding.create(brandingData),
   findAllBrandings: () => Branding.find(),
+  findMyBrandings: (userId: string) => Branding.find({ userId: new Types.ObjectId(userId) }),
   findBrandingById: (id: string) => Branding.findById(id),
   findBranding: (filter: BrandingFilter) => Branding.findOne(filter),
   findBrandingsByFilter: (filter: BrandingFilter, date?: { year: number; month: number }) => {

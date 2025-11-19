@@ -6,8 +6,10 @@ const brandingRouter = Router();
 
 brandingRouter.post("/", authenticateToken, brandingController.addBranding);
 brandingRouter.get("/", authenticateToken, brandingController.findAllBrandings);
+brandingRouter.get("/me", authenticateToken, brandingController.getMyBrandings);
 brandingRouter.get("/:id", authenticateToken, brandingController.findBrandingById);
 brandingRouter.patch("/:id", authenticateToken, brandingController.updateBranding);
+brandingRouter.patch("/me/:id", authenticateToken, brandingController.updateMybrandings);
 brandingRouter.delete("/:id", authenticateToken, roleMiddlewares(["admin", "minister of research and competition"]), brandingController.deleteBranding);
 
 export default brandingRouter;
