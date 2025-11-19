@@ -29,6 +29,31 @@ const scheduleRepository = {
     }).sort({ createdAt: -1 });
   },
 
+  findSchedulesByDay: (day: string) => {
+    const query: any = {};
+    query[`days.${day}`] = { $exists: true, $ne: [] };
+    return Schedule.find(query).sort({ createdAt: -1 });
+  },
+
+  findSchedulesByTypeAndDay: (type: ScheduleType, day: string) => {
+    const query: any = { type };
+    query[`days.${day}`] = { $exists: true, $ne: [] };
+    return Schedule.find(query).sort({ createdAt: -1 });
+  },
+
+  findSchedulesByTypeAndDate: (type: ScheduleType, date: Date) => {
+    const startOfDay = new Date(date);
+    startOfDay.setHours(0, 0, 0, 0);
+
+    const endOfDay = new Date(date);
+    endOfDay.setHours(23, 59, 59, 999);
+
+    return Schedule.find({
+      type,
+      date: { $gte: startOfDay, $lte: endOfDay },
+    }).sort({ createdAt: -1 });
+  },
+
   findSchedulesByDateRange: (startDate: Date, endDate: Date) =>
     Schedule.find({
       date: { $gte: startDate, $lte: endDate },

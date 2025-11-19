@@ -24,15 +24,37 @@ const scheduleController = {
 
   getAllSchedules: async (req: Request, res: Response): Promise<any> => {
     try {
-      const { type, active, date } = req.query;
+      const { type, date, day } = req.query;
       let schedules;
       let message = "Schedules retrieved successfully";
 
-      if (type) {
-        if (!Object.values(ScheduleType).includes(type as ScheduleType)) {
-          return response({ res, code: 400, message: "Invalid schedule type" });
-        }
+      // Validate day if provided
+      if (day) {
+        const validDays = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
+        const dayLower = (day as string).toLowerCase();
 
+        if (!validDays.includes(dayLower)) {
+          return response({ res, code: 400, message: "Invalid day. Must be one of: monday, tuesday, wednesday, thursday, friday, saturday, sunday" });
+        }
+      }
+
+      // Validate type if provided
+      if (type && !Object.values(ScheduleType).includes(type as ScheduleType)) {
+        return response({ res, code: 400, message: "Invalid schedule type" });
+      }
+
+      // Handle combined filters
+      if (type && day) {
+        schedules = await scheduleService.getSchedulesByTypeAndDay(type as ScheduleType, (day as string).toLowerCase());
+        message = `${type} schedules for ${(day as string).toLowerCase()} retrieved successfully`;
+      } else if (type && date) {
+        const targetDate = new Date(date as string);
+        if (isNaN(targetDate.getTime())) {
+          return response({ res, code: 400, message: "Invalid date format" });
+        }
+        schedules = await scheduleService.getSchedulesByTypeAndDate(type as ScheduleType, targetDate);
+        message = `${type} schedules for date retrieved successfully`;
+      } else if (type) {
         if (type === ScheduleType.thematic) {
           schedules = await scheduleService.getActiveThematicSchedules();
           message = "Active thematic schedules retrieved successfully";
@@ -47,6 +69,9 @@ const scheduleController = {
         }
         schedules = await scheduleService.getSchedulesByDate(targetDate);
         message = "Schedules for date retrieved successfully";
+      } else if (day) {
+        schedules = await scheduleService.getSchedulesByDay((day as string).toLowerCase());
+        message = `Schedules for ${(day as string).toLowerCase()} retrieved successfully`;
       } else {
         schedules = await scheduleService.getAllSchedules();
         message = "All schedules retrieved successfully";

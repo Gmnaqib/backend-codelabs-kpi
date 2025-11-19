@@ -56,6 +56,23 @@ const scheduleService = {
     return await scheduleService.populateUserNames(schedules);
   },
 
+  getSchedulesByDay: async (day: string): Promise<IScheduleWithUserNames[]> => {
+    const schedules = await scheduleRepository.findSchedulesByDay(day);
+    const populated = await scheduleService.populateUserNames(schedules);
+    return scheduleService.filterDayInResponse(populated, day);
+  },
+
+  getSchedulesByTypeAndDay: async (type: ScheduleType, day: string): Promise<IScheduleWithUserNames[]> => {
+    const schedules = await scheduleRepository.findSchedulesByTypeAndDay(type, day);
+    const populated = await scheduleService.populateUserNames(schedules);
+    return scheduleService.filterDayInResponse(populated, day);
+  },
+
+  getSchedulesByTypeAndDate: async (type: ScheduleType, date: Date): Promise<IScheduleWithUserNames[]> => {
+    const schedules = await scheduleRepository.findSchedulesByTypeAndDate(type, date);
+    return await scheduleService.populateUserNames(schedules);
+  },
+
   getActiveThematicSchedules: async (): Promise<IScheduleWithUserNames[]> => {
     const currentDate = new Date();
     const schedules = await scheduleRepository.findActiveThematicSchedules(currentDate);
@@ -156,6 +173,20 @@ const scheduleService = {
       }
 
       return transformed;
+    });
+  },
+
+  filterDayInResponse: (schedules: IScheduleWithUserNames[], day: string): IScheduleWithUserNames[] => {
+    return schedules.map((schedule) => {
+      if (schedule.days && schedule.days[day as keyof typeof schedule.days]) {
+        return {
+          ...schedule,
+          days: {
+            [day]: schedule.days[day as keyof typeof schedule.days],
+          },
+        };
+      }
+      return schedule;
     });
   },
 };
