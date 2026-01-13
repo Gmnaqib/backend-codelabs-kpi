@@ -2,6 +2,8 @@ import { Request, Response } from "express";
 import response from "../helper/response";
 import { AuthRequest } from "../middlewares/auth.middlewares";
 import attendanceService from "../services/attendance.service";
+import { attendanceStatus } from "../models/attendance/attendance.Interface";
+import { Types } from "mongoose";
 
 const attendanceController = {
   checkin: async (req: AuthRequest, res: Response): Promise<any> => {
@@ -32,9 +34,8 @@ const attendanceController = {
   submitLeaveOrSick: async (req: AuthRequest, res: Response): Promise<any> => {
     try {
       const userId = req.user?.id;
-      const { type, reason, attachmentUrl, startDate, endDate } = req.body;
-
-      const newLeaveRequest = await attendanceService.submitLeaveOrSick(userId, type, reason, attachmentUrl, startDate, endDate);
+      const { type, reason, attachment_url, start_date, end_date } = req.body;
+      const newLeaveRequest = await attendanceService.submitleaveRequest(userId, type, reason, attachment_url, start_date, end_date);
 
       return response({ res, code: 201, message: "Leave request created successfully", data: newLeaveRequest });
     } catch (error: any) {
@@ -42,29 +43,10 @@ const attendanceController = {
     }
   },
 
-  reviewLeaveRequests: async (req: AuthRequest, res: Response): Promise<any> => {
+  getAttendance: async (req: Request, res: Response): Promise<any> => {
     try {
-      const userId = req.user?.id;
-      const { approvalStatus } = req.body;
-      const requestId = req.params.requestId;
-
-      await attendanceService.reviewLeaveRequest(userId, requestId, approvalStatus);
-      return response({ res, code: 200, message: "Leave request reviewed successfully" });
-    } catch (error: any) {
-      return response({ res, code: 500, message: error.message });
-    }
-  },
-
-  getAttendanceMonthly: async (req: Request, res: Response): Promise<any> => {
-    try {
-      const { month, year } = req.query;
-      const monthNum = month ? parseInt(month as string) : undefined;
-      const yearNum = year ? parseInt(year as string) : undefined;
-
-      const attendances = await attendanceService.getAttendanceMonthly(monthNum, yearNum);
-      const message = monthNum && yearNum ? "Monthly attendance retrieved successfully" : "Get all attendance success";
-
-      return response({ res, code: 200, message, data: attendances });
+      const attendances = await attendanceService.getAttendance();
+      return response({ res, code: 200, message: "Attendance retrieved successfully", data: attendances });
     } catch (error: any) {
       return response({ res, code: 500, message: error.message });
     }
@@ -72,41 +54,42 @@ const attendanceController = {
 
   getAttendanceSummary: async (req: Request, res: Response): Promise<any> => {
     try {
-      const { year, month } = req.query;
+      const { year, month, day } = req.query;
       const yearNum = year ? Number(year) : undefined;
       const monthNum = month ? Number(month) : undefined;
-
-      const summary = await attendanceService.getAttendanceSummary(yearNum, monthNum);
+      const dayNum = day ? Number(day) : undefined;
+      const summary = await attendanceService.getAttendanceSummary(yearNum, monthNum, dayNum);
       return response({ res, code: 200, message: "Attendance summary retrieved successfully", data: summary });
     } catch (error: any) {
       return response({ res, code: 500, message: error.message });
     }
   },
 
-  getAttendanceByStatus: async (req: Request, res: Response): Promise<any> => {
+  getAttendanceSummaryDetail: async (req: Request, res: Response): Promise<any> => {
     try {
-      const { status, month, year } = req.query;
-      const { id: userId } = req.params;
-      const monthNum = month ? Number(month) : undefined;
+      const { year, month } = req.query;
+      const userId = req.params.id;
       const yearNum = year ? Number(year) : undefined;
-
-      const attendance = await attendanceService.getAttendanceByStatus(String(userId), String(status), monthNum, yearNum);
-
-      return response({ res, code: 200, message: "Attendance details retrieved successfully", data: attendance });
+      const monthNum = month ? Number(month) : undefined;
+      const detailSummary = await attendanceService.getAttendanceSummaryDetail(new Types.ObjectId(userId), yearNum, monthNum);
+      return response({ res, code: 200, message: "Attendance detail summary retrieved successfully", data: detailSummary });
     } catch (error: any) {
       return response({ res, code: 500, message: error.message });
     }
   },
 
-  getAllLeaveRequests: async (req: Request, res: Response): Promise<any> => {
+  getLeaveRequests: async (req: Request, res: Response): Promise<any> => {
     try {
-      const filters = req.query;
-      const requests = await attendanceService.getAllLeaveRequests(filters);
+      const { year, month, day } = req.query;
+      const yearNum = year ? Number(year) : undefined;
+      const monthNum = month ? Number(month) : undefined;
+      const dayNum = day ? Number(day) : undefined;
 
+      const requests = await attendanceService.getLeaveRequests(yearNum, monthNum, dayNum);
       return response({
         res,
         code: 200,
-        message: "All leave requests retrieved successfully",
+        message: "All sick leave requests retrieved successfully",
         data: requests,
       });
     } catch (error: any) {
@@ -114,48 +97,13 @@ const attendanceController = {
     }
   },
 
-  getTodayLeaveRequests: async (req: Request, res: Response): Promise<any> => {
+  reviewLeaveRequests: async (req: AuthRequest, res: Response): Promise<any> => {
     try {
-      const requests = await attendanceService.getTodayLeaveRequests();
-
-      return response({
-        res,
-        code: 200,
-        message: "Today's leave requests retrieved successfully",
-        data: requests,
-      });
-    } catch (error: any) {
-      return response({ res, code: 500, message: error.message });
-    }
-  },
-
-  getLeaveRequestsByStatus: async (req: Request, res: Response): Promise<any> => {
-    try {
-      const { status } = req.query;
-
-      const requests = await attendanceService.getLeaveRequestsByStatus(status as any);
-
-      return response({
-        res,
-        code: 200,
-        message: `Leave requests with status '${status}' retrieved successfully`,
-        data: requests,
-      });
-    } catch (error: any) {
-      return response({ res, code: 500, message: error.message });
-    }
-  },
-
-  getLeaveRequestById: async (req: Request, res: Response): Promise<any> => {
-    try {
-      const { id } = req.params;
-      const request = await attendanceService.getLeaveRequestById(id);
-      return response({
-        res,
-        code: 200,
-        message: "Leave request retrieved successfully",
-        data: request,
-      });
+      const reviewerUserId = req.user?.id;
+      const { approvalStatus } = req.body;
+      const attendanceId = req.params.requestId;
+      await attendanceService.reviewLeaveRequest(reviewerUserId, new Types.ObjectId(attendanceId), approvalStatus);
+      return response({ res, code: 200, message: "Leave request reviewed successfully" });
     } catch (error: any) {
       return response({ res, code: 500, message: error.message });
     }

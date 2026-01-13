@@ -24,6 +24,7 @@ export const authenticateToken = (req: AuthRequest, res: Response, next: NextFun
       id: decoded.id,
       name: decoded.name,
       email: decoded.email,
+      nim: decoded.nim,
       role: decoded.role,
       majors: decoded.majors,
       years: decoded.years,

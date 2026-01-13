@@ -1,12 +1,12 @@
 import attendanceRepository from "../repository/attendance.repository";
+import { attendanceStatus } from "../models/attendance/attendance.Interface";
 import userRepository from "../repository/user.repository";
 import settingRepository from "../repository/setting.respository";
 import dateHelper from "../helper/dateHelper";
 import { Types } from "mongoose";
-import { attendanceType } from "../models/attendance/leave.request.interface";
 
 export const attendanceValidate = {
-  checkIn: async (userId: string, device: { device_id: string }, reason?: string): Promise<{ isLateCheckIn: boolean }> => {
+  checkIn: async (userId: Types.ObjectId, device: { device_id: string }, reason?: string): Promise<{ isLateCheckIn: boolean }> => {
     const now = dateHelper.getNowWIBAsDateTime();
     const startOfDay = dateHelper.getStartOfDayWIB();
     const endOfDay = dateHelper.getEndOfDayWIB();
@@ -33,7 +33,7 @@ export const attendanceValidate = {
       throw new Error("Device not registered");
     }
 
-    const userAttendance = await attendanceRepository.findAttendance({
+    const userAttendance = await attendanceRepository.findOne({
       userId,
       checkIn: {
         $gte: startOfDay,
@@ -54,7 +54,7 @@ export const attendanceValidate = {
     return { isLateCheckIn };
   },
 
-  checkOut: async (userId: string, device: { device_id: string }): Promise<void> => {
+  checkOut: async (userId: Types.ObjectId, device: { device_id: string }): Promise<void> => {
     const now = dateHelper.getNowWIBAsDateTime();
     const startOfDay = dateHelper.getStartOfDayWIB();
     const endOfDay = dateHelper.getEndOfDayWIB();
@@ -77,7 +77,7 @@ export const attendanceValidate = {
       throw new Error("Device not registered");
     }
 
-    const userAttendance = await attendanceRepository.findAttendance({
+    const userAttendance = await attendanceRepository.findOne({
       userId,
       checkIn: {
         $gte: startOfDay,
@@ -94,12 +94,12 @@ export const attendanceValidate = {
     }
   },
 
-  leaveOrSick: async (userId: string, type: attendanceType, reason: string, attachmentUrl: string, startDate: Date, endDate: Date): Promise<void> => {
+  leaveOrSick: async (userId: Types.ObjectId, status: attendanceStatus, reason: string, attachmentUrl: string, startDate: Date, endDate: Date): Promise<void> => {
     const now = dateHelper.getNowWIBAsDateTime();
     let timeLimit = dateHelper.getTimeTodayWIB(24);
     const userObjectId = new Types.ObjectId(userId);
 
-    if (!type || !reason || !attachmentUrl || !startDate || !endDate) {
+    if (!status || !reason || !attachmentUrl || !startDate || !endDate) {
       throw new Error("All fields are required");
     }
 
@@ -107,11 +107,10 @@ export const attendanceValidate = {
       throw new Error("It's too late to submit a leave or sick request today");
     }
 
-    // Check for existing attendance in the date range
     for (let d = new Date(startDate); d <= new Date(endDate); d.setDate(d.getDate() + 1)) {
-      const existingAttendance = await attendanceRepository.findAttendance({
+      const existingAttendance = await attendanceRepository.findOne({
         userId: userObjectId,
-        date: d,
+        createdAt: d,
       });
 
       if (existingAttendance) {

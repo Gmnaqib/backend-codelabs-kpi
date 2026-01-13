@@ -1,9 +1,9 @@
-import leaveRequestRepository from "../repository/leave.request.repository";
+import attendanceRepository from "../repository/attendance.repository";
 import { Types } from "mongoose";
-import { attendanceType, approvalStatus } from "../models/attendance/leave.request.interface";
+import { approvalStatus } from "../models/attendance/attendance.Interface";
 
 export const leaveRequestValidate = {
-  reviewLeaveRequest: async (reviewerUserId: string, requestId: string, approvalStatus: approvalStatus): Promise<void> => {
+  reviewLeaveRequest: async (reviewerUserId: Types.ObjectId, requestId: Types.ObjectId, approvalStatus: approvalStatus): Promise<void> => {
     if (!reviewerUserId) {
       throw new Error("Reviewer user ID is required");
     }
@@ -30,13 +30,13 @@ export const leaveRequestValidate = {
       throw new Error("Invalid approval status");
     }
 
-    const searchLeaveRequest = await leaveRequestRepository.findLeaveRequestById(requestId);
+    const searchLeaveRequest = await attendanceRepository.findById(requestId);
 
     if (!searchLeaveRequest) {
       throw new Error("Leave request not found");
     }
 
-    if (searchLeaveRequest.approvalStatus === "approved" || searchLeaveRequest.approvalStatus === "rejected") {
+    if (searchLeaveRequest.approval_status === "approved" || searchLeaveRequest.approval_status === "rejected") {
       throw new Error("Leave request has already been reviewed");
     }
   },

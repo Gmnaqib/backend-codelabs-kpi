@@ -1,23 +1,23 @@
 import { Router } from "express";
 import attendanceController from "../controllers/attendance.controller";
 import { authenticateToken } from "../middlewares/auth.middlewares";
-import { roleMiddlewares } from "../middlewares/role.middlewares";
+// import { roleMiddlewares } from "../middlewares/role.middlewares";
 const attendanceRouter = Router();
 
-attendanceRouter.get("/", authenticateToken, roleMiddlewares(["admin", "minister of operation", "user"]), attendanceController.getAttendanceMonthly);
-attendanceRouter.get("/summary", authenticateToken, roleMiddlewares(["admin", "minister of operation", "user"]), attendanceController.getAttendanceSummary);
-attendanceRouter.get("/summary/:id", authenticateToken, roleMiddlewares(["admin", "minister of operation", "user"]), attendanceController.getAttendanceByStatus);
+attendanceRouter.get("/", attendanceController.getAttendance);
+attendanceRouter.get("/summary", authenticateToken, attendanceController.getAttendanceSummary);
+attendanceRouter.get("/summary/:id", authenticateToken, attendanceController.getAttendanceSummaryDetail);
 
-// New leave request fetching endpoints
+// // New leave request fetching endpoints
 attendanceRouter.post("/leave-requests", authenticateToken, attendanceController.submitLeaveOrSick);
-attendanceRouter.get("/leave-requests", authenticateToken, roleMiddlewares(["admin", "minister of operation"]), attendanceController.getAllLeaveRequests);
-attendanceRouter.get("/leave-requests/today", authenticateToken, roleMiddlewares(["admin", "minister of operation"]), attendanceController.getTodayLeaveRequests);
-attendanceRouter.get("/leave-requests/status/:status", authenticateToken, roleMiddlewares(["admin", "minister of operation"]), attendanceController.getLeaveRequestsByStatus);
-attendanceRouter.get("/leave-requests/:id", authenticateToken, attendanceController.getLeaveRequestById);
+attendanceRouter.get("/leave-requests", authenticateToken, attendanceController.getLeaveRequests);
+// attendanceRouter.get("/leave-requests/today", authenticateToken, roleMiddlewares(["admin", "minister of operation"]), attendanceController.getTodayLeaveRequests);
+// attendanceRouter.get("/leave-requests/status/:status", authenticateToken, roleMiddlewares(["admin", "minister of operation"]), attendanceController.getLeaveRequestsByStatus);
+// attendanceRouter.get("/leave-requests/:id", authenticateToken, attendanceController.getLeaveRequestById);
 
 attendanceRouter.post("/checkin", authenticateToken, attendanceController.checkin);
 attendanceRouter.patch("/checkout", authenticateToken, attendanceController.checkOut);
-attendanceRouter.patch("/leave-requests/review/:requestId", roleMiddlewares(["minister of operation"]), authenticateToken, attendanceController.reviewLeaveRequests);
+attendanceRouter.patch("/leave-requests/review/:requestId", authenticateToken, attendanceController.reviewLeaveRequests);
 
 export default attendanceRouter;
 

@@ -1,62 +1,102 @@
 import Attendance from "../models/attendance/attendance.schema";
-import IAttendance, { attendanceStatus } from "../models/attendance/attendance.Interface";
+import IAttendance, { attendanceStatus, approvalStatus } from "../models/attendance/attendance.Interface";
 import { Types } from "mongoose";
 
-interface AttendanceFilter {
-  _id?: Types.ObjectId | string;
-  userId?: Types.ObjectId | string;
-  date?: Date | { $gte?: Date; $lte?: Date; $lt?: Date };
-  status?: attendanceStatus;
-  checkIn?: Date | { $gte?: Date; $lte?: Date; $lt?: Date };
-  checkOut?: Date | { $gte?: Date; $lte?: Date; $lt?: Date } | null;
-  reason?: string;
-  leaveRequestId?: Types.ObjectId;
+interface filterAttendance {
+  userId: Types.ObjectId;
+  status: attendanceStatus;
+  start_date: Date;
+  end_date: Date;
+  approval_status: approvalStatus;
+  createdAt: Date;
+  checkIn: Date | any;
+  checkOut: Date | any;
+  year: number;
+  month: number;
+  day: number;
 }
 
 const attendanceRepository = {
-  createAttendance: (attendanceData: Partial<IAttendance>) => Attendance.create(attendanceData),
+  create: (data: Partial<IAttendance>) => Attendance.create(data),
+  findAll: (filter: Partial<filterAttendance>) => Attendance.find(filter),
+  findOne: (filter: Partial<filterAttendance>) => Attendance.findOne(filter),
+  findById: (id: Types.ObjectId) => Attendance.findById(id),
+  findAllWithApprovalStatus: () => Attendance.find({ approval_status: { $exists: true } }),
+  findByApprovalStatus: (status: approvalStatus) => Attendance.find({ approval_status: status }),
 
-  findAllAttendances: () => Attendance.find().sort({ date: 1 }),
+  findAllWithApprovalStatusAndDate: async (dateFilter: Partial<filterAttendance>): Promise<IAttendance[]> => {
+    const query: any = { approval_status: { $exists: true } };
 
-  findAttendanceById: (id: string) => Attendance.findById(id),
+    if (dateFilter.year !== undefined || dateFilter.month !== undefined || dateFilter.day !== undefined) {
+      const startDate = new Date();
+      const endDate = new Date();
 
-  findAttendance: (filter: AttendanceFilter) => Attendance.findOne(filter),
+      if (dateFilter.year !== undefined) {
+        startDate.setFullYear(dateFilter.year);
+        endDate.setFullYear(dateFilter.year);
+      }
 
-  findAttendancesByFilter: (filter: AttendanceFilter) => Attendance.find(filter).sort({ date: 1 }),
+      if (dateFilter.month !== undefined) {
+        startDate.setMonth(dateFilter.month - 1, 1);
+        endDate.setMonth(dateFilter.month, 0);
+        endDate.setHours(23, 59, 59, 999);
+      } else if (dateFilter.year !== undefined) {
+        startDate.setMonth(0, 1);
+        endDate.setMonth(11, 31);
+        endDate.setHours(23, 59, 59, 999);
+      }
 
-  findAttendancesByUserId: (userId: string) => Attendance.find({ userId: new Types.ObjectId(userId) }).sort({ date: 1 }),
+      if (dateFilter.day !== undefined && dateFilter.month !== undefined && dateFilter.year !== undefined) {
+        startDate.setDate(dateFilter.day);
+        endDate.setDate(dateFilter.day);
+        endDate.setHours(23, 59, 59, 999);
+      }
 
-  findMonthlyAttendances: (month: number, year: number) => {
-    const start = new Date(year, month - 1, 1, 0, 0, 0);
-    const end = new Date(year, month, 0, 23, 59, 59);
-    return Attendance.find({ date: { $gte: start, $lte: end } }).sort({ date: 1 });
+      query.createdAt = {
+        $gte: startDate,
+        $lte: endDate,
+      };
+    }
+
+    return await Attendance.find(query);
   },
 
-  findAttendancesByDateRange: (startDate: Date, endDate: Date, userId?: string) => {
-    const filter: AttendanceFilter = { date: { $gte: startDate, $lte: endDate } };
-    if (userId) filter.userId = new Types.ObjectId(userId);
-    return Attendance.find(filter).sort({ date: 1 });
+  findAllWithDate: async (dateFilter: Partial<filterAttendance>): Promise<IAttendance[]> => {
+    const query: any = {};
+
+    if (dateFilter.year !== undefined || dateFilter.month !== undefined || dateFilter.day !== undefined) {
+      const startDate = new Date();
+      const endDate = new Date();
+
+      if (dateFilter.year !== undefined) {
+        startDate.setFullYear(dateFilter.year);
+        endDate.setFullYear(dateFilter.year);
+      }
+
+      if (dateFilter.month !== undefined) {
+        startDate.setMonth(dateFilter.month - 1, 1);
+        endDate.setMonth(dateFilter.month, 0);
+        endDate.setHours(23, 59, 59, 999);
+      } else if (dateFilter.year !== undefined) {
+        startDate.setMonth(0, 1);
+        endDate.setMonth(11, 31);
+        endDate.setHours(23, 59, 59, 999);
+      }
+
+      if (dateFilter.day !== undefined && dateFilter.month !== undefined && dateFilter.year !== undefined) {
+        startDate.setDate(dateFilter.day);
+        endDate.setDate(dateFilter.day);
+        endDate.setHours(23, 59, 59, 999);
+      }
+
+      query.createdAt = {
+        $gte: startDate,
+        $lte: endDate,
+      };
+    }
+
+    return await Attendance.find(query);
   },
-
-  findAttendanceDetailsByStatus: (userId: string, status: string, month: number, year: number) => {
-    const start = new Date(year, month - 1, 1, 0, 0, 0);
-    const end = new Date(year, month, 0, 23, 59, 59);
-    return Attendance.find({
-      userId: new Types.ObjectId(userId),
-      status,
-      date: { $gte: start, $lte: end },
-    }).sort({ date: 1 });
-  },
-
-  // Update operations
-  updateAttendanceById: (id: string, updateData: Partial<IAttendance>) => Attendance.findByIdAndUpdate(id, updateData, { new: true }),
-
-  updateAttendance: (filter: AttendanceFilter, updateData: Partial<IAttendance>) => Attendance.updateOne(filter, updateData),
-
-  // Delete operations
-  deleteAttendanceById: (id: string) => Attendance.findByIdAndDelete(id),
-
-  deleteAttendance: (filter: AttendanceFilter) => Attendance.deleteOne(filter),
 };
 
 export default attendanceRepository;
