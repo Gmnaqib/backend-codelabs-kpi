@@ -8,7 +8,7 @@ interface filterAttendance {
   start_date: Date;
   end_date: Date;
   approval_status: approvalStatus;
-  createdAt: Date;
+  createdAt: Date | any;
   checkIn: Date | any;
   checkOut: Date | any;
   year: number;

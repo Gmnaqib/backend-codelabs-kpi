@@ -31,10 +31,22 @@ const attendanceService = {
   checkOut: async (userId: Types.ObjectId, deviceId: { device_id: string }): Promise<IAttendance> => {
     const userObjectId = new Types.ObjectId(userId);
     await attendanceValidate.checkOut(userId, deviceId);
-    const userAttendance = await attendanceRepository.findOne({ userId: userObjectId, createdAt: new Date() });
+
+    const today = new Date();
+    const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0, 0);
+    const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59, 999);
+
+    const userAttendance = await attendanceRepository.findOne({
+      userId: userObjectId,
+      createdAt: { $gte: startOfDay, $lte: endOfDay },
+    });
 
     if (!userAttendance) {
       throw new Error("Attendance not found");
+    }
+
+    if (userAttendance.checkOut != null) {
+      throw new Error("You have already checked out");
     }
 
     userAttendance.checkOut = new Date();
