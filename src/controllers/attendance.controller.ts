@@ -97,6 +97,21 @@ const attendanceController = {
     }
   },
 
+  getLeaveRequestById: async (req: Request, res: Response): Promise<any> => {
+    try {
+      const requestId = req.params.id;
+      const leaveRequest = await attendanceService.getLeaveRequestById(new Types.ObjectId(requestId));
+      return response({
+        res,
+        code: 200,
+        message: "Get Leave request by ID success",
+        data: leaveRequest,
+      });
+    } catch (error: any) {
+      return response({ res, code: 500, message: error.message });
+    }
+  },
+
   reviewLeaveRequests: async (req: AuthRequest, res: Response): Promise<any> => {
     try {
       const reviewerUserId = req.user?.id;

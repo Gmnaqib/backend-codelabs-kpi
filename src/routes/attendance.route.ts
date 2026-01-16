@@ -11,9 +11,9 @@ attendanceRouter.get("/summary/:id", authenticateToken, attendanceController.get
 // // New leave request fetching endpoints
 attendanceRouter.post("/leave-requests", authenticateToken, attendanceController.submitLeaveOrSick);
 attendanceRouter.get("/leave-requests", authenticateToken, attendanceController.getLeaveRequests);
+attendanceRouter.get("/leave-requests/:id", authenticateToken, attendanceController.getLeaveRequestById);
 // attendanceRouter.get("/leave-requests/today", authenticateToken, roleMiddlewares(["admin", "minister of operation"]), attendanceController.getTodayLeaveRequests);
 // attendanceRouter.get("/leave-requests/status/:status", authenticateToken, roleMiddlewares(["admin", "minister of operation"]), attendanceController.getLeaveRequestsByStatus);
-// attendanceRouter.get("/leave-requests/:id", authenticateToken, attendanceController.getLeaveRequestById);
 
 attendanceRouter.post("/checkin", authenticateToken, attendanceController.checkin);
 attendanceRouter.patch("/checkout", authenticateToken, attendanceController.checkOut);

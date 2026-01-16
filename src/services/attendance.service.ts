@@ -82,6 +82,14 @@ const attendanceService = {
     return await attendanceRepository.findAllWithApprovalStatus();
   },
 
+  getLeaveRequestById: async (attendanceId: Types.ObjectId): Promise<IAttendance> => {
+    const attendanceData = await attendanceRepository.findById(attendanceId);
+    if (!attendanceData) {
+      throw new Error("Attendance ID is required");
+    }
+    return attendanceData;
+  },
+
   reviewLeaveRequest: async (reviewerUserId: Types.ObjectId, attendanceId: Types.ObjectId, approvalStatus: approvalStatus): Promise<void> => {
     await leaveRequestValidate.reviewLeaveRequest(reviewerUserId, attendanceId, approvalStatus);
     const searchLeaveRequest = await attendanceRepository.findById(attendanceId);
