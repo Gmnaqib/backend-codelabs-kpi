@@ -13,6 +13,7 @@ import researchRouter from "./routes/research.route";
 import competitionRouter from "./routes/competition.route";
 import brandingRouter from "./routes/branding.route";
 import kpiRouter from "./routes/kpi.route";
+import productRouter from "./routes/product.route";
 import cors from "cors";
 
 connectDB();
@@ -28,6 +29,7 @@ app.use("/research", researchRouter);
 app.use("/competition", competitionRouter);
 app.use("/branding", brandingRouter);
 app.use("/kpi", kpiRouter);
+app.use("/products", productRouter);
 
 app.listen(port, () => {
   console.log(`App listening on http://localhost:${port}`);
