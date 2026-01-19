@@ -1,22 +1,17 @@
+import { Types } from "mongoose";
+
 interface ISchedule {
   type: ScheduleType;
-  date?: Date;
-  days?: IScheduleDays;
+  date: Date;
+  assignedUsers?: Types.ObjectId[];
   description?: string;
-}
-
-export interface IScheduleDays {
-  monday?: string[];
-  tuesday?: string[];
-  wednesday?: string[];
-  thursday?: string[];
-  friday?: string[];
-  saturday?: string[];
-  sunday?: string[];
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export enum ScheduleType {
   picket = "picket",
   thematic = "thematic",
 }
+
 export default ISchedule;

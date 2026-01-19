@@ -1,193 +1,266 @@
 import scheduleRepository from "../repository/schedule.repository";
-import userRepository from "../repository/user.repository";
-import scheduleValidator from "../validators/schedule.validator";
-import ISchedule, { ScheduleType, IScheduleDays } from "../models/schedule/schedule.interface";
+// import scheduleValidator from "../validators/schedule.validator";
+import ISchedule, { ScheduleType } from "../models/schedule/schedule.interface";
 import { Types } from "mongoose";
 
-interface IScheduleWithUserNames extends Omit<ISchedule, "days"> {
-  _id?: string;
-  days?: {
-    monday?: { userId: string; userName: string }[];
-    tuesday?: { userId: string; userName: string }[];
-    wednesday?: { userId: string; userName: string }[];
-    thursday?: { userId: string; userName: string }[];
-    friday?: { userId: string; userName: string }[];
-    saturday?: { userId: string; userName: string }[];
-    sunday?: { userId: string; userName: string }[];
-  };
-  createdAt?: Date;
-  updatedAt?: Date;
-}
-
 const scheduleService = {
-  createSchedule: async (type: ScheduleType, date?: Date, days?: IScheduleDays, description?: string): Promise<IScheduleWithUserNames> => {
-    await scheduleValidator.createSchedule(type, date, days, description);
+  createSchedule: async (type: ScheduleType, date: Date, assignedUsers?: Types.ObjectId[], description?: string): Promise<ISchedule> => {
+    // Validate schedule
+    if (!type || !date) {
+      throw new Error("Type and date are required");
+    }
 
-    const scheduleData: Partial<ISchedule> = { type };
-    if (date) scheduleData.date = date;
-    if (days) scheduleData.days = days;
+    // Validate date is Monday-Friday
+    const dayOfWeek = date.getDay();
+    if (dayOfWeek === 0 || dayOfWeek === 6) {
+      throw new Error("Schedule date must be Monday to Friday only");
+    }
+
+    const scheduleData: Partial<ISchedule> = { type, date };
+    if (assignedUsers) scheduleData.assignedUsers = assignedUsers;
     if (description) scheduleData.description = description;
 
-    const createdSchedule: ISchedule = await scheduleRepository.createSchedule(scheduleData);
-    const populated = await scheduleService.populateUserNames([createdSchedule]);
-    return populated[0];
+    return await scheduleRepository.createSchedule(scheduleData);
   },
+  createBatchSchedule: async (params: {
+    type: ScheduleType;
+    startDate: Date;
+    endDate: Date;
+    patterns: Array<{
+      daysOfWeek: number[]; // [1,2,3,4,5] = Mon-Fri
+      assignedUsers: Types.ObjectId[];
+      description?: string;
+    }>;
+  }): Promise<ISchedule[]> => {
+    const { type, startDate, endDate, patterns } = params;
 
-  getAllSchedules: async (): Promise<IScheduleWithUserNames[]> => {
-    const schedules = await scheduleRepository.findAllSchedules();
-    return await scheduleService.populateUserNames(schedules);
-  },
-
-  getScheduleById: async (id: string): Promise<IScheduleWithUserNames | null> => {
-    const schedule = await scheduleRepository.findScheduleById(id);
-    if (!schedule) return null;
-
-    const populated = await scheduleService.populateUserNames([schedule]);
-    return populated[0] || null;
-  },
-
-  getSchedulesByType: async (type: ScheduleType): Promise<IScheduleWithUserNames[]> => {
-    const schedules = await scheduleRepository.findSchedulesByType(type);
-    return await scheduleService.populateUserNames(schedules);
-  },
-
-  getSchedulesByDate: async (date: Date): Promise<IScheduleWithUserNames[]> => {
-    const schedules = await scheduleRepository.findSchedulesByDate(date);
-    return await scheduleService.populateUserNames(schedules);
-  },
-
-  getSchedulesByDay: async (day: string): Promise<IScheduleWithUserNames[]> => {
-    const schedules = await scheduleRepository.findSchedulesByDay(day);
-    const populated = await scheduleService.populateUserNames(schedules);
-    return scheduleService.filterDayInResponse(populated, day);
-  },
-
-  getSchedulesByTypeAndDay: async (type: ScheduleType, day: string): Promise<IScheduleWithUserNames[]> => {
-    const schedules = await scheduleRepository.findSchedulesByTypeAndDay(type, day);
-    const populated = await scheduleService.populateUserNames(schedules);
-    return scheduleService.filterDayInResponse(populated, day);
-  },
-
-  getSchedulesByTypeAndDate: async (type: ScheduleType, date: Date): Promise<IScheduleWithUserNames[]> => {
-    const schedules = await scheduleRepository.findSchedulesByTypeAndDate(type, date);
-    return await scheduleService.populateUserNames(schedules);
-  },
-
-  getActiveThematicSchedules: async (): Promise<IScheduleWithUserNames[]> => {
-    const currentDate = new Date();
-    const schedules = await scheduleRepository.findActiveThematicSchedules(currentDate);
-    return await scheduleService.populateUserNames(schedules);
-  },
-
-  updateSchedule: async (id: string, updateData: { type?: ScheduleType; date?: Date; days?: IScheduleDays; description?: string }): Promise<IScheduleWithUserNames | null> => {
-    await scheduleValidator.updateSchedule(id, updateData);
-
-    const updatedSchedule = await scheduleRepository.updateScheduleById(id, updateData);
-    if (!updatedSchedule) return null;
-
-    const populated = await scheduleService.populateUserNames([updatedSchedule]);
-    return populated[0];
-  },
-
-  partialUpdateSchedule: async (id: string, updateData: { type?: ScheduleType; date?: Date; days?: IScheduleDays; description?: string }): Promise<IScheduleWithUserNames | null> => {
-    const existingSchedule = await scheduleRepository.findScheduleById(id);
-    if (!existingSchedule) return null;
-
-    let finalUpdateData = { ...updateData };
-
-    if (updateData.days) {
-      finalUpdateData.days = updateData.days;
+    if (!type || !startDate || !endDate || !patterns || patterns.length === 0) {
+      throw new Error("Type, startDate, endDate, and patterns are required");
     }
 
-    const mergedData = {
-      type: finalUpdateData.type || existingSchedule.type,
-      date: finalUpdateData.date !== undefined ? finalUpdateData.date : existingSchedule.date,
-      days: finalUpdateData.days || existingSchedule.days,
-      description: finalUpdateData.description !== undefined ? finalUpdateData.description : existingSchedule.description,
-    };
+    if (startDate > endDate) {
+      throw new Error("startDate must be before endDate");
+    }
 
-    await scheduleValidator.updateSchedule(id, mergedData);
-    const updatedSchedule = await scheduleRepository.updateScheduleById(id, finalUpdateData);
-    if (!updatedSchedule) return null;
-
-    const populated = await scheduleService.populateUserNames([updatedSchedule]);
-    return populated[0];
-  },
-
-  deleteSchedule: async (id: string): Promise<IScheduleWithUserNames | null> => {
-    await scheduleValidator.deleteSchedule(id);
-
-    const deletedSchedule = await scheduleRepository.deleteScheduleById(id);
-    if (!deletedSchedule) return null;
-
-    const populated = await scheduleService.populateUserNames([deletedSchedule]);
-    return populated[0];
-  },
-
-  populateUserNames: async (schedules: ISchedule[]): Promise<IScheduleWithUserNames[]> => {
-    const allUserIds = new Set<string>();
-
-    schedules.forEach((schedule) => {
-      if (schedule.days) {
-        Object.values(schedule.days).forEach((dayUsers) => {
-          if (dayUsers) {
-            dayUsers.forEach((userId: string) => allUserIds.add(userId));
-          }
-        });
+    // Validate patterns
+    for (const pattern of patterns) {
+      if (!pattern.daysOfWeek || pattern.daysOfWeek.length === 0) {
+        throw new Error("Each pattern must have daysOfWeek");
       }
-    });
+      if (!pattern.assignedUsers || pattern.assignedUsers.length === 0) {
+        throw new Error("Each pattern must have at least one assignedUser");
+      }
 
-    const userMap = new Map<string, string>();
-    if (allUserIds.size > 0) {
-      for (const userId of allUserIds) {
-        try {
-          const user = await userRepository.findUserById(userId);
-          userMap.set(userId, user?.name || "Unknown User");
-        } catch (error) {
-          userMap.set(userId, "Unknown User");
+      const invalidDays = pattern.daysOfWeek.filter((day) => day < 1 || day > 5);
+      if (invalidDays.length > 0) {
+        throw new Error("daysOfWeek must only contain Monday-Friday (1-5)");
+      }
+    }
+
+    const createdSchedules: ISchedule[] = [];
+    const currentDate = new Date(startDate);
+    currentDate.setHours(0, 0, 0, 0);
+
+    const endDateNormalized = new Date(endDate);
+    endDateNormalized.setHours(23, 59, 59, 999);
+
+    // Loop through each day from startDate to endDate
+    while (currentDate <= endDateNormalized) {
+      const dayOfWeek = currentDate.getDay();
+
+      // Find matching pattern for this day
+      for (const pattern of patterns) {
+        if (pattern.daysOfWeek.includes(dayOfWeek)) {
+          const scheduleData: Partial<ISchedule> = {
+            type,
+            date: new Date(currentDate),
+            assignedUsers: pattern.assignedUsers,
+            description: pattern.description,
+          };
+
+          const createdSchedule = await scheduleRepository.createSchedule(scheduleData);
+          createdSchedules.push(createdSchedule);
+          break; // Only create one schedule per day
         }
       }
+
+      // Move to next day
+      currentDate.setDate(currentDate.getDate() + 1);
     }
 
-    return schedules.map((schedule) => {
-      const transformed: IScheduleWithUserNames = {
-        _id: (schedule as any)._id?.toString(),
-        type: schedule.type,
-        date: schedule.date,
-        description: schedule.description,
-        createdAt: (schedule as any).createdAt,
-        updatedAt: (schedule as any).updatedAt,
-      };
-
-      if (schedule.days) {
-        transformed.days = {};
-
-        (Object.keys(schedule.days) as Array<keyof IScheduleDays>).forEach((day) => {
-          if (schedule.days![day]) {
-            transformed.days![day] = schedule.days![day]!.map((userId) => ({
-              userId,
-              userName: userMap.get(userId) || "Unknown User",
-            }));
-          }
-        });
-      }
-
-      return transformed;
-    });
+    return createdSchedules;
   },
 
-  filterDayInResponse: (schedules: IScheduleWithUserNames[], day: string): IScheduleWithUserNames[] => {
-    return schedules.map((schedule) => {
-      if (schedule.days && schedule.days[day as keyof typeof schedule.days]) {
-        return {
-          ...schedule,
-          days: {
-            [day]: schedule.days[day as keyof typeof schedule.days],
-          },
-        };
+  getAllSchedules: async (): Promise<ISchedule[]> => {
+    return await scheduleRepository.findAllSchedules();
+  },
+
+  getScheduleById: async (id: string): Promise<ISchedule | null> => {
+    if (!Types.ObjectId.isValid(id)) {
+      throw new Error("Invalid schedule ID format");
+    }
+    return await scheduleRepository.findScheduleById(id);
+  },
+
+  getSchedulesByType: async (type: ScheduleType): Promise<ISchedule[]> => {
+    if (!Object.values(ScheduleType).includes(type)) {
+      throw new Error("Invalid schedule type");
+    }
+    return await scheduleRepository.findSchedulesByType(type);
+  },
+
+  getSchedulesByDate: async (date: Date): Promise<ISchedule[]> => {
+    if (isNaN(date.getTime())) {
+      throw new Error("Invalid date format");
+    }
+    return await scheduleRepository.findSchedulesByDate(date);
+  },
+
+  getSchedulesByTypeAndDate: async (type: ScheduleType, date: Date): Promise<ISchedule[]> => {
+    if (!Object.values(ScheduleType).includes(type)) {
+      throw new Error("Invalid schedule type");
+    }
+    if (isNaN(date.getTime())) {
+      throw new Error("Invalid date format");
+    }
+    return await scheduleRepository.findSchedulesByTypeAndDate(type, date);
+  },
+
+  getSchedulesByDateRange: async (startDate: Date, endDate: Date): Promise<ISchedule[]> => {
+    if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+      throw new Error("Invalid date format");
+    }
+    return await scheduleRepository.findSchedulesByDateRange(startDate, endDate);
+  },
+
+  getSchedulesByTypeAndDateRange: async (type: ScheduleType, startDate: Date, endDate: Date): Promise<ISchedule[]> => {
+    if (!Object.values(ScheduleType).includes(type)) {
+      throw new Error("Invalid schedule type");
+    }
+    if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+      throw new Error("Invalid date format");
+    }
+    return await scheduleRepository.findSchedulesByTypeAndDateRange(type, startDate, endDate);
+  },
+
+  updateSchedule: async (
+    id: string,
+    updateData: {
+      type?: ScheduleType;
+      date?: Date;
+      assignedUsers?: Types.ObjectId[];
+      description?: string;
+    },
+  ): Promise<ISchedule | null> => {
+    if (!Types.ObjectId.isValid(id)) {
+      throw new Error("Invalid schedule ID format");
+    }
+
+    // Validate date is Monday-Friday if date is provided
+    if (updateData.date) {
+      const dayOfWeek = updateData.date.getDay();
+      if (dayOfWeek === 0 || dayOfWeek === 6) {
+        throw new Error("Schedule date must be Monday to Friday only");
       }
-      return schedule;
+    }
+
+    const existingSchedule = await scheduleRepository.findScheduleById(id);
+    if (!existingSchedule) {
+      return null;
+    }
+
+    return await scheduleRepository.updateScheduleById(id, updateData);
+  },
+
+  partialUpdateSchedule: async (
+    id: string,
+    updateData: {
+      type?: ScheduleType;
+      date?: Date;
+      assignedUsers?: Types.ObjectId[];
+      description?: string;
+    },
+  ): Promise<ISchedule | null> => {
+    if (!Types.ObjectId.isValid(id)) {
+      throw new Error("Invalid schedule ID format");
+    }
+
+    // Validate date is Monday-Friday if date is provided
+    if (updateData.date) {
+      const dayOfWeek = updateData.date.getDay();
+      if (dayOfWeek === 0 || dayOfWeek === 6) {
+        throw new Error("Schedule date must be Monday to Friday only");
+      }
+    }
+
+    const existingSchedule = await scheduleRepository.findScheduleById(id);
+    if (!existingSchedule) {
+      return null;
+    }
+
+    return await scheduleRepository.updateScheduleById(id, updateData);
+  },
+
+  deleteSchedule: async (id: string): Promise<ISchedule | null> => {
+    if (!Types.ObjectId.isValid(id)) {
+      throw new Error("Invalid schedule ID format");
+    }
+
+    return await scheduleRepository.deleteScheduleById(id);
+  },
+
+  swapUsers: async (schedule1Id: string, schedule1UserId: string, schedule2Id: string, schedule2UserId: string): Promise<{ schedule1: ISchedule | null; schedule2: ISchedule | null }> => {
+    // Validate all IDs
+    if (!Types.ObjectId.isValid(schedule1Id) || !Types.ObjectId.isValid(schedule1UserId) || !Types.ObjectId.isValid(schedule2Id) || !Types.ObjectId.isValid(schedule2UserId)) {
+      throw new Error("Invalid ObjectId format");
+    }
+
+    // Check if both schedules exist
+    const schedule1 = await scheduleRepository.findScheduleById(schedule1Id);
+    const schedule2 = await scheduleRepository.findScheduleById(schedule2Id);
+
+    if (!schedule1) {
+      throw new Error(`Schedule 1 with ID ${schedule1Id} not found`);
+    }
+
+    if (!schedule2) {
+      throw new Error(`Schedule 2 with ID ${schedule2Id} not found`);
+    }
+
+    // Check if user1 exists in schedule1
+    const user1ObjectId = new Types.ObjectId(schedule1UserId);
+    const user1Exists = schedule1.assignedUsers?.some((userId) => userId.equals(user1ObjectId));
+
+    if (!user1Exists) {
+      throw new Error(`User ${schedule1UserId} not found in Schedule 1`);
+    }
+
+    // Check if user2 exists in schedule2
+    const user2ObjectId = new Types.ObjectId(schedule2UserId);
+    const user2Exists = schedule2.assignedUsers?.some((userId) => userId.equals(user2ObjectId));
+
+    if (!user2Exists) {
+      throw new Error(`User ${schedule2UserId} not found in Schedule 2`);
+    }
+
+    // Perform swap
+    const updatedAssignedUsers1 = schedule1.assignedUsers!.map((userId) => (userId.equals(user1ObjectId) ? user2ObjectId : userId));
+
+    const updatedAssignedUsers2 = schedule2.assignedUsers!.map((userId) => (userId.equals(user2ObjectId) ? user1ObjectId : userId));
+
+    // Update both schedules
+    const updatedSchedule1 = await scheduleRepository.updateScheduleById(schedule1Id, {
+      assignedUsers: updatedAssignedUsers1,
     });
+
+    const updatedSchedule2 = await scheduleRepository.updateScheduleById(schedule2Id, {
+      assignedUsers: updatedAssignedUsers2,
+    });
+
+    return {
+      schedule1: updatedSchedule1,
+      schedule2: updatedSchedule2,
+    };
   },
 };
 

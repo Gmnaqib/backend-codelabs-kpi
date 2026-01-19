@@ -4,7 +4,7 @@ import { authenticateToken } from "../middlewares/auth.middlewares";
 import { roleMiddlewares } from "../middlewares/role.middlewares";
 const userRouter = Router();
 
-userRouter.get("/", roleMiddlewares(["admin"]), authenticateToken, userController.getAllUsers);
+userRouter.get("/", authenticateToken, userController.getAllUsers);
 userRouter.get("/:id", roleMiddlewares(["admin", "lecturer"]), authenticateToken, userController.getUserById);
 userRouter.delete("/:id", roleMiddlewares(["admin"]), authenticateToken, userController.deleteUser);
 userRouter.patch("/me/update", authenticateToken, userController.updateByUser);

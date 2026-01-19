@@ -8,13 +8,13 @@ import { Types } from "mongoose";
 const operationalRecordController = {
   createOperationalRecord: async (req: Request, res: Response): Promise<any> => {
     try {
-      const { userId, type, date } = req.body;
+      const { scheduleId, userId, type, date } = req.body;
 
-      if (!userId || !type || !date) {
+      if (!scheduleId || !userId || !type || !date) {
         return response({
           res,
           code: 400,
-          message: "Missing required fields: userId, type, and date are required",
+          message: "Missing required fields: scheduleId, userId, type, and date are required",
         });
       }
 
@@ -23,6 +23,14 @@ const operationalRecordController = {
           res,
           code: 400,
           message: `Invalid type. Must be one of: ${Object.values(ScheduleType).join(", ")}`,
+        });
+      }
+
+      if (!Types.ObjectId.isValid(scheduleId)) {
+        return response({
+          res,
+          code: 400,
+          message: "Invalid scheduleId format",
         });
       }
 
@@ -35,6 +43,7 @@ const operationalRecordController = {
       }
 
       const recordData: IOperationalRecord = {
+        scheduleId: new Types.ObjectId(scheduleId),
         userId: new Types.ObjectId(userId),
         type,
         date: new Date(date),
@@ -48,6 +57,16 @@ const operationalRecordController = {
         });
       }
 
+      // Validate date is Monday-Friday
+      const dayOfWeek = recordData.date.getDay();
+      if (dayOfWeek === 0 || dayOfWeek === 6) {
+        return response({
+          res,
+          code: 400,
+          message: "Date must be Monday to Friday only",
+        });
+      }
+
       const newRecord = await operationalRecordService.createOperationalRecord(recordData);
 
       return response({
@@ -58,28 +77,29 @@ const operationalRecordController = {
       });
     } catch (error: any) {
       console.error("Error creating operational record:", error);
-
-      if (error.message?.includes("already exists")) {
-        return response({
-          res,
-          code: 409,
-          message: error.message,
-        });
-      } else {
-        return response({
-          res,
-          code: 500,
-          message: "Failed to create operational record",
-        });
-      }
+      return response({
+        res,
+        code: 500,
+        message: error.message || "Failed to create operational record",
+      });
     }
   },
-  // test
   getAllOperationalRecords: async (req: Request, res: Response): Promise<any> => {
     try {
-      const { userId, type, date, startDate, endDate } = req.query;
+      const { scheduleId, userId, type, date, startDate, endDate, status } = req.query;
 
       const filters: any = {};
+
+      if (scheduleId) {
+        if (!Types.ObjectId.isValid(scheduleId as string)) {
+          return response({
+            res,
+            code: 400,
+            message: "Invalid scheduleId format",
+          });
+        }
+        filters.scheduleId = scheduleId as string;
+      }
 
       if (userId) {
         if (!Types.ObjectId.isValid(userId as string)) {
@@ -91,6 +111,7 @@ const operationalRecordController = {
         }
         filters.userId = userId as string;
       }
+
       if (type) {
         if (!Object.values(ScheduleType).includes(type as ScheduleType)) {
           return response({
@@ -101,9 +122,11 @@ const operationalRecordController = {
         }
         filters.type = type as ScheduleType;
       }
+
       if (date) filters.date = new Date(date as string);
       if (startDate) filters.startDate = new Date(startDate as string);
       if (endDate) filters.endDate = new Date(endDate as string);
+      if (status) filters.status = status as string;
 
       const records = await operationalRecordService.getAllOperationalRecords(filters);
 
@@ -158,90 +181,6 @@ const operationalRecordController = {
         code: 500,
         message: "Failed to retrieve operational record",
       });
-    }
-  },
-
-  updateOperationalRecord: async (req: Request, res: Response): Promise<any> => {
-    try {
-      const { id } = req.params;
-      const updateData = req.body;
-
-      if (!Types.ObjectId.isValid(id)) {
-        return response({
-          res,
-          code: 400,
-          message: "Invalid record ID format",
-        });
-      }
-
-      if (updateData.type && !Object.values(ScheduleType).includes(updateData.type)) {
-        return response({
-          res,
-          code: 400,
-          message: `Invalid type. Must be one of: ${Object.values(ScheduleType).join(", ")}`,
-        });
-      }
-
-      if (updateData.userId && !Types.ObjectId.isValid(updateData.userId)) {
-        return response({
-          res,
-          code: 400,
-          message: "Invalid userId format",
-        });
-      }
-
-      if (updateData.userId) {
-        updateData.userId = new Types.ObjectId(updateData.userId);
-      }
-      if (updateData.date) {
-        updateData.date = new Date(updateData.date);
-        if (isNaN(updateData.date.getTime())) {
-          return response({
-            res,
-            code: 400,
-            message: "Invalid date format",
-          });
-        }
-      }
-
-      const updatedRecord = await operationalRecordService.updateOperationalRecord(id, updateData);
-
-      if (!updatedRecord) {
-        return response({
-          res,
-          code: 404,
-          message: "Operational record not found",
-        });
-      }
-
-      return response({
-        res,
-        code: 200,
-        message: "Operational record updated successfully",
-        data: updatedRecord,
-      });
-    } catch (error: any) {
-      console.error("Error updating operational record:", error);
-
-      if (error.message?.includes("not found")) {
-        return response({
-          res,
-          code: 404,
-          message: error.message,
-        });
-      } else if (error.message?.includes("already exists")) {
-        return response({
-          res,
-          code: 409,
-          message: error.message,
-        });
-      } else {
-        return response({
-          res,
-          code: 500,
-          message: "Failed to update operational record",
-        });
-      }
     }
   },
 

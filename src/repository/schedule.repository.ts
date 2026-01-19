@@ -2,78 +2,65 @@ import Schedule from "../models/schedule/schedule.schema";
 import ISchedule, { ScheduleType } from "../models/schedule/schedule.interface";
 import { Types } from "mongoose";
 
-// Type-safe filter interface using proper enums
+// Type-safe filter interface
 interface ScheduleFilter {
   _id?: Types.ObjectId | string;
   type?: ScheduleType;
   date?: Date | { $gte?: Date; $lte?: Date; $lt?: Date };
   description?: string;
+  assignedUsers?: Types.ObjectId | string;
 }
 
 const scheduleRepository = {
   createSchedule: (scheduleData: Partial<ISchedule>) => Schedule.create(scheduleData),
-  findAllSchedules: () => Schedule.find().sort({ createdAt: -1 }),
-  findScheduleById: (id: string) => Schedule.findById(id),
-  findSchedule: (filter: ScheduleFilter) => Schedule.findOne(filter),
-  findSchedulesByFilter: (filter: ScheduleFilter) => Schedule.find(filter).sort({ createdAt: -1 }),
-  findSchedulesByType: (type: ScheduleType) => Schedule.find({ type }).sort({ createdAt: -1 }),
+  findAllSchedules: () => Schedule.find().populate("assignedUsers", "_id nim name").sort({ date: -1, createdAt: -1 }),
+  findScheduleById: (id: string) => Schedule.findById(id).populate("assignedUsers", "_id nim name"),
+  findSchedule: (filter: ScheduleFilter) => Schedule.findOne(filter).populate("assignedUsers", "_id nim name"),
+  findSchedulesByType: (type: ScheduleType) => Schedule.find({ type }).populate("assignedUsers", "_id nim name").sort({ date: -1, createdAt: -1 }),
+
   findSchedulesByDate: (date: Date) => {
     const startOfDay = new Date(date);
     startOfDay.setHours(0, 0, 0, 0);
-
     const endOfDay = new Date(date);
     endOfDay.setHours(23, 59, 59, 999);
 
     return Schedule.find({
       date: { $gte: startOfDay, $lte: endOfDay },
-    }).sort({ createdAt: -1 });
-  },
-
-  findSchedulesByDay: (day: string) => {
-    const query: any = {};
-    query[`days.${day}`] = { $exists: true, $ne: [] };
-    return Schedule.find(query).sort({ createdAt: -1 });
-  },
-
-  findSchedulesByTypeAndDay: (type: ScheduleType, day: string) => {
-    const query: any = { type };
-    query[`days.${day}`] = { $exists: true, $ne: [] };
-    return Schedule.find(query).sort({ createdAt: -1 });
+    })
+      .populate("assignedUsers", "_id nim name")
+      .sort({ date: -1, createdAt: -1 });
   },
 
   findSchedulesByTypeAndDate: (type: ScheduleType, date: Date) => {
     const startOfDay = new Date(date);
     startOfDay.setHours(0, 0, 0, 0);
-
     const endOfDay = new Date(date);
     endOfDay.setHours(23, 59, 59, 999);
 
     return Schedule.find({
       type,
       date: { $gte: startOfDay, $lte: endOfDay },
-    }).sort({ createdAt: -1 });
+    })
+      .populate("assignedUsers", "_id nim name")
+      .sort({ date: -1, createdAt: -1 });
   },
 
   findSchedulesByDateRange: (startDate: Date, endDate: Date) =>
     Schedule.find({
       date: { $gte: startDate, $lte: endDate },
-    }).sort({ date: 1 }),
+    })
+      .populate("assignedUsers", "_id nim name")
+      .sort({ date: 1 }),
 
-  findPicketSchedules: () => Schedule.find({ type: ScheduleType.picket }).sort({ createdAt: -1 }),
+  findSchedulesByTypeAndDateRange: (type: ScheduleType, startDate: Date, endDate: Date) =>
+    Schedule.find({
+      type,
+      date: { $gte: startDate, $lte: endDate },
+    })
+      .populate("assignedUsers", "_id nim name")
+      .sort({ date: 1 }),
 
-  findThematicSchedules: () => Schedule.find({ type: ScheduleType.thematic }).sort({ date: 1 }),
-
-  findActiveThematicSchedules: (currentDate: Date) => {
-    const startOfDay = new Date(currentDate);
-    startOfDay.setHours(0, 0, 0, 0);
-
-    return Schedule.find({
-      type: ScheduleType.thematic,
-      date: { $gte: startOfDay },
-    }).sort({ date: 1 });
-  },
-
-  updateScheduleById: (id: string, updateData: Partial<ISchedule>) => Schedule.findByIdAndUpdate(id, updateData, { new: true }),
+  updateScheduleById: (id: string, updateData: Partial<ISchedule>) => Schedule.findByIdAndUpdate(id, updateData, { new: true }).populate("assignedUsers", "_id nim name"),
   updateSchedule: (filter: ScheduleFilter, updateData: Partial<ISchedule>) => Schedule.updateOne(filter, updateData),
   deleteScheduleById: (id: string) => Schedule.findByIdAndDelete(id),
   deleteSchedule: (filter: ScheduleFilter) => Schedule.deleteOne(filter),
