@@ -19,6 +19,15 @@ import cors from "cors";
 connectDB();
 app.use(cors());
 app.use(express.json());
+
+app.get("/", (req, res) => {
+  res.status(200).json({
+    status: "OK",
+    message: "Server is running",
+    timestamp: new Date().toISOString()
+  });
+});
+
 app.use("/auth", authRouter);
 app.use("/users", userRouter);
 app.use("/attendance", attendanceRouter);
