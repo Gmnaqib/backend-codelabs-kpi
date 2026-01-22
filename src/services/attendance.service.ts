@@ -61,7 +61,7 @@ const attendanceService = {
     attachment_url?: string,
     start_date?: Date,
     end_date?: Date,
-    approvalStatus?: approvalStatus.PENDING
+    approvalStatus?: approvalStatus.PENDING,
   ): Promise<IAttendance> => {
     const userObjectId = new Types.ObjectId(userId);
     return await attendanceRepository.create({

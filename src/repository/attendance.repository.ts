@@ -64,6 +64,10 @@ const attendanceRepository = {
   findAllWithDate: async (dateFilter: Partial<filterAttendance>): Promise<IAttendance[]> => {
     const query: any = {};
 
+    if (dateFilter.userId !== undefined) {
+      query.userId = dateFilter.userId;
+    }
+
     if (dateFilter.year !== undefined || dateFilter.month !== undefined || dateFilter.day !== undefined) {
       const startDate = new Date();
       const endDate = new Date();
