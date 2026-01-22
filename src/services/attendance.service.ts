@@ -138,20 +138,59 @@ const attendanceService = {
     }
 
     const userSummary = Array.from(userGroups.entries()).map(([userId, records]) => {
+      const userLate = records.filter((r) => r.status === "present" && r.reason).length;
+      const userPresent = records.filter((r) => r.status === "present" && !r.reason).length;
       const userSick = records.filter((r) => r.status === "sick").length;
       const userPermit = records.filter((r) => r.status === "permit").length;
-      const userPresent = records.filter((r) => r.status === "present").length;
+      const rejectedSickPermit = records.filter((r) => (r.status === "sick" || r.status === "permit") && r.approval_status === "rejected").length;
+
+      let startOfPeriod = new Date();
+      let endOfPeriod = new Date();
+
+      const today = new Date();
+      const todayEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59, 999);
+
+      if (year !== undefined && month !== undefined) {
+        startOfPeriod = new Date(year, month - 1, 1, 0, 0, 0, 0);
+        endOfPeriod = todayEnd;
+      } else if (year !== undefined) {
+        startOfPeriod = new Date(year, 0, 1, 0, 0, 0, 0);
+        endOfPeriod = todayEnd;
+      } else {
+        startOfPeriod = new Date(new Date().getFullYear(), new Date().getMonth(), 1, 0, 0, 0, 0);
+        endOfPeriod = todayEnd;
+      }
+
+      // Collect dates that have data
+      const datesWithData = new Set<string>();
+      records.forEach((r) => {
+        const dateStr = new Date(r.createdAt ?? new Date()).toISOString().split("T")[0];
+        datesWithData.add(dateStr);
+      });
+
+      // Count missing dates (Monday-Saturday only)
+      let missingDateCount = 0;
+      const currentDate = new Date(startOfPeriod);
+      while (currentDate <= endOfPeriod) {
+        const dateStr = currentDate.toISOString().split("T")[0];
+        const dayOfWeek = currentDate.getDay();
+
+        if (dayOfWeek !== 0 && !datesWithData.has(dateStr)) {
+          missingDateCount++;
+        }
+        currentDate.setDate(currentDate.getDate() + 1);
+      }
+
+      const userAbsent = rejectedSickPermit + missingDateCount;
 
       const counts: any = {};
+      if (userLate > 0) counts.late = userLate;
+      if (userPresent > 0) counts.present = userPresent;
       if (userSick > 0) counts.sick = userSick;
       if (userPermit > 0) counts.permit = userPermit;
-      if (userPresent > 0) counts.present = userPresent;
+      if (userAbsent > 0) counts.absent = userAbsent;
 
-      return {
-        userId,
-        userName: userMap.get(userId),
-        counts,
-      };
+      return { userId, userName: userMap.get(userId), counts };
     });
 
     return userSummary;
@@ -178,7 +217,7 @@ const attendanceService = {
 
     const statusSummary: any[] = [];
 
-    // Late
+    // Late - Present dengan reason
     const lateRecords = attendanceRecords.filter((r) => r.status === "present" && r.reason);
     if (lateRecords.length > 0) {
       statusSummary.push({
@@ -188,7 +227,19 @@ const attendanceService = {
           date: r.createdAt,
           reason: r.reason,
           attendanceStatus: r.status,
-          approvalStatus: r.approval_status || null,
+        })),
+      });
+    }
+
+    // Present - Present tanpa reason
+    const presentRecords = attendanceRecords.filter((r) => r.status === "present" && !r.reason);
+    if (presentRecords.length > 0) {
+      statusSummary.push({
+        status: "present",
+        count: presentRecords.length,
+        records: presentRecords.map((r) => ({
+          date: r.createdAt,
+          attendanceStatus: r.status,
         })),
       });
     }
@@ -223,18 +274,75 @@ const attendanceService = {
       });
     }
 
-    // Absent
-    const absentRecords = attendanceRecords.filter((r) => r.status === "absent");
+    // Absent - Jika tidak ada data (sick, permit, present) atau jika sick/permit statusnya rejected
+    const rejectedSickPermit = attendanceRecords.filter((r) => (r.status === "sick" || r.status === "permit") && r.approval_status === "rejected");
+
+    // Get date range untuk calculate date yang gk ada
+    let startOfPeriod = new Date();
+    let endOfPeriod = new Date();
+
+    const today = new Date();
+    const todayEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59, 999);
+
+    if (year !== undefined && month !== undefined) {
+      startOfPeriod = new Date(year, month - 1, 1, 0, 0, 0, 0);
+      endOfPeriod = todayEnd;
+    } else if (year !== undefined) {
+      startOfPeriod = new Date(year, 0, 1, 0, 0, 0, 0);
+      endOfPeriod = todayEnd;
+    } else {
+      startOfPeriod = new Date(new Date().getFullYear(), new Date().getMonth(), 1, 0, 0, 0, 0);
+      endOfPeriod = todayEnd;
+    }
+
+    // Collect all dates that have data
+    const datesWithData = new Set<string>();
+    attendanceRecords.forEach((r) => {
+      const dateStr = new Date(r.createdAt ?? new Date()).toISOString().split("T")[0];
+      datesWithData.add(dateStr);
+    });
+
+    // Find missing dates (no data) - exclude Sundays
+    const missingDates: Date[] = [];
+    const currentDate = new Date(startOfPeriod);
+    while (currentDate <= endOfPeriod) {
+      const dateStr = currentDate.toISOString().split("T")[0];
+      const dayOfWeek = currentDate.getDay();
+
+      // Only count Monday-Saturday (0 = Sunday, skip it)
+      if (dayOfWeek !== 0 && !datesWithData.has(dateStr)) {
+        missingDates.push(new Date(currentDate));
+      }
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+
+    const absentRecords: any[] = [];
+
+    // Add rejected sick/permit as absent
+    rejectedSickPermit.forEach((r) => {
+      absentRecords.push({
+        date: r.createdAt,
+        reason: `${r.status} (rejected)`,
+        attendanceStatus: r.status,
+        approvalStatus: r.approval_status || null,
+      });
+    });
+
+    // Add missing dates as absent
+    missingDates.forEach((date) => {
+      absentRecords.push({
+        date,
+        reason: "No data",
+        attendanceStatus: "absent",
+        approvalStatus: null,
+      });
+    });
+
     if (absentRecords.length > 0) {
       statusSummary.push({
         status: "absent",
         count: absentRecords.length,
-        records: absentRecords.map((r) => ({
-          date: r.createdAt,
-          reason: r.reason || null,
-          attendanceStatus: r.status,
-          approvalStatus: r.approval_status || null,
-        })),
+        records: absentRecords,
       });
     }
 
