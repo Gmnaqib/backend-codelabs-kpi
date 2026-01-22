@@ -1,16 +1,13 @@
 import scheduleRepository from "../repository/schedule.repository";
-// import scheduleValidator from "../validators/schedule.validator";
 import ISchedule, { ScheduleType } from "../models/schedule/schedule.interface";
 import { Types } from "mongoose";
 
 const scheduleService = {
   createSchedule: async (type: ScheduleType, date: Date, assignedUsers?: Types.ObjectId[], description?: string): Promise<ISchedule> => {
-    // Validate schedule
     if (!type || !date) {
       throw new Error("Type and date are required");
     }
 
-    // Validate date is Monday-Friday
     const dayOfWeek = date.getDay();
     if (dayOfWeek === 0 || dayOfWeek === 6) {
       throw new Error("Schedule date must be Monday to Friday only");
@@ -27,7 +24,7 @@ const scheduleService = {
     startDate: Date;
     endDate: Date;
     patterns: Array<{
-      daysOfWeek: number[]; // [1,2,3,4,5] = Mon-Fri
+      daysOfWeek: number[];
       assignedUsers: Types.ObjectId[];
       description?: string;
     }>;
@@ -42,7 +39,6 @@ const scheduleService = {
       throw new Error("startDate must be before endDate");
     }
 
-    // Validate patterns
     for (const pattern of patterns) {
       if (!pattern.daysOfWeek || pattern.daysOfWeek.length === 0) {
         throw new Error("Each pattern must have daysOfWeek");
@@ -64,11 +60,9 @@ const scheduleService = {
     const endDateNormalized = new Date(endDate);
     endDateNormalized.setHours(23, 59, 59, 999);
 
-    // Loop through each day from startDate to endDate
     while (currentDate <= endDateNormalized) {
       const dayOfWeek = currentDate.getDay();
 
-      // Find matching pattern for this day
       for (const pattern of patterns) {
         if (pattern.daysOfWeek.includes(dayOfWeek)) {
           const scheduleData: Partial<ISchedule> = {
@@ -80,11 +74,10 @@ const scheduleService = {
 
           const createdSchedule = await scheduleRepository.createSchedule(scheduleData);
           createdSchedules.push(createdSchedule);
-          break; // Only create one schedule per day
+          break;
         }
       }
 
-      // Move to next day
       currentDate.setDate(currentDate.getDate() + 1);
     }
 
@@ -140,6 +133,25 @@ const scheduleService = {
     if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
       throw new Error("Invalid date format");
     }
+    return await scheduleRepository.findSchedulesByTypeAndDateRange(type, startDate, endDate);
+  },
+
+  getSchedulesByEndDate: async (endDate: Date): Promise<ISchedule[]> => {
+    if (isNaN(endDate.getTime())) {
+      throw new Error("Invalid date format");
+    }
+    const startDate = new Date();
+    return await scheduleRepository.findSchedulesByDateRange(startDate, endDate);
+  },
+
+  getSchedulesByTypeAndEndDate: async (type: ScheduleType, endDate: Date): Promise<ISchedule[]> => {
+    if (!Object.values(ScheduleType).includes(type)) {
+      throw new Error("Invalid schedule type");
+    }
+    if (isNaN(endDate.getTime())) {
+      throw new Error("Invalid date format");
+    }
+    const startDate = new Date();
     return await scheduleRepository.findSchedulesByTypeAndDateRange(type, startDate, endDate);
   },
 
@@ -210,12 +222,10 @@ const scheduleService = {
   },
 
   swapUsers: async (schedule1Id: string, schedule1UserId: string, schedule2Id: string, schedule2UserId: string): Promise<{ schedule1: ISchedule | null; schedule2: ISchedule | null }> => {
-    // Validate all IDs
     if (!Types.ObjectId.isValid(schedule1Id) || !Types.ObjectId.isValid(schedule1UserId) || !Types.ObjectId.isValid(schedule2Id) || !Types.ObjectId.isValid(schedule2UserId)) {
       throw new Error("Invalid ObjectId format");
     }
 
-    // Check if both schedules exist
     const schedule1 = await scheduleRepository.findScheduleById(schedule1Id);
     const schedule2 = await scheduleRepository.findScheduleById(schedule2Id);
 
@@ -243,9 +253,7 @@ const scheduleService = {
       throw new Error(`User ${schedule2UserId} not found in Schedule 2`);
     }
 
-    // Perform swap
     const updatedAssignedUsers1 = schedule1.assignedUsers!.map((userId) => (userId.equals(user1ObjectId) ? user2ObjectId : userId));
-
     const updatedAssignedUsers2 = schedule2.assignedUsers!.map((userId) => (userId.equals(user2ObjectId) ? user1ObjectId : userId));
 
     // Update both schedules
