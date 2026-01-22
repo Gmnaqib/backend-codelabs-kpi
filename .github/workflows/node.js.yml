@@ -27,7 +27,6 @@ jobs:
           cache: "npm"
       - run: |
           git pull origin main
-          nvm use 22
           npm ci
           npm run build
           sshpass -p "${{ secrets.VPS_PASSWORD }}" ssh -o StrictHostKeyChecking=no -p ${{ secrets.VPS_PORT }} ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOSTNAME }} <<'EOF'
