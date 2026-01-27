@@ -45,7 +45,11 @@ const attendanceController = {
 
   getAttendance: async (req: Request, res: Response): Promise<any> => {
     try {
-      const attendances = await attendanceService.getAttendance();
+      const { year, month, day } = req.query;
+      const yearNum = year ? Number(year) : undefined;
+      const monthNum = month ? Number(month) : undefined;
+      const dayNum = day ? Number(day) : undefined;
+      const attendances = await attendanceService.getAttendance(yearNum, monthNum, dayNum);
       return response({ res, code: 200, message: "Attendance retrieved successfully", data: attendances });
     } catch (error: any) {
       return response({ res, code: 500, message: error.message });
