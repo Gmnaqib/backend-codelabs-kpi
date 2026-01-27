@@ -63,12 +63,29 @@ const scheduleController = {
 
   getAllSchedules: async (req: Request, res: Response): Promise<any> => {
     try {
-      const { type, year, month, day, date, endDate } = req.query;
+      const { type, year, month, day, date, startDate, endDate } = req.query;
       let schedules;
       let message = "Schedules retrieved successfully";
 
       if (type && !Object.values(ScheduleType).includes(type as ScheduleType)) {
         return response({ res, code: 400, message: "Invalid schedule type" });
+      }
+
+      if (startDate && endDate) {
+        const start = new Date(startDate as string);
+        const end = new Date(endDate as string);
+        if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+          return response({ res, code: 400, message: "Invalid date format" });
+        }
+
+        if (type) {
+          schedules = await scheduleService.getSchedulesByTypeAndEndDate(type as ScheduleType, end);
+          message = `${type} schedules for date range retrieved successfully`;
+        } else {
+          schedules = await scheduleService.getSchedulesByDateRange(start, end);
+          message = "Schedules for date range retrieved successfully";
+        }
+        return response({ res, code: 200, message, data: schedules });
       }
 
       if (endDate) {
@@ -133,23 +150,23 @@ const scheduleController = {
     }
   },
 
-  getRangeSchedules: async (req: Request, res: Response): Promise<any> => {
-    try {
-      const { endDate } = req.query;
-      if (!endDate) {
-        return response({ res, code: 400, message: "endDate is required" });
-      }
-      const start = new Date();
-      const end = new Date(endDate as string);
-      if (isNaN(start.getTime()) || isNaN(end.getTime())) {
-        return response({ res, code: 400, message: "Invalid date format" });
-      }
-      const schedules = await scheduleService.getSchedulesByDateRange(start, end);
-      return response({ res, code: 200, message: "Schedules for date range retrieved successfully", data: schedules });
-    } catch (error: any) {
-      return response({ res, code: 500, message: error.message });
-    }
-  },
+  // getRangeSchedules: async (req: Request, res: Response): Promise<any> => {
+  //   try {
+  //     const { endDate } = req.query;
+  //     if (!endDate) {
+  //       return response({ res, code: 400, message: "endDate is required" });
+  //     }
+  //     const start = new Date();
+  //     const end = new Date(endDate as string);
+  //     if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+  //       return response({ res, code: 400, message: "Invalid date format" });
+  //     }
+  //     const schedules = await scheduleService.getSchedulesByDateRange(start, end);
+  //     return response({ res, code: 200, message: "Schedules for date range retrieved successfully", data: schedules });
+  //   } catch (error: any) {
+  //     return response({ res, code: 500, message: error.message });
+  //   }
+  // },
 
   getScheduleById: async (req: Request, res: Response): Promise<any> => {
     try {
