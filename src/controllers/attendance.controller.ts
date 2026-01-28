@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import response from "../helper/response";
 import { AuthRequest } from "../middlewares/auth.middlewares";
 import attendanceService from "../services/attendance.service";
+import fileUploadService from "../services/fileUpload.service";
 import { attendanceStatus } from "../models/attendance/attendance.Interface";
 import { Types } from "mongoose";
 
@@ -34,7 +35,14 @@ const attendanceController = {
   submitLeaveOrSick: async (req: AuthRequest, res: Response): Promise<any> => {
     try {
       const userId = req.user?.id;
-      const { type, reason, attachment_url, start_date, end_date } = req.body;
+      const { type, reason, start_date, end_date } = req.body;
+      let attachment_url = req.body.attachment_url;
+
+      // Upload file jika ada
+      if (req.file) {
+        attachment_url = await fileUploadService.uploadFile(req.file);
+      }
+
       const newLeaveRequest = await attendanceService.submitleaveRequest(userId, type, reason, attachment_url, start_date, end_date);
 
       return response({ res, code: 201, message: "Leave request created successfully", data: newLeaveRequest });

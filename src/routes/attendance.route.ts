@@ -1,15 +1,22 @@
 import { Router } from "express";
+import multer from "multer";
 import attendanceController from "../controllers/attendance.controller";
 import { authenticateToken } from "../middlewares/auth.middlewares";
 // import { roleMiddlewares } from "../middlewares/role.middlewares";
+
 const attendanceRouter = Router();
+
+const upload = multer({ 
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 } // 5MB
+});
 
 attendanceRouter.get("/", attendanceController.getAttendance);
 attendanceRouter.get("/summary", authenticateToken, attendanceController.getAttendanceSummary);
 attendanceRouter.get("/summary/:id", authenticateToken, attendanceController.getAttendanceSummaryDetail);
 
 // // New leave request fetching endpoints
-attendanceRouter.post("/leave-requests", authenticateToken, attendanceController.submitLeaveOrSick);
+attendanceRouter.post("/leave-requests", authenticateToken, upload.single("attachment"), attendanceController.submitLeaveOrSick);
 attendanceRouter.get("/leave-requests", authenticateToken, attendanceController.getLeaveRequests);
 attendanceRouter.get("/leave-requests/:id", authenticateToken, attendanceController.getLeaveRequestById);
 // attendanceRouter.get("/leave-requests/today", authenticateToken, roleMiddlewares(["admin", "minister of operation"]), attendanceController.getTodayLeaveRequests);

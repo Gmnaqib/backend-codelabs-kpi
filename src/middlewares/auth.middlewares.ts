@@ -4,6 +4,7 @@ import "dotenv/config";
 
 export interface AuthRequest extends Request {
   user?: any;
+  file?: any;
 }
 
 export const authenticateToken = (req: AuthRequest, res: Response, next: NextFunction): void => {
