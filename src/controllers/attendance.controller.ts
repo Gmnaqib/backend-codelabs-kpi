@@ -38,8 +38,12 @@ const attendanceController = {
       const { type, reason, start_date, end_date } = req.body;
       let attachment_url = req.body.attachment_url;
 
-      // Upload file jika ada
       if (req.file) {
+        const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/jpg"];
+        if (!allowedTypes.includes(req.file.mimetype)) {
+          return response({ res, code: 400, message: "File harus berupa gambar (JPEG, PNG, WebP)" });
+        }
+
         attachment_url = await fileUploadService.uploadFile(req.file);
       }
 

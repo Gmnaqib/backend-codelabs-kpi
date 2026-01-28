@@ -6,9 +6,10 @@ import { authenticateToken } from "../middlewares/auth.middlewares";
 
 const attendanceRouter = Router();
 
-const upload = multer({ 
+const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 5 * 1024 * 1024 } // 5MB
+  // 10MB (akan dikompres menjadi max 2MB)
+  limits: { fileSize: 10 * 1024 * 1024 },
 });
 
 attendanceRouter.get("/", attendanceController.getAttendance);
