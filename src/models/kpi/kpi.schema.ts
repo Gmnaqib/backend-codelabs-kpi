@@ -1,5 +1,25 @@
 import mongoose, { Schema, model } from "mongoose";
-import IKPI from "./kpi.interface";
+import IKPI, { IKPIScoring } from "./kpi.interface";
+
+const kpiScoringSchema = new Schema<IKPIScoring>(
+  {
+    activity: {
+      type: String,
+      required: true,
+      enum: ["Picker", "Attendance", "Thematic", "Research", "Competition", "Branding"],
+    },
+    detail: {
+      type: String,
+      required: true,
+    },
+    score: {
+      type: Number,
+      required: true,
+      default: 0,
+    },
+  },
+  { _id: false },
+);
 
 const kpiSchema = new Schema<IKPI>(
   {
@@ -18,33 +38,12 @@ const kpiSchema = new Schema<IKPI>(
       type: Number,
       required: true,
     },
-    attendance: {
-      type: Number,
-      required: true,
-      default: 0,
-    },
-    research: {
-      type: Number,
-      required: true,
-      default: 0,
-    },
-    competition: {
-      type: Number,
-      required: true,
-      default: 0,
-    },
-    operational: {
-      type: Number,
-      required: true,
-      default: 0,
-    },
-    branding: {
-      type: Number,
-      required: true,
-      default: 0,
+    scoring: {
+      type: [kpiScoringSchema],
+      default: [],
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 // Create unique index for userId, month, year combination

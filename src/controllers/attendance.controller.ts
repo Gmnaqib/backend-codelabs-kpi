@@ -3,7 +3,6 @@ import response from "../helper/response";
 import { AuthRequest } from "../middlewares/auth.middlewares";
 import attendanceService from "../services/attendance.service";
 import fileUploadService from "../services/fileUpload.service";
-import { attendanceStatus } from "../models/attendance/attendance.Interface";
 import { Types } from "mongoose";
 
 const attendanceController = {
@@ -41,9 +40,8 @@ const attendanceController = {
       if (req.file) {
         const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/jpg"];
         if (!allowedTypes.includes(req.file.mimetype)) {
-          return response({ res, code: 400, message: "File harus berupa gambar (JPEG, PNG, WebP)" });
+          return response({ res, code: 400, message: "File must be image (JPEG, PNG, WebP)" });
         }
-
         attachment_url = await fileUploadService.uploadFile(req.file);
       }
 
@@ -102,12 +100,7 @@ const attendanceController = {
       const dayNum = day ? Number(day) : undefined;
 
       const requests = await attendanceService.getLeaveRequests(yearNum, monthNum, dayNum);
-      return response({
-        res,
-        code: 200,
-        message: "All sick leave requests retrieved successfully",
-        data: requests,
-      });
+      return response({ res, code: 200, message: "All sick leave requests retrieved successfully", data: requests });
     } catch (error: any) {
       return response({ res, code: 500, message: error.message });
     }
@@ -117,12 +110,7 @@ const attendanceController = {
     try {
       const requestId = req.params.id;
       const leaveRequest = await attendanceService.getLeaveRequestById(new Types.ObjectId(requestId));
-      return response({
-        res,
-        code: 200,
-        message: "Get Leave request by ID success",
-        data: leaveRequest,
-      });
+      return response({ res, code: 200, message: "Get Leave request by ID success", data: leaveRequest });
     } catch (error: any) {
       return response({ res, code: 500, message: error.message });
     }

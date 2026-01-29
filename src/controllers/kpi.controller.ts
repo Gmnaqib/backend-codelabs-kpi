@@ -4,50 +4,238 @@ import response from "../helper/response";
 import KPIService from "../services/kpi.service";
 
 const KPIController = {
-  addKPI: async (req: AuthRequest, res: Response): Promise<any> => {
+  getKPISummary: async (req: AuthRequest, res: Response): Promise<any> => {
     try {
       const userId = req.user?.id;
-      const { attendance, research, competition, operational, branding } = req.body;
-      const newKPI = await KPIService.addKPI(userId, attendance, research, competition, operational, branding);
-      return response({ res, code: 201, message: "KPI success created", data: newKPI });
-    } catch (error: any) {
-      return response({ res, code: 500, message: error.message, data: null });
-    }
-  },
+      const { month, year } = req.query;
 
-  findAllKPIs: async (req: Request, res: Response): Promise<any> => {
-    try {
-      const filter = req.query;
-      if (!filter) {
-        const KPIs = await KPIService.findAllKPIs();
-        return response({ res, code: 201, message: "get all KPIs success", data: KPIs });
+      if (!month || !year) {
+        return response({ res, code: 400, message: "month and year are required", data: null });
       }
-      const KPIs = await KPIService.findKPIsByFilter(filter);
-      return response({ res, code: 200, message: "Get KPIs by filter success", data: KPIs });
+
+      const summary = await KPIService.getKPISummary(userId, Number(month), Number(year));
+      return response({ res, code: 200, message: "KPI summary retrieved successfully", data: summary });
     } catch (error: any) {
       return response({ res, code: 500, message: error.message, data: null });
     }
   },
 
-  findKPIById: async (req: Request, res: Response): Promise<any> => {
+  getKPISummaryById: async (req: Request, res: Response): Promise<any> => {
     try {
-      const { id } = req.params;
-      const KPI = await KPIService.findKPIsByFilter({ _id: id });
-      return response({ res, code: 201, message: "get KPIs by id success", data: KPI });
+      const { userId } = req.params;
+      const { month, year } = req.query;
+
+      if (!month || !year) {
+        return response({ res, code: 400, message: "month and year are required", data: null });
+      }
+
+      const summary = await KPIService.getKPISummary(userId, Number(month), Number(year));
+      return response({ res, code: 200, message: "KPI summary retrieved successfully", data: summary });
     } catch (error: any) {
-      return response({ res, code: error.message === "KPI not found" ? 404 : 500, message: error.message, data: null });
+      return response({ res, code: 500, message: error.message, data: null });
     }
   },
 
-  updateKPI: async (req: Request, res: Response): Promise<any> => {
+  getResearchSummary: async (req: AuthRequest, res: Response): Promise<any> => {
     try {
-      const { id } = req.params;
-      const { attendance, research, competition, operational, branding } = req.body;
+      const userId = req.user?.id;
+      const { month, year } = req.query;
 
-      const KPI = await KPIService.updateKPI(id, { attendance, research, competition, operational, branding });
-      return response({ res, code: 201, message: "update KPIs success", data: KPI });
+      if (!month || !year) {
+        return response({ res, code: 400, message: "month and year are required", data: null });
+      }
+
+      const summary = await KPIService.getResearchSummary(userId, Number(month), Number(year));
+      return response({ res, code: 200, message: "Research summary retrieved successfully", data: summary });
     } catch (error: any) {
-      return response({ res, code: error.message === "KPI not found" ? 400 : 500, message: error.message, data: null });
+      return response({ res, code: 500, message: error.message, data: null });
+    }
+  },
+
+  getResearchSummaryById: async (req: Request, res: Response): Promise<any> => {
+    try {
+      const { userId } = req.params;
+      const { month, year } = req.query;
+
+      if (!month || !year) {
+        return response({ res, code: 400, message: "month and year are required", data: null });
+      }
+
+      const summary = await KPIService.getResearchSummary(userId, Number(month), Number(year));
+      return response({ res, code: 200, message: "Research summary retrieved successfully", data: summary });
+    } catch (error: any) {
+      return response({ res, code: 500, message: error.message, data: null });
+    }
+  },
+
+  getAllKPISummary: async (req: Request, res: Response): Promise<any> => {
+    try {
+      const { month, year } = req.query;
+
+      if (!month || !year) {
+        return response({ res, code: 400, message: "month and year are required", data: null });
+      }
+
+      const summaries = await KPIService.getAllKPISummary(Number(month), Number(year));
+      return response({ res, code: 200, message: "All KPI summaries retrieved successfully", data: summaries });
+    } catch (error: any) {
+      return response({ res, code: 500, message: error.message, data: null });
+    }
+  },
+
+  getAllResearchSummary: async (req: Request, res: Response): Promise<any> => {
+    try {
+      const { month, year } = req.query;
+
+      if (!month || !year) {
+        return response({ res, code: 400, message: "month and year are required", data: null });
+      }
+
+      const summaries = await KPIService.getAllResearchSummary(Number(month), Number(year));
+      return response({ res, code: 200, message: "All research summaries retrieved successfully", data: summaries });
+    } catch (error: any) {
+      return response({ res, code: 500, message: error.message, data: null });
+    }
+  },
+
+  getBrandingSummary: async (req: AuthRequest, res: Response): Promise<any> => {
+    try {
+      const userId = req.user?.id;
+      const { month, year } = req.query;
+
+      if (!month || !year) {
+        return response({ res, code: 400, message: "month and year are required", data: null });
+      }
+
+      const summary = await KPIService.getBrandingSummary(userId, Number(month), Number(year));
+      return response({ res, code: 200, message: "Branding summary retrieved successfully", data: summary });
+    } catch (error: any) {
+      return response({ res, code: 500, message: error.message, data: null });
+    }
+  },
+
+  getBrandingSummaryById: async (req: Request, res: Response): Promise<any> => {
+    try {
+      const { userId } = req.params;
+      const { month, year } = req.query;
+
+      if (!month || !year) {
+        return response({ res, code: 400, message: "month and year are required", data: null });
+      }
+
+      const summary = await KPIService.getBrandingSummary(userId, Number(month), Number(year));
+      return response({ res, code: 200, message: "Branding summary retrieved successfully", data: summary });
+    } catch (error: any) {
+      return response({ res, code: 500, message: error.message, data: null });
+    }
+  },
+
+  getAllBrandingSummary: async (req: Request, res: Response): Promise<any> => {
+    try {
+      const { month, year } = req.query;
+
+      if (!month || !year) {
+        return response({ res, code: 400, message: "month and year are required", data: null });
+      }
+
+      const summaries = await KPIService.getAllBrandingSummary(Number(month), Number(year));
+      return response({ res, code: 200, message: "All branding summaries retrieved successfully", data: summaries });
+    } catch (error: any) {
+      return response({ res, code: 500, message: error.message, data: null });
+    }
+  },
+
+  getCompetitionSummary: async (req: AuthRequest, res: Response): Promise<any> => {
+    try {
+      const userId = req.user?.id;
+      const { month, year } = req.query;
+
+      if (!month || !year) {
+        return response({ res, code: 400, message: "month and year are required", data: null });
+      }
+
+      const summary = await KPIService.getCompetitionSummary(userId, Number(month), Number(year));
+      return response({ res, code: 200, message: "Competition summary retrieved successfully", data: summary });
+    } catch (error: any) {
+      return response({ res, code: 500, message: error.message, data: null });
+    }
+  },
+
+  getCompetitionSummaryById: async (req: Request, res: Response): Promise<any> => {
+    try {
+      const { userId } = req.params;
+      const { month, year } = req.query;
+
+      if (!month || !year) {
+        return response({ res, code: 400, message: "month and year are required", data: null });
+      }
+
+      const summary = await KPIService.getCompetitionSummary(userId, Number(month), Number(year));
+      return response({ res, code: 200, message: "Competition summary retrieved successfully", data: summary });
+    } catch (error: any) {
+      return response({ res, code: 500, message: error.message, data: null });
+    }
+  },
+
+  getAllCompetitionSummary: async (req: Request, res: Response): Promise<any> => {
+    try {
+      const { month, year } = req.query;
+
+      if (!month || !year) {
+        return response({ res, code: 400, message: "month and year are required", data: null });
+      }
+
+      const summaries = await KPIService.getAllCompetitionSummary(Number(month), Number(year));
+      return response({ res, code: 200, message: "All competition summaries retrieved successfully", data: summaries });
+    } catch (error: any) {
+      return response({ res, code: 500, message: error.message, data: null });
+    }
+  },
+
+  getTotalPointSummary: async (req: AuthRequest, res: Response): Promise<any> => {
+    try {
+      const userId = req.user?.id;
+      const { month, year } = req.query;
+
+      if (!month || !year) {
+        return response({ res, code: 400, message: "month and year are required", data: null });
+      }
+
+      const summary = await KPIService.getTotalPointSummary(userId, Number(month), Number(year));
+      return response({ res, code: 200, message: "Total point summary retrieved successfully", data: summary });
+    } catch (error: any) {
+      return response({ res, code: 500, message: error.message, data: null });
+    }
+  },
+
+  getTotalPointSummaryById: async (req: Request, res: Response): Promise<any> => {
+    try {
+      const { userId } = req.params;
+      const { month, year } = req.query;
+
+      if (!month || !year) {
+        return response({ res, code: 400, message: "month and year are required", data: null });
+      }
+
+      const summary = await KPIService.getTotalPointSummary(userId, Number(month), Number(year));
+      return response({ res, code: 200, message: "Total point summary retrieved successfully", data: summary });
+    } catch (error: any) {
+      return response({ res, code: 500, message: error.message, data: null });
+    }
+  },
+
+  getAllTotalPointSummary: async (req: Request, res: Response): Promise<any> => {
+    try {
+      const { month, year } = req.query;
+
+      if (!month || !year) {
+        return response({ res, code: 400, message: "month and year are required", data: null });
+      }
+
+      const summaries = await KPIService.getAllTotalPointSummary(Number(month), Number(year));
+      return response({ res, code: 200, message: "All total point summaries retrieved successfully", data: summaries });
+    } catch (error: any) {
+      return response({ res, code: 500, message: error.message, data: null });
     }
   },
 };
