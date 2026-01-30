@@ -88,7 +88,7 @@ const scheduleService = {
     return await scheduleRepository.findAllSchedules();
   },
 
-  getScheduleById: async (id: string): Promise<ISchedule | null> => {
+  getScheduleById: async (id: Types.ObjectId): Promise<ISchedule | null> => {
     if (!Types.ObjectId.isValid(id)) {
       throw new Error("Invalid schedule ID format");
     }
@@ -156,7 +156,7 @@ const scheduleService = {
   },
 
   updateSchedule: async (
-    id: string,
+    id: Types.ObjectId,
     updateData: {
       type?: ScheduleType;
       date?: Date;
@@ -185,7 +185,7 @@ const scheduleService = {
   },
 
   partialUpdateSchedule: async (
-    id: string,
+    id: Types.ObjectId,
     updateData: {
       type?: ScheduleType;
       date?: Date;
@@ -213,7 +213,7 @@ const scheduleService = {
     return await scheduleRepository.updateScheduleById(id, updateData);
   },
 
-  deleteSchedule: async (id: string): Promise<ISchedule | null> => {
+  deleteSchedule: async (id: Types.ObjectId): Promise<ISchedule | null> => {
     if (!Types.ObjectId.isValid(id)) {
       throw new Error("Invalid schedule ID format");
     }
@@ -221,7 +221,12 @@ const scheduleService = {
     return await scheduleRepository.deleteScheduleById(id);
   },
 
-  swapUsers: async (schedule1Id: string, schedule1UserId: string, schedule2Id: string, schedule2UserId: string): Promise<{ schedule1: ISchedule | null; schedule2: ISchedule | null }> => {
+  swapUsers: async (
+    schedule1Id: Types.ObjectId,
+    schedule1UserId: Types.ObjectId,
+    schedule2Id: Types.ObjectId,
+    schedule2UserId: Types.ObjectId,
+  ): Promise<{ schedule1: ISchedule | null; schedule2: ISchedule | null }> => {
     if (!Types.ObjectId.isValid(schedule1Id) || !Types.ObjectId.isValid(schedule1UserId) || !Types.ObjectId.isValid(schedule2Id) || !Types.ObjectId.isValid(schedule2UserId)) {
       throw new Error("Invalid ObjectId format");
     }

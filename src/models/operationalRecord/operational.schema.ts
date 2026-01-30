@@ -6,7 +6,6 @@ const operationalRecordSchema = new Schema<IOperationalRecord>({
   scheduleId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Schedule",
-    required: true,
   },
   userId: {
     type: mongoose.Schema.Types.ObjectId,

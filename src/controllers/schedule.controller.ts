@@ -172,7 +172,7 @@ const scheduleController = {
     try {
       const { id } = req.params;
 
-      const schedule = await scheduleService.getScheduleById(id);
+      const schedule = await scheduleService.getScheduleById(new Types.ObjectId(id));
       if (!schedule) {
         return response({ res, code: 404, message: "Schedule not found" });
       }
@@ -188,7 +188,7 @@ const scheduleController = {
       const { id } = req.params;
       const { type, date, assignedUsers, description } = req.body;
 
-      const updatedSchedule = await scheduleService.updateSchedule(id, {
+      const updatedSchedule = await scheduleService.updateSchedule(new Types.ObjectId(id), {
         type,
         date,
         assignedUsers,
@@ -221,7 +221,7 @@ const scheduleController = {
         return response({ res, code: 400, message: "No valid fields to update" });
       }
 
-      const updatedSchedule = await scheduleService.partialUpdateSchedule(id, filteredUpdateFields);
+      const updatedSchedule = await scheduleService.partialUpdateSchedule(new Types.ObjectId(id), filteredUpdateFields);
 
       if (!updatedSchedule) {
         return response({ res, code: 404, message: "Schedule not found" });
@@ -236,7 +236,7 @@ const scheduleController = {
   deleteSchedule: async (req: AuthRequest, res: Response): Promise<any> => {
     try {
       const { id } = req.params;
-      const deletedSchedule = await scheduleService.deleteSchedule(id);
+      const deletedSchedule = await scheduleService.deleteSchedule(new Types.ObjectId(id));
 
       if (!deletedSchedule) {
         return response({ res, code: 404, message: "Schedule not found" });

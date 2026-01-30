@@ -45,7 +45,7 @@ const operationalRecordRepository = {
 
   findRecordsByStatus: (status: string) => OperationalRecord.find({ status }).populate(["scheduleId", "userId"]).sort({ date: -1, createdAt: -1 }),
 
-  findDuplicateRecord: (scheduleId: string, userId: string) =>
+  findDuplicateRecord: (scheduleId: Types.ObjectId, userId: Types.ObjectId) =>
     OperationalRecord.findOne({
       scheduleId,
       userId,

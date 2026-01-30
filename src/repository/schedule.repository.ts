@@ -14,7 +14,7 @@ interface ScheduleFilter {
 const scheduleRepository = {
   createSchedule: (scheduleData: Partial<ISchedule>) => Schedule.create(scheduleData),
   findAllSchedules: () => Schedule.find().populate("assignedUsers", "_id nim name").sort({ date: -1, createdAt: -1 }),
-  findScheduleById: (id: string) => Schedule.findById(id).populate("assignedUsers", "_id nim name"),
+  findScheduleById: (id: Types.ObjectId) => Schedule.findById(id).populate("assignedUsers", "_id nim name"),
   findSchedule: (filter: ScheduleFilter) => Schedule.findOne(filter).populate("assignedUsers", "_id nim name"),
   findSchedulesByType: (type: ScheduleType) => Schedule.find({ type }).populate("assignedUsers", "_id nim name").sort({ date: -1, createdAt: -1 }),
 
@@ -60,9 +60,9 @@ const scheduleRepository = {
       .populate("assignedUsers", "_id nim name")
       .sort({ date: 1 }),
 
-  updateScheduleById: (id: string, updateData: Partial<ISchedule>) => Schedule.findByIdAndUpdate(id, updateData, { new: true }).populate("assignedUsers", "_id nim name"),
+  updateScheduleById: (id: Types.ObjectId, updateData: Partial<ISchedule>) => Schedule.findByIdAndUpdate(id, updateData, { new: true }).populate("assignedUsers", "_id nim name"),
   updateSchedule: (filter: ScheduleFilter, updateData: Partial<ISchedule>) => Schedule.updateOne(filter, updateData),
-  deleteScheduleById: (id: string) => Schedule.findByIdAndDelete(id),
+  deleteScheduleById: (id: Types.ObjectId) => Schedule.findByIdAndDelete(id),
   deleteSchedule: (filter: ScheduleFilter) => Schedule.deleteOne(filter),
 };
 

@@ -10,11 +10,11 @@ const operationalRecordController = {
     try {
       const { scheduleId, userId, type, date } = req.body;
 
-      if (!scheduleId || !userId || !type || !date) {
+      if (!userId || !type || !date) {
         return response({
           res,
           code: 400,
-          message: "Missing required fields: scheduleId, userId, type, and date are required",
+          message: "Missing required fields: userId, type, and date are required",
         });
       }
 
@@ -26,7 +26,17 @@ const operationalRecordController = {
         });
       }
 
-      if (!Types.ObjectId.isValid(scheduleId)) {
+      // If type is picket, scheduleId is required
+      if (type === "picket" && !scheduleId) {
+        return response({
+          res,
+          code: 400,
+          message: "scheduleId is required when type is picket",
+        });
+      }
+
+      // Validate scheduleId if provided
+      if (scheduleId && !Types.ObjectId.isValid(scheduleId)) {
         return response({
           res,
           code: 400,
@@ -43,11 +53,11 @@ const operationalRecordController = {
       }
 
       const recordData: IOperationalRecord = {
-        scheduleId: new Types.ObjectId(scheduleId),
+        scheduleId: scheduleId ? new Types.ObjectId(scheduleId) : undefined,
         userId: new Types.ObjectId(userId),
         type,
         date: new Date(date),
-      };
+      } as IOperationalRecord;
 
       if (isNaN(recordData.date.getTime())) {
         return response({

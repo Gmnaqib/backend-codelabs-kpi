@@ -32,13 +32,3 @@ attendanceRouter.patch("/checkout", authenticateToken, attendanceController.chec
 attendanceRouter.patch("/leave-requests/review/:requestId", authenticateToken, roleMiddlewares(["admin", "minister of operation"]), attendanceController.reviewLeaveRequests);
 
 export default attendanceRouter;
-
-//   Admin = "admin",
-//   Lecturer = "lecturer",
-//   MinisterOfResearch = "minister of research",
-//   MinisterOfCompetition = "minister of competition",
-//   MinisterOfBranding = "minister of branding",
-//   MinisterOfOperation = "minister of operation",
-//   President = "president",
-//   VicePresident = "vice president",
-//   User = "user",

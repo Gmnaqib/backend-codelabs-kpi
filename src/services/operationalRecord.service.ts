@@ -5,21 +5,28 @@ import { ScheduleType } from "../models/schedule/schedule.interface";
 
 const operationalRecordService = {
   createOperationalRecord: async (recordData: IOperationalRecord): Promise<IOperationalRecord> => {
-    const existingRecord = await operationalRepository.findDuplicateRecord(recordData.scheduleId.toString(), recordData.userId.toString());
-    const findScheduleById = await scheduleRepository.findScheduleById(recordData.scheduleId.toString());
+    const scheduleId = recordData.scheduleId;
+    const userId = recordData.userId;
 
-    if (!findScheduleById) {
-      throw new Error("Schedule not found");
-    }
+    if (scheduleId) {
+      const existingRecord = await operationalRepository.findDuplicateRecord(scheduleId, userId);
+      const findScheduleById = await scheduleRepository.findScheduleById(scheduleId);
 
-    const isUserAssignedToSchedule = findScheduleById.assignedUsers?.some((user: any) => user._id.toString() === recordData.userId.toString());
+      if (!findScheduleById) {
+        throw new Error("Schedule not found");
+      }
 
-    if (!isUserAssignedToSchedule) {
-      throw new Error("User is not assigned to this schedule");
-    }
+      const isUserAssignedToSchedule = findScheduleById.assignedUsers?.some((user: any) => user._id.toString() === recordData.userId.toString());
 
-    if (existingRecord) {
-      throw new Error(`Operational record already exists for this schedule and user`);
+      if (!isUserAssignedToSchedule) {
+        throw new Error("User is not assigned to this schedule");
+      }
+
+      if (existingRecord) {
+        throw new Error(`Operational record already exists for this schedule and user`);
+      }
+      const newRecord = await operationalRepository.createRecord(recordData);
+      return newRecord;
     }
 
     const newRecord = await operationalRepository.createRecord(recordData);
@@ -74,31 +81,31 @@ const operationalRecordService = {
     return records;
   },
 
-  updateOperationalRecord: async (recordId: string, updateData: Partial<IOperationalRecord>): Promise<IOperationalRecord | null> => {
-    const existingRecord = await operationalRepository.findRecordById(recordId);
-    if (!existingRecord) {
-      throw new Error("Operational record not found");
-    }
+  // updateOperationalRecord: async (recordId: string, updateData: Partial<IOperationalRecord>): Promise<IOperationalRecord | null> => {
+  //   const existingRecord = await operationalRepository.findRecordById(recordId);
+  //   if (!existingRecord) {
+  //     throw new Error("Operational record not found");
+  //   }
 
-    if (updateData.scheduleId || updateData.userId) {
-      const scheduleId = updateData.scheduleId || existingRecord.scheduleId;
-      const userId = updateData.userId || existingRecord.userId;
+  //   if (updateData.scheduleId || updateData.userId) {
+  //     const scheduleId = updateData.scheduleId || existingRecord.scheduleId;
+  //     const userId = updateData.userId || existingRecord.userId;
 
-      const isChangingKey =
-        (updateData.scheduleId && updateData.scheduleId.toString() !== existingRecord.scheduleId.toString()) ||
-        (updateData.userId && updateData.userId.toString() !== existingRecord.userId.toString());
+  //     const isChangingKey =
+  //       (updateData.scheduleId && updateData.scheduleId.toString() !== existingRecord.scheduleId?.toString()) ||
+  //       (updateData.userId && updateData.userId.toString() !== existingRecord.userId.toString());
 
-      if (isChangingKey) {
-        const duplicateRecord = await operationalRepository.findDuplicateRecord(scheduleId.toString(), userId.toString());
-        if (duplicateRecord && duplicateRecord._id.toString() !== recordId) {
-          throw new Error(`Operational record already exists for this schedule and user`);
-        }
-      }
-    }
+  //     if (isChangingKey) {
+  //       const duplicateRecord = await operationalRepository.findDuplicateRecord(scheduleId?.toString() || "", userId.toString());
+  //       if (duplicateRecord && duplicateRecord._id.toString() !== recordId) {
+  //         throw new Error(`Operational record already exists for this schedule and user`);
+  //       }
+  //     }
+  //   }
 
-    const updatedRecord = await operationalRepository.updateRecordById(recordId, updateData);
-    return updatedRecord;
-  },
+  //   const updatedRecord = await operationalRepository.updateRecordById(recordId, updateData);
+  //   return updatedRecord;
+  // },
 
   deleteOperationalRecord: async (recordId: string): Promise<IOperationalRecord | null> => {
     const record = await operationalRepository.deleteRecordById(recordId);

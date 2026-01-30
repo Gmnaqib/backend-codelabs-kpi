@@ -22,13 +22,3 @@ userRouter.patch("/me/update-device", authenticateToken, userController.updateDe
 userRouter.patch("/:id", roleMiddlewares(["admin", "lecturer", "president", "vice president"]), authenticateToken, userController.updateByAdmin);
 
 export default userRouter;
-
-//   Admin = "admin",
-//   Lecturer = "lecturer",
-//   MinisterOfResearch = "minister of research",
-//   MinisterOfCompetition = "minister of competition",
-//   MinisterOfBranding = "minister of branding",
-//   MinisterOfOperation = "minister of operation",
-//   President = "president",
-//   VicePresident = "vice president",
-//   User = "user",
