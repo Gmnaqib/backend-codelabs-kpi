@@ -34,7 +34,7 @@ const researchRepository = {
     progress?: progressStatus;
     status?: statusResearch;
     research_type?: string;
-    date?: { year: number; month: number };
+    date?: { year: number; month?: number };
   }) => {
     const query: any = {};
 
@@ -45,12 +45,23 @@ const researchRepository = {
     if (filters.status) query.status = filters.status;
     if (filters.research_type) query.research_type = { $regex: filters.research_type, $options: "i" };
     if (filters.date) {
-      const startDate = new Date(filters.date.year, filters.date.month - 1, 1);
-      const endDate = new Date(filters.date.year, filters.date.month, 0, 23, 59, 59, 999);
-      query.createdAt = {
-        $gte: startDate,
-        $lte: endDate,
-      };
+      if (filters.date.month) {
+        // Filter by month and year
+        const startDate = new Date(filters.date.year, filters.date.month - 1, 1);
+        const endDate = new Date(filters.date.year, filters.date.month, 0, 23, 59, 59, 999);
+        query.createdAt = {
+          $gte: startDate,
+          $lte: endDate,
+        };
+      } else {
+        // Filter by year only
+        const startDate = new Date(filters.date.year, 0, 1);
+        const endDate = new Date(filters.date.year, 11, 31, 23, 59, 59, 999);
+        query.createdAt = {
+          $gte: startDate,
+          $lte: endDate,
+        };
+      }
     }
 
     return Research.find(query).populate("userId", "name").sort({ createdAt: -1 });
@@ -78,7 +89,7 @@ const researchRepository = {
     progress?: progressStatus;
     status?: statusResearch;
     research_type?: string;
-    date?: { year: number; month: number };
+    date?: { year: number; month?: number };
   }) => {
     const query: any = {};
 
@@ -89,12 +100,23 @@ const researchRepository = {
     if (filters.status) query.status = filters.status;
     if (filters.research_type) query.research_type = { $regex: filters.research_type, $options: "i" };
     if (filters.date) {
-      const startDate = new Date(filters.date.year, filters.date.month - 1, 1);
-      const endDate = new Date(filters.date.year, filters.date.month, 0, 23, 59, 59, 999);
-      query.createdAt = {
-        $gte: startDate,
-        $lte: endDate,
-      };
+      if (filters.date.month) {
+        // Filter by month and year
+        const startDate = new Date(filters.date.year, filters.date.month - 1, 1);
+        const endDate = new Date(filters.date.year, filters.date.month, 0, 23, 59, 59, 999);
+        query.createdAt = {
+          $gte: startDate,
+          $lte: endDate,
+        };
+      } else {
+        // Filter by year only
+        const startDate = new Date(filters.date.year, 0, 1);
+        const endDate = new Date(filters.date.year, 11, 31, 23, 59, 59, 999);
+        query.createdAt = {
+          $gte: startDate,
+          $lte: endDate,
+        };
+      }
     }
 
     return Research.countDocuments(query);

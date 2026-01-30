@@ -318,6 +318,75 @@ const KPIService = {
       throw new Error(`Error getting all total point summaries: ${error.message}`);
     }
   },
+
+  getResearchStatistic: async (year: number): Promise<any> => {
+    try {
+      const monthlyStats = [];
+      
+      for (let month = 1; month <= 12; month++) {
+        const startDate = new Date(year, month - 1, 1);
+        const endDate = new Date(year, month, 0, 23, 59, 59);
+
+        // Hitung total research dengan berbagai status di bulan tertentu
+        const researchRecords = await Research.find({
+          createdAt: { $gte: startDate, $lte: endDate },
+        });
+
+        const monthName = new Date(year, month - 1).toLocaleString('id-ID', { month: 'long' });
+        
+        monthlyStats.push({
+          month,
+          monthName,
+          totalResearch: researchRecords.length,
+        });
+      }
+
+      return {
+        year,
+        data: monthlyStats,
+      };
+    } catch (error: any) {
+      throw new Error(`Error getting research statistic: ${error.message}`);
+    }
+  },
+
+  getKpiStatistic: async (year: number): Promise<any> => {
+    try {
+      const monthlyStats = [];
+
+      for (let month = 1; month <= 12; month++) {
+        const startDate = new Date(year, month - 1, 1);
+        const endDate = new Date(year, month, 0, 23, 59, 59, 999);
+
+        // Hitung total research untuk semua user di bulan tertentu
+        const researchRecords = await Research.find({
+          createdAt: { $gte: startDate, $lte: endDate },
+        });
+
+        // Hitung total attendance dengan status PRESENT untuk semua user di bulan tertentu
+        const attendanceRecords = await Attendance.find({
+          status: attendanceStatus.PRESENT,
+          checkIn: { $gte: startDate, $lte: endDate },
+        });
+
+        const monthName = new Date(year, month - 1).toLocaleString('id-ID', { month: 'long' });
+
+        monthlyStats.push({
+          month,
+          monthName,
+          totalResearch: researchRecords.length,
+          totalAttendance: attendanceRecords.length,
+        });
+      }
+
+      return {
+        year,
+        data: monthlyStats,
+      };
+    } catch (error: any) {
+      throw new Error(`Error getting KPI statistic: ${error.message}`);
+    }
+  },
 };
 
 export default KPIService;

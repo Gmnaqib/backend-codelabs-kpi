@@ -90,7 +90,7 @@ const researchController = {
 
   getAllResearch: async (req: Request, res: Response): Promise<any> => {
     try {
-      const { week, category, progress, status, research_type, date } = req.query;
+      const { week, category, progress, status, research_type, month, year } = req.query;
 
       const filters: any = {};
 
@@ -143,19 +143,40 @@ const researchController = {
         filters.research_type = research_type as string;
       }
 
-      if (date) {
-        const parsedDate = new Date(date as string);
-        if (isNaN(parsedDate.getTime())) {
+      if (month || year) {
+        if (!year) {
           return response({
             res,
             code: 400,
-            message: "Invalid date format",
+            message: "Year is required",
           });
         }
 
-        const year = parsedDate.getFullYear();
-        const month = parsedDate.getMonth() + 1;
-        filters.date = { year, month };
+        const yearNum = parseInt(year as string);
+
+        if (isNaN(yearNum) || yearNum < 1900) {
+          return response({
+            res,
+            code: 400,
+            message: "Year must be a valid number",
+          });
+        }
+
+        if (month) {
+          const monthNum = parseInt(month as string);
+
+          if (isNaN(monthNum) || monthNum < 1 || monthNum > 12) {
+            return response({
+              res,
+              code: 400,
+              message: "Month must be a number between 1 and 12",
+            });
+          }
+
+          filters.date = { month: monthNum, year: yearNum };
+        } else {
+          filters.date = { year: yearNum };
+        }
       }
 
       const research = await researchService.getAllResearch(filters);
