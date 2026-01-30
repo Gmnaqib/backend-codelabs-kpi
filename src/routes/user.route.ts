@@ -4,11 +4,31 @@ import { authenticateToken } from "../middlewares/auth.middlewares";
 import { roleMiddlewares } from "../middlewares/role.middlewares";
 const userRouter = Router();
 
-userRouter.get("/", authenticateToken, userController.getAllUsers);
-userRouter.get("/:id", roleMiddlewares(["admin", "lecturer"]), authenticateToken, userController.getUserById);
-userRouter.delete("/:id", roleMiddlewares(["admin"]), authenticateToken, userController.deleteUser);
+userRouter.get(
+  "/",
+  authenticateToken,
+  roleMiddlewares(["admin", "lecturer", "president", "vice president", "vice president", "minister of research", "minister of competition", "minister of branding", "minister of operation"]),
+  userController.getAllUsers,
+);
+userRouter.get(
+  "/:id",
+  authenticateToken,
+  roleMiddlewares(["admin", "lecturer", "president", "vice president", "vice president", "minister of research", "minister of competition", "minister of branding", "minister of operation"]),
+  userController.getUserById,
+);
+userRouter.delete("/:id", roleMiddlewares(["admin", "lecturer"]), authenticateToken, userController.deleteUser);
 userRouter.patch("/me/update", authenticateToken, userController.updateByUser);
 userRouter.patch("/me/update-device", authenticateToken, userController.updateDeviceId);
-userRouter.patch("/:id", roleMiddlewares(["admin"]), authenticateToken, userController.updateByAdmin);
+userRouter.patch("/:id", roleMiddlewares(["admin", "lecturer", "president", "vice president"]), authenticateToken, userController.updateByAdmin);
 
 export default userRouter;
+
+//   Admin = "admin",
+//   Lecturer = "lecturer",
+//   MinisterOfResearch = "minister of research",
+//   MinisterOfCompetition = "minister of competition",
+//   MinisterOfBranding = "minister of branding",
+//   MinisterOfOperation = "minister of operation",
+//   President = "president",
+//   VicePresident = "vice president",
+//   User = "user",
