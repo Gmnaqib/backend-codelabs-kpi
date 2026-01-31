@@ -98,6 +98,7 @@ const KPIController = {
     }
   },
 
+
   getBrandingSummary: async (req: AuthRequest, res: Response): Promise<any> => {
     try {
       const userId = req.user?.id;
@@ -234,6 +235,36 @@ const KPIController = {
 
       const summaries = await KPIService.getAllTotalPointSummary(Number(month), Number(year));
       return response({ res, code: 200, message: "All total point summaries retrieved successfully", data: summaries });
+    } catch (error: any) {
+      return response({ res, code: 500, message: error.message, data: null });
+    }
+  },
+
+  researchStatistic: async (req: Request, res: Response): Promise<any> => {
+    try {
+      const { year } = req.query;
+
+      if (!year) {
+        return response({ res, code: 400, message: "year is required", data: null });
+      }
+
+      const statistics = await KPIService.getResearchStatistic(Number(year));
+      return response({ res, code: 200, message: "Research statistic retrieved successfully", data: statistics });
+    } catch (error: any) {
+      return response({ res, code: 500, message: error.message, data: null });
+    }
+  },
+
+  kpiStatistic: async (req: Request, res: Response): Promise<any> => {
+    try {
+      const { year } = req.query;
+
+      if (!year) {
+        return response({ res, code: 400, message: "year is required", data: null });
+      }
+
+      const statistics = await KPIService.getKpiStatistic(Number(year));
+      return response({ res, code: 200, message: "KPI statistic retrieved successfully", data: statistics });
     } catch (error: any) {
       return response({ res, code: 500, message: error.message, data: null });
     }

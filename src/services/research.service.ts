@@ -38,7 +38,7 @@ const researchService = {
     progress?: progressStatus;
     status?: statusResearch;
     research_type?: string;
-    date?: { year: number; month: number };
+    date?: { year: number; month?: number };
   }): Promise<IResearch[]> => {
     const research = await researchRepository.findResearchWithFilters(filters || {});
     return research;

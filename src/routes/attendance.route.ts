@@ -12,6 +12,8 @@ const upload = multer({
   limits: { fileSize: 10 * 1024 * 1024 },
 });
 
+attendanceRouter.get("/check-connection", attendanceController.checkMyConnection);
+
 attendanceRouter.get("/", attendanceController.getAttendance);
 attendanceRouter.get("/summary", authenticateToken, roleMiddlewares(["admin", "lecturer", "president", "vice president", "minister of operation"]), attendanceController.getAttendanceSummary);
 attendanceRouter.get("/summary/:id", authenticateToken, attendanceController.getAttendanceSummaryDetail);
