@@ -44,8 +44,9 @@ export const userValidate = {
       role?: Role;
       status?: Status;
       research?: Research;
+      product_id?: string;
       change_device_id?: boolean;
-    }
+    },
   ): Promise<void> => {
     if (!userId) {
       throw new Error("User ID is required");
@@ -55,10 +56,10 @@ export const userValidate = {
       throw new Error("Invalid user ID format");
     }
 
-    const { name, password, role, status, research, change_device_id } = userData;
+    const { name, password, role, status, research, product_id, change_device_id } = userData;
 
     // At least one field must be provided
-    if (!name && !password && !role && !status && !research && change_device_id === undefined) {
+    if (!name && !password && !role && !status && !research && !product_id && change_device_id === undefined) {
       throw new Error("At least one field must be provided for update");
     }
 
