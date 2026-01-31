@@ -322,7 +322,7 @@ const KPIService = {
   getResearchStatistic: async (year: number): Promise<any> => {
     try {
       const monthlyStats = [];
-      
+
       for (let month = 1; month <= 12; month++) {
         const startDate = new Date(year, month - 1, 1);
         const endDate = new Date(year, month, 0, 23, 59, 59);
@@ -332,8 +332,8 @@ const KPIService = {
           createdAt: { $gte: startDate, $lte: endDate },
         });
 
-        const monthName = new Date(year, month - 1).toLocaleString('id-ID', { month: 'long' });
-        
+        const monthName = new Date(year, month - 1).toLocaleString("id-ID", { month: "long" });
+
         monthlyStats.push({
           month,
           monthName,
@@ -369,7 +369,7 @@ const KPIService = {
           checkIn: { $gte: startDate, $lte: endDate },
         });
 
-        const monthName = new Date(year, month - 1).toLocaleString('id-ID', { month: 'long' });
+        const monthName = new Date(year, month - 1).toLocaleString("id-ID", { month: "long" });
 
         monthlyStats.push({
           month,

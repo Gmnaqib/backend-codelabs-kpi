@@ -45,6 +45,7 @@ export interface BrandingSummary {
 }
 
 export interface CompetitionSummary {
+  userId?: Types.ObjectId;
   name: string;
   totalNational: number;
   totalInternational: number;
@@ -55,6 +56,7 @@ export interface CompetitionSummary {
 }
 
 export interface TotalPointSummary {
+  userId?: Types.ObjectId;
   name: string;
   totalPoint: number;
   year: number;

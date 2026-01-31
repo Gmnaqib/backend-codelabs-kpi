@@ -98,7 +98,6 @@ const KPIController = {
     }
   },
 
-
   getBrandingSummary: async (req: AuthRequest, res: Response): Promise<any> => {
     try {
       const userId = req.user?.id;
