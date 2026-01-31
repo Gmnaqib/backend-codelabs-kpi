@@ -4,7 +4,7 @@ import response from "../helper/response";
 import KPIService from "../services/kpi.service";
 
 const KPIController = {
-  getKPISummary: async (req: AuthRequest, res: Response): Promise<any> => {
+  getOperationalSummary: async (req: AuthRequest, res: Response): Promise<any> => {
     try {
       const userId = req.user?.id;
       const { month, year } = req.query;
@@ -20,7 +20,7 @@ const KPIController = {
     }
   },
 
-  getKPISummaryById: async (req: Request, res: Response): Promise<any> => {
+  getOperationalSummaryById: async (req: Request, res: Response): Promise<any> => {
     try {
       const { userId } = req.params;
       const { month, year } = req.query;
@@ -68,7 +68,7 @@ const KPIController = {
     }
   },
 
-  getAllKPISummary: async (req: Request, res: Response): Promise<any> => {
+  getAllOperationalSummary: async (req: Request, res: Response): Promise<any> => {
     try {
       const { month, year } = req.query;
 

@@ -4,9 +4,9 @@ import { authenticateToken } from "../middlewares/auth.middlewares";
 import { roleMiddlewares } from "../middlewares/role.middlewares";
 const kpiRouter = Router();
 
-kpiRouter.get("/operational", authenticateToken, roleMiddlewares(["admin", "minister of operation"]), KPIController.getAllKPISummary);
-kpiRouter.get("/operational/me", authenticateToken, KPIController.getKPISummary);
-kpiRouter.get("/operational/:userId", authenticateToken, roleMiddlewares(["admin", "minister of operation"]), KPIController.getKPISummaryById);
+kpiRouter.get("/operational", authenticateToken, roleMiddlewares(["admin", "minister of operation"]), KPIController.getAllOperationalSummary);
+kpiRouter.get("/operational/me", authenticateToken, KPIController.getOperationalSummary);
+kpiRouter.get("/operational/:userId", authenticateToken, roleMiddlewares(["admin", "minister of operation"]), KPIController.getOperationalSummaryById);
 
 kpiRouter.get("/research", authenticateToken, roleMiddlewares(["admin", "minister of research"]), KPIController.getAllResearchSummary);
 kpiRouter.get("/research/me", authenticateToken, KPIController.getResearchSummary);

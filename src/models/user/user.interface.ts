@@ -1,6 +1,9 @@
 interface IUser {
   name: string;
   email: string;
+  dob?: string;
+  address?: string;
+  image?: string;
   password: string;
   role?: Role;
   nim: string;
@@ -12,6 +15,7 @@ interface IUser {
   telegram_username?: string;
   device_id?: string;
   change_device_id?: boolean;
+  product_id?: string;
 }
 
 export enum Role {
@@ -22,8 +26,6 @@ export enum Role {
   MinisterOfBranding = "minister of branding",
   MinisterOfOperation = "minister of operation",
   President = "president",
-  MinisterOfResearchAndOperation = "minister of research and operation",
-  MinisterOfResearchAndCompetition = "minister of research and competition",
   VicePresident = "vice president",
   Secretary = "secretary",
   User = "user",

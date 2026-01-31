@@ -39,12 +39,13 @@ const userService = {
       role?: Role;
       status?: Status;
       research?: Research;
+      product_id?: string;
       change_device_id?: boolean;
-    }
+    },
   ): Promise<IUser> => {
     await userValidate.updateByAdmin(userId, userData);
 
-    const { name, password, role, status, research, change_device_id } = userData;
+    const { name, password, role, status, research, product_id, change_device_id } = userData;
     const user = await userRepository.findUserById(userId, true);
 
     if (password) {
@@ -56,6 +57,7 @@ const userService = {
     if (role) user!.role = role;
     if (status) user!.status = status;
     if (research) user!.research = research;
+    if (product_id) user!.product_id = product_id;
     if (change_device_id !== undefined) user!.change_device_id = change_device_id;
 
     await user!.save();

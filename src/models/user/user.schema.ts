@@ -17,6 +17,18 @@ const userSchema = new Schema<IUser>(
       required: true,
       unique: true,
     },
+    dob: {
+      type: Date,
+      required: false,
+    },
+    address: {
+      type: String,
+      required: false,
+    },
+    image: {
+      type: String,
+      required: false,
+    },
     password: {
       type: String,
       required: true,
@@ -56,6 +68,10 @@ const userSchema = new Schema<IUser>(
       enum: ["website", "mobile", "game", "ui/ux", "data", "IoT", "other"],
       required: false,
     },
+    product_id: {
+      type: String,
+      required: false,
+    },
     telegram_id: {
       type: String,
       required: false,
@@ -73,7 +89,7 @@ const userSchema = new Schema<IUser>(
       default: true,
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 const User = model<IUser>("User", userSchema);
