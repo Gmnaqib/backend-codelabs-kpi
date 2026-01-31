@@ -20,8 +20,8 @@ kpiRouter.get("/competition", authenticateToken, roleMiddlewares(["admin", "mini
 kpiRouter.get("/competition/me", authenticateToken, KPIController.getCompetitionSummary);
 kpiRouter.get("/competition/:userId", authenticateToken, roleMiddlewares(["admin", "minister of competition"]), KPIController.getCompetitionSummaryById);
 
-kpiRouter.get("/statistic", authenticateToken, roleMiddlewares(["admin","lecturer", "minister of research"]), KPIController.kpiStatistic);
-kpiRouter.get("/", authenticateToken, roleMiddlewares(["admin", "lecturer", "president", "vice president"]), KPIController.getAllTotalPointSummary);
+kpiRouter.get("/statistic", authenticateToken, roleMiddlewares(["admin", "lecturer", "minister of research"]), KPIController.kpiStatistic);
+kpiRouter.get("/", authenticateToken, KPIController.getAllTotalPointSummary);
 kpiRouter.get("/me", authenticateToken, KPIController.getTotalPointSummary);
 kpiRouter.get("/:userId", authenticateToken, KPIController.getTotalPointSummaryById);
 
