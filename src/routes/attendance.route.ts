@@ -8,8 +8,7 @@ const attendanceRouter = Router();
 
 const upload = multer({
   storage: multer.memoryStorage(),
-  // 10MB (akan dikompres menjadi max 2MB)
-  limits: { fileSize: 10 * 1024 * 1024 },
+  limits: { fileSize: 1 * 1024 * 1024 },
 });
 
 attendanceRouter.get("/check-connection", attendanceController.checkMyConnection);
