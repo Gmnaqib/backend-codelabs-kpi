@@ -150,24 +150,6 @@ const scheduleController = {
     }
   },
 
-  // getRangeSchedules: async (req: Request, res: Response): Promise<any> => {
-  //   try {
-  //     const { endDate } = req.query;
-  //     if (!endDate) {
-  //       return response({ res, code: 400, message: "endDate is required" });
-  //     }
-  //     const start = new Date();
-  //     const end = new Date(endDate as string);
-  //     if (isNaN(start.getTime()) || isNaN(end.getTime())) {
-  //       return response({ res, code: 400, message: "Invalid date format" });
-  //     }
-  //     const schedules = await scheduleService.getSchedulesByDateRange(start, end);
-  //     return response({ res, code: 200, message: "Schedules for date range retrieved successfully", data: schedules });
-  //   } catch (error: any) {
-  //     return response({ res, code: 500, message: error.message });
-  //   }
-  // },
-
   getScheduleById: async (req: Request, res: Response): Promise<any> => {
     try {
       const { id } = req.params;

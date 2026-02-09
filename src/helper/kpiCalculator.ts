@@ -35,7 +35,7 @@ const KPICalculator = {
       //Hitung Point Attendance
       attendanceRecords.forEach((record) => {
         if (record.status === attendanceStatus.PRESENT) {
-          score += 10;
+          score += 5;
         }
       });
 
@@ -63,7 +63,7 @@ const KPICalculator = {
 
       researchRecords.forEach((record) => {
         if (record.status === statusResearch.approved) {
-          score += 15;
+          score += 30;
         }
       });
 
