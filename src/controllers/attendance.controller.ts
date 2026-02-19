@@ -7,25 +7,25 @@ import { promises as dns } from "dns";
 import { Types } from "mongoose";
 
 const attendanceController = {
-   checkMyConnection: async (req: Request, res: Response) => {
+  checkMyConnection: async (req: Request, res: Response) => {
     try {
-      const ip = (req.headers['x-forwarded-for'] || req.connection.remoteAddress) as string;
+      const ip = (req.headers["x-forwarded-for"] || req.connection.remoteAddress) as string;
 
-      const isLocalhost = ip === '::1' || ip === '127.0.0.1' || ip?.includes('127.0.0.1');
-      
-      let hostname = 'unknown';
+      const isLocalhost = ip === "::1" || ip === "127.0.0.1" || ip?.includes("127.0.0.1");
+
+      let hostname = "unknown";
       if (!isLocalhost) {
         try {
           const hostnames = await dns.reverse(ip);
-          hostname = hostnames[0] || 'unknown';
+          hostname = hostnames[0] || "unknown";
         } catch (dnsError) {
-          hostname = 'unknown';
+          hostname = "unknown";
         }
       } else {
-        hostname = 'localhost';
+        hostname = "localhost";
       }
-      
-      response({ res, code: 201, message: 'Get data success', data: { ip, hostname } });
+
+      response({ res, code: 201, message: "Get data success", data: { ip, hostname } });
     } catch (error: any) {
       console.log(error.message);
       response({ res, code: 500, message: error.message, data: null });
@@ -108,6 +108,19 @@ const attendanceController = {
     try {
       const { year, month } = req.query;
       const userId = req.params.id;
+      const yearNum = year ? Number(year) : undefined;
+      const monthNum = month ? Number(month) : undefined;
+      const detailSummary = await attendanceService.getAttendanceSummaryDetail(new Types.ObjectId(userId), yearNum, monthNum);
+      return response({ res, code: 200, message: "Attendance detail summary retrieved successfully", data: detailSummary });
+    } catch (error: any) {
+      return response({ res, code: 500, message: error.message });
+    }
+  },
+
+  getAttendanceSummaryDetailMe: async (req: AuthRequest, res: Response): Promise<any> => {
+    try {
+      const { year, month } = req.query;
+      const userId = req.user?.id;
       const yearNum = year ? Number(year) : undefined;
       const monthNum = month ? Number(month) : undefined;
       const detailSummary = await attendanceService.getAttendanceSummaryDetail(new Types.ObjectId(userId), yearNum, monthNum);

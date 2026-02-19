@@ -16,6 +16,7 @@ attendanceRouter.get("/check-connection", attendanceController.checkMyConnection
 attendanceRouter.get("/", attendanceController.getAttendance);
 attendanceRouter.get("/summary", authenticateToken, roleMiddlewares(["admin", "lecturer", "president", "vice president", "minister of operation"]), attendanceController.getAttendanceSummary);
 attendanceRouter.get("/summary/:id", authenticateToken, attendanceController.getAttendanceSummaryDetail);
+attendanceRouter.get("/summary/me", authenticateToken, attendanceController.getAttendanceSummaryDetailMe);
 
 // Leave Request endpoints
 attendanceRouter.post("/leave-requests", authenticateToken, upload.single("attachment"), attendanceController.submitLeaveOrSick);
