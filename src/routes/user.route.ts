@@ -4,12 +4,7 @@ import { authenticateToken } from "../middlewares/auth.middlewares";
 import { roleMiddlewares } from "../middlewares/role.middlewares";
 const userRouter = Router();
 
-userRouter.get(
-  "/",
-  authenticateToken,
-  roleMiddlewares(["admin", "lecturer", "president", "vice president", "vice president", "minister of research", "minister of competition", "minister of branding", "minister of operation"]),
-  userController.getAllUsers,
-);
+userRouter.get("/", authenticateToken, userController.getAllUsers);
 userRouter.get(
   "/:id",
   authenticateToken,
