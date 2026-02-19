@@ -119,12 +119,15 @@ const attendanceController = {
 
   getAttendanceSummaryDetailMe: async (req: AuthRequest, res: Response): Promise<any> => {
     try {
-      const { year, month } = req.query;
       const userId = req.user?.id;
+      if (!userId) {
+        return response({ res, code: 400, message: "User ID is required" });
+      }
       const now = new Date();
-      const yearNum = year ? Number(year) : now.getFullYear();
-      const monthNum = month ? Number(month) : now.getMonth() + 1;
-      const detailSummary = await attendanceService.getAttendanceSummaryDetail(new Types.ObjectId(userId), yearNum, monthNum);
+      const year: number = now.getFullYear();
+      const month: number = now.getMonth() + 1;
+
+      const detailSummary = await attendanceService.getAttendanceSummaryDetail(new Types.ObjectId(userId), year, month);
       return response({ res, code: 200, message: "Attendance detail summary retrieved successfully", data: detailSummary });
     } catch (error: any) {
       return response({ res, code: 500, message: error.message });
