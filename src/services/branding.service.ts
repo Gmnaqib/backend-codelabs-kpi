@@ -41,8 +41,8 @@ const BrandingService = {
     return brandingRepository.findBrandingsByFilter(queryFilter, dateFilter);
   },
 
-  getMyBrandings: async (userId: string): Promise<IBranding[]> => {
-    return await brandingRepository.findMyBrandings(userId);
+  getMyBrandings: async (userId: string, year?: number, month?: number): Promise<IBranding[]> => {
+    return await brandingRepository.findMyBrandings(userId, year, month);
   },
 
   updateMyBranding: async (id: string, userId: string, updateData: { name?: string; description?: string; link?: string; research?: researchCategory; level?: brandingLevel }): Promise<any> => {
@@ -90,7 +90,7 @@ const BrandingService = {
 
   updateBranding: async (
     id: string,
-    updateData: { userId?: string; name?: string; description?: string; link?: string; status?: brandingStatus; research?: researchCategory; level?: brandingLevel }
+    updateData: { userId?: string; name?: string; description?: string; link?: string; status?: brandingStatus; research?: researchCategory; level?: brandingLevel },
   ): Promise<IBranding> => {
     const { name, description, link, status, research, level } = updateData;
     const Branding = await brandingRepository.findBrandingById(id);

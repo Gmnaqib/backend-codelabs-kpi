@@ -28,12 +28,15 @@ const brandingController = {
   getMyBrandings: async (req: AuthRequest, res: Response): Promise<any> => {
     try {
       const userId = req.user?.id;
+      const { year, month } = req.query;
 
       if (!userId) {
         return response({ res, code: 401, message: "Authentication required", data: null });
       }
 
-      const brandings = await BrandingService.getMyBrandings(userId);
+      const yearNum = year ? Number(year) : undefined;
+      const monthNum = month ? Number(month) : undefined;
+      const brandings = await BrandingService.getMyBrandings(userId, yearNum, monthNum);
       return response({ res, code: 200, message: "Get my brandings success", data: brandings });
     } catch (error: any) {
       return response({ res, code: 500, message: error.message, data: null });

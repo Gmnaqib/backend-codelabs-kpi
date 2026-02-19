@@ -16,7 +16,27 @@ interface BrandingFilter {
 const brandingRepository = {
   createBranding: (brandingData: Partial<IBranding>) => Branding.create(brandingData),
   findAllBrandings: () => Branding.find(),
-  findMyBrandings: (userId: string) => Branding.find({ userId: new Types.ObjectId(userId) }),
+  findMyBrandings: (userId: string, year?: number, month?: number) => {
+    const query: any = { userId: new Types.ObjectId(userId) };
+
+    if (year !== undefined && month !== undefined) {
+      const startDate = new Date(year, month - 1, 1);
+      const endDate = new Date(year, month, 0, 23, 59, 59, 999);
+      query.createdAt = {
+        $gte: startDate,
+        $lte: endDate,
+      };
+    } else if (year !== undefined) {
+      const startDate = new Date(year, 0, 1);
+      const endDate = new Date(year, 11, 31, 23, 59, 59, 999);
+      query.createdAt = {
+        $gte: startDate,
+        $lte: endDate,
+      };
+    }
+
+    return Branding.find(query);
+  },
   findBrandingById: (id: string) => Branding.findById(id),
   findBranding: (filter: BrandingFilter) => Branding.findOne(filter),
   findBrandingsByFilter: (filter: BrandingFilter, date?: { year: number; month: number }) => {
