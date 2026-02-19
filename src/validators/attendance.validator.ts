@@ -10,7 +10,7 @@ export const attendanceValidate = {
     const now = dateHelper.getNowWIBAsDateTime();
     const startOfDay = dateHelper.getStartOfDayWIB();
     const endOfDay = dateHelper.getEndOfDayWIB();
-    const timeIn = dateHelper.getTimeTodayWIB(6);
+    const timeIn = dateHelper.getTimeTodayWIB(1);
     const timeLimit = dateHelper.getTimeTodayWIB(9);
     const timeLateLimit = dateHelper.getTimeTodayWIB(10);
     const { device_id } = device;
@@ -58,7 +58,7 @@ export const attendanceValidate = {
     const now = dateHelper.getNowWIBAsDateTime();
     const startOfDay = dateHelper.getStartOfDayWIB();
     const endOfDay = dateHelper.getEndOfDayWIB();
-    let timeOut = dateHelper.getTimeTodayWIB(17);
+    let timeOut = dateHelper.getTimeTodayWIB(5);
     const { device_id } = device;
 
     const isRamadhan = await settingRepository.findSettingByCode("RAMADHAN");

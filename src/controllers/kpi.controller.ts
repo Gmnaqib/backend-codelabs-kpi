@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { AuthRequest } from "../middlewares/auth.middlewares";
 import response from "../helper/response";
-import KPIService from "../services/kpi.service";
+import KPIItemService from "../services/kpi.services";
 
 const KPIController = {
   getOperationalSummary: async (req: AuthRequest, res: Response): Promise<any> => {
@@ -13,7 +13,7 @@ const KPIController = {
         return response({ res, code: 400, message: "month and year are required", data: null });
       }
 
-      const summary = await KPIService.getKPISummary(userId, Number(month), Number(year));
+      const summary = await KPIItemService.getKPISummary(userId, Number(month), Number(year));
       return response({ res, code: 200, message: "KPI summary retrieved successfully", data: summary });
     } catch (error: any) {
       return response({ res, code: 500, message: error.message, data: null });
@@ -29,7 +29,7 @@ const KPIController = {
         return response({ res, code: 400, message: "month and year are required", data: null });
       }
 
-      const summary = await KPIService.getKPISummary(userId, Number(month), Number(year));
+      const summary = await KPIItemService.getKPISummary(userId, Number(month), Number(year));
       return response({ res, code: 200, message: "KPI summary retrieved successfully", data: summary });
     } catch (error: any) {
       return response({ res, code: 500, message: error.message, data: null });
@@ -45,7 +45,7 @@ const KPIController = {
         return response({ res, code: 400, message: "month and year are required", data: null });
       }
 
-      const summary = await KPIService.getResearchSummary(userId, Number(month), Number(year));
+      const summary = await KPIItemService.getResearchSummary(userId, Number(month), Number(year));
       return response({ res, code: 200, message: "Research summary retrieved successfully", data: summary });
     } catch (error: any) {
       return response({ res, code: 500, message: error.message, data: null });
@@ -61,7 +61,7 @@ const KPIController = {
         return response({ res, code: 400, message: "month and year are required", data: null });
       }
 
-      const summary = await KPIService.getResearchSummary(userId, Number(month), Number(year));
+      const summary = await KPIItemService.getResearchSummary(userId, Number(month), Number(year));
       return response({ res, code: 200, message: "Research summary retrieved successfully", data: summary });
     } catch (error: any) {
       return response({ res, code: 500, message: error.message, data: null });
@@ -76,7 +76,7 @@ const KPIController = {
         return response({ res, code: 400, message: "month and year are required", data: null });
       }
 
-      const summaries = await KPIService.getAllKPISummary(Number(month), Number(year));
+      const summaries = await KPIItemService.getAllKPISummary(Number(month), Number(year));
       return response({ res, code: 200, message: "All KPI summaries retrieved successfully", data: summaries });
     } catch (error: any) {
       return response({ res, code: 500, message: error.message, data: null });
@@ -91,7 +91,7 @@ const KPIController = {
         return response({ res, code: 400, message: "month and year are required", data: null });
       }
 
-      const summaries = await KPIService.getAllResearchSummary(Number(month), Number(year));
+      const summaries = await KPIItemService.getAllResearchSummary(Number(month), Number(year));
       return response({ res, code: 200, message: "All research summaries retrieved successfully", data: summaries });
     } catch (error: any) {
       return response({ res, code: 500, message: error.message, data: null });
@@ -107,7 +107,7 @@ const KPIController = {
         return response({ res, code: 400, message: "month and year are required", data: null });
       }
 
-      const summary = await KPIService.getBrandingSummary(userId, Number(month), Number(year));
+      const summary = await KPIItemService.getBrandingSummary(userId, Number(month), Number(year));
       return response({ res, code: 200, message: "Branding summary retrieved successfully", data: summary });
     } catch (error: any) {
       return response({ res, code: 500, message: error.message, data: null });
@@ -123,7 +123,7 @@ const KPIController = {
         return response({ res, code: 400, message: "month and year are required", data: null });
       }
 
-      const summary = await KPIService.getBrandingSummary(userId, Number(month), Number(year));
+      const summary = await KPIItemService.getBrandingSummary(userId, Number(month), Number(year));
       return response({ res, code: 200, message: "Branding summary retrieved successfully", data: summary });
     } catch (error: any) {
       return response({ res, code: 500, message: error.message, data: null });
@@ -138,7 +138,7 @@ const KPIController = {
         return response({ res, code: 400, message: "month and year are required", data: null });
       }
 
-      const summaries = await KPIService.getAllBrandingSummary(Number(month), Number(year));
+      const summaries = await KPIItemService.getAllBrandingSummary(Number(month), Number(year));
       return response({ res, code: 200, message: "All branding summaries retrieved successfully", data: summaries });
     } catch (error: any) {
       return response({ res, code: 500, message: error.message, data: null });
@@ -154,7 +154,7 @@ const KPIController = {
         return response({ res, code: 400, message: "month and year are required", data: null });
       }
 
-      const summary = await KPIService.getCompetitionSummary(userId, Number(month), Number(year));
+      const summary = await KPIItemService.getCompetitionSummary(userId, Number(month), Number(year));
       return response({ res, code: 200, message: "Competition summary retrieved successfully", data: summary });
     } catch (error: any) {
       return response({ res, code: 500, message: error.message, data: null });
@@ -170,7 +170,7 @@ const KPIController = {
         return response({ res, code: 400, message: "month and year are required", data: null });
       }
 
-      const summary = await KPIService.getCompetitionSummary(userId, Number(month), Number(year));
+      const summary = await KPIItemService.getCompetitionSummary(userId, Number(month), Number(year));
       return response({ res, code: 200, message: "Competition summary retrieved successfully", data: summary });
     } catch (error: any) {
       return response({ res, code: 500, message: error.message, data: null });
@@ -185,7 +185,7 @@ const KPIController = {
         return response({ res, code: 400, message: "month and year are required", data: null });
       }
 
-      const summaries = await KPIService.getAllCompetitionSummary(Number(month), Number(year));
+      const summaries = await KPIItemService.getAllCompetitionSummary(Number(month), Number(year));
       return response({ res, code: 200, message: "All competition summaries retrieved successfully", data: summaries });
     } catch (error: any) {
       return response({ res, code: 500, message: error.message, data: null });
@@ -201,7 +201,7 @@ const KPIController = {
         return response({ res, code: 400, message: "month and year are required", data: null });
       }
 
-      const summary = await KPIService.getTotalPointSummary(userId, Number(month), Number(year));
+      const summary = await KPIItemService.getTotalPointSummary(userId, Number(month), Number(year));
       return response({ res, code: 200, message: "Total point summary retrieved successfully", data: summary });
     } catch (error: any) {
       return response({ res, code: 500, message: error.message, data: null });
@@ -217,7 +217,7 @@ const KPIController = {
         return response({ res, code: 400, message: "month and year are required", data: null });
       }
 
-      const summary = await KPIService.getTotalPointSummary(userId, Number(month), Number(year));
+      const summary = await KPIItemService.getTotalPointSummary(userId, Number(month), Number(year));
       return response({ res, code: 200, message: "Total point summary retrieved successfully", data: summary });
     } catch (error: any) {
       return response({ res, code: 500, message: error.message, data: null });
@@ -232,7 +232,7 @@ const KPIController = {
         return response({ res, code: 400, message: "month and year are required", data: null });
       }
 
-      const summaries = await KPIService.getAllTotalPointSummary(Number(month), Number(year));
+      const summaries = await KPIItemService.getAllTotalPointSummary(Number(month), Number(year));
       return response({ res, code: 200, message: "All total point summaries retrieved successfully", data: summaries });
     } catch (error: any) {
       return response({ res, code: 500, message: error.message, data: null });
@@ -247,7 +247,7 @@ const KPIController = {
         return response({ res, code: 400, message: "year is required", data: null });
       }
 
-      const statistics = await KPIService.getResearchStatistic(Number(year));
+      const statistics = await KPIItemService.getResearchStatistic(Number(year));
       return response({ res, code: 200, message: "Research statistic retrieved successfully", data: statistics });
     } catch (error: any) {
       return response({ res, code: 500, message: error.message, data: null });
@@ -262,7 +262,7 @@ const KPIController = {
         return response({ res, code: 400, message: "year is required", data: null });
       }
 
-      const statistics = await KPIService.getKpiStatistic(Number(year));
+      const statistics = await KPIItemService.getKpiStatistic(Number(year));
       return response({ res, code: 200, message: "KPI statistic retrieved successfully", data: statistics });
     } catch (error: any) {
       return response({ res, code: 500, message: error.message, data: null });

@@ -1,11 +1,17 @@
 import { Schema, model } from "mongoose";
-import IKPIItem from "./kpi.item.interface";
+import IKPIItem, { KPICategory } from "./kpi.item.interface";
 
 const kpiItemSchema = new Schema<IKPIItem>(
   {
-    name: {
+    category: {
+      type: String,
+      enum: Object.values(KPICategory),
+      required: true,
+    },
+    code: {
       type: String,
       required: true,
+      unique: true,
     },
     point: {
       type: Number,
@@ -15,6 +21,6 @@ const kpiItemSchema = new Schema<IKPIItem>(
   { timestamps: true },
 );
 
-const KPIItem = model<IKPIItem>("KPIItem", kpiItemSchema);
+const IKPIItem = model<IKPIItem>("KPIItem", kpiItemSchema);
 
-export default KPIItem;
+export default IKPIItem;

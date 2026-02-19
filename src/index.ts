@@ -12,7 +12,7 @@ import operationalRecordRouter from "./routes/operationalRecord.route";
 import researchRouter from "./routes/research.route";
 import competitionRouter from "./routes/competition.route";
 import brandingRouter from "./routes/branding.route";
-import kpiRouter from "./routes/kpi.route";
+import kpiItemRouter from "./routes/kpi.route";
 import productRouter from "./routes/product.route";
 import cors from "cors";
 
@@ -37,7 +37,7 @@ app.use("/operational-records", operationalRecordRouter);
 app.use("/research", researchRouter);
 app.use("/competition", competitionRouter);
 app.use("/branding", brandingRouter);
-app.use("/kpi", kpiRouter);
+app.use("/kpi", kpiItemRouter);
 app.use("/products", productRouter);
 
 app.listen(port, () => {
