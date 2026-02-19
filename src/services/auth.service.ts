@@ -78,15 +78,37 @@ const authService = {
     });
   },
 
-  login: async (nim: string, password: string): Promise<{ user: any; token: string }> => {
+  login: async (
+  nim: string,
+  password: string,
+  device_id: string
+  ): Promise<{ user: any; token: string }> => {
+
     await authValidate.login(nim, password);
 
-    const user = await userRepository.findUserByNim(nim, true); // Include password for login
+    const user = await userRepository.findUserByNim(nim, true);
 
-    const isPasswordValid = await bcrypt.compare(password, user!.password);
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, user.password);
 
     if (!isPasswordValid) {
       throw new Error("Invalid credentials");
+    }
+
+    if (!user.device_id || user.device_id === "null") {
+      await userRepository.updateUserById(user._id.toString(), {
+        device_id,
+        change_device_id: false,
+      });
+
+      user.device_id = device_id; 
+    } else {
+      if (user.device_id !== device_id) {
+        throw new Error("This account is already registered on another device");
+      }
     }
 
     const secret = process.env.JWT_SECRET;
@@ -96,15 +118,11 @@ const authService = {
 
     const token = jwt.sign(
       {
-        id: user!._id,
-        name: user!.name,
-        role: user!.role,
-        nim: user!.nim,
-        majors: user!.majors,
-        years: user!.years,
-        status: user!.status,
-        research: user!.research,
-        device_id: user!.device_id,
+        id: user._id,
+        name: user.name,
+        role: user.role,
+        nim: user.nim,
+        device_id: user.device_id,
       },
       secret,
       { expiresIn: "1d" }
@@ -112,10 +130,10 @@ const authService = {
 
     return {
       user: {
-        id: user!._id,
-        name: user!.name,
-        nim: user!.nim,
-        role: user!.role,
+        id: user._id,
+        name: user.name,
+        nim: user.nim,
+        role: user.role,
       },
       token,
     };

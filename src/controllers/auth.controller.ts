@@ -46,9 +46,13 @@ const authController = {
 
   login: async (req: Request, res: Response): Promise<any> => {
     try {
-      const { nim, password } = req.body;
+      const { nim, password, device_id } = req.body;
 
-      const { user, token } = await authService.login(nim, password);
+      const { user, token } = await authService.login(
+        nim,
+        password,
+        device_id
+      );
 
       return response({
         res,

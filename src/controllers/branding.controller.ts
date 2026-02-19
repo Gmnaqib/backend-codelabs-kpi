@@ -75,6 +75,44 @@ const brandingController = {
     }
   },
 
+  getMyBrandingStats: async (req: AuthRequest, res: Response): Promise<void> => {
+    try {
+      const userId = req.user?.id;
+      const { year, month, week } = req.query;
+
+      if (!userId) {
+        response({
+          res,
+          code: 401,
+          message: "Authentication required",
+          data: null,
+        });
+        return;
+      }
+
+      const stats = await BrandingService.getMyBrandingStats(
+        userId,
+        year ? Number(year) : undefined,
+        month ? Number(month) : undefined,
+        week ? Number(week) : undefined
+      );
+
+      response({
+        res,
+        code: 200,
+        message: "Get my branding stats success",
+        data: stats,
+      });
+    } catch (error: any) {
+      response({
+        res,
+        code: 500,
+        message: error.message,
+        data: null,
+      });
+    }
+  },
+
   updateBranding: async (req: Request, res: Response): Promise<any> => {
     try {
       const { id } = req.params;

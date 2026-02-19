@@ -45,6 +45,31 @@ const BrandingService = {
     return await brandingRepository.findMyBrandings(userId, year, month);
   },
 
+  getMyBrandingStats: async (
+  userId: string,
+  year?: number,
+  month?: number,
+  week?: number
+  ) => {
+    const result = await brandingRepository.getMyBrandingStats(userId, {
+      year,
+      month,
+      week,
+    });
+
+    if (!result.length) {
+      return {
+        total: 0,
+        brandings: [],
+      };
+    }
+
+    return {
+      total: result[0].total,
+      brandings: result[0].brandings,
+    };
+  },
+
   updateMyBranding: async (id: string, userId: string, updateData: { name?: string; description?: string; link?: string; research?: researchCategory; level?: brandingLevel }): Promise<any> => {
     const branding = await brandingRepository.findBrandingById(id);
 
