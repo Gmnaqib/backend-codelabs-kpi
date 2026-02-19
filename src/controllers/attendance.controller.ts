@@ -121,8 +121,9 @@ const attendanceController = {
     try {
       const { year, month } = req.query;
       const userId = req.user?.id;
-      const yearNum = year ? Number(year) : undefined;
-      const monthNum = month ? Number(month) : undefined;
+      const now = new Date();
+      const yearNum = year ? Number(year) : now.getFullYear();
+      const monthNum = month ? Number(month) : now.getMonth() + 1;
       const detailSummary = await attendanceService.getAttendanceSummaryDetail(new Types.ObjectId(userId), yearNum, monthNum);
       return response({ res, code: 200, message: "Attendance detail summary retrieved successfully", data: detailSummary });
     } catch (error: any) {
