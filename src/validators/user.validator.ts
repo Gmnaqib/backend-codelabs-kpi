@@ -90,31 +90,34 @@ export const userValidate = {
     }
   },
 
-  updateDeviceId: async (userId: string, deviceId: string): Promise<void> => {
-    if (!userId) {
-      throw new Error("User ID is required");
-    }
+ updateDeviceId: async (userId: string, deviceId: string | null): Promise<void> => {
+  if (!userId) {
+    throw new Error("User ID is required");
+  }
 
-    if (!deviceId) {
-      throw new Error("Device ID is required");
-    }
+  if (!Types.ObjectId.isValid(userId)) {
+    throw new Error("Invalid user ID format");
+  }
 
-    if (!Types.ObjectId.isValid(userId)) {
-      throw new Error("Invalid user ID format");
-    }
+  const user = await userRepository.findUserById(userId, true);
 
-    if (deviceId.trim().length === 0) {
-      throw new Error("Device ID cannot be empty");
-    }
+  if (!user) {
+    throw new Error("User not found");
+  }
 
-    const user = await userRepository.findUserById(userId, true);
-
-    if (!user) {
-      throw new Error("User not found");
-    }
-
+  if (deviceId === null) {
     if (user.change_device_id !== true) {
-      throw new Error("tidak bisa");
+      throw new Error("You don't have permission to change device ID");
+    }
+    return; 
+  }
+
+  if (!deviceId || deviceId.trim().length === 0) {
+    throw new Error("Device ID cannot be empty");
+  }
+
+   if (user.change_device_id !== true) {
+      throw new Error("You don't have permission to change device ID");
     }
   },
 
