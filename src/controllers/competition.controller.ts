@@ -25,16 +25,18 @@ const competitionController = {
     }
   },
 
-
   getMyCompetitions: async (req: AuthRequest, res: Response): Promise<any> => {
     try {
       const userId = req.user?.id;
+      const { year, month } = req.query;
 
       if (!userId) {
         return response({ res, code: 401, message: "Authentication required", data: null });
       }
 
-      const competitions = await CompetitionService.getMyCompetitions(userId);
+      const yearNum = year ? Number(year) : undefined;
+      const monthNum = month ? Number(month) : undefined;
+      const competitions = await CompetitionService.getMyCompetitions(userId, yearNum, monthNum);
       return response({ res, code: 200, message: "Get my competitions success", data: competitions });
     } catch (error: any) {
       return response({ res, code: 500, message: error.message, data: null });

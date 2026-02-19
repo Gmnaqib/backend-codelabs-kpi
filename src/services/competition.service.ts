@@ -43,8 +43,8 @@ const CompetitionService = {
     return await competitionRepository.findCompetitionsByFilter(queryFilter, dateFilter);
   },
 
-  getMyCompetitions: async (userId: string): Promise<ICompetition[]> => {
-    return await competitionRepository.findMyCompetitions(userId);
+  getMyCompetitions: async (userId: string, year?: number, month?: number): Promise<ICompetition[]> => {
+    return await competitionRepository.findMyCompetitions(userId, year, month);
   },
 
   updateMyCompetition: async (id: string, userId: string, updateData: { name?: string; description?: string; deadline?: string; link?: string; type?: CompetitionType }): Promise<any> => {
@@ -92,7 +92,7 @@ const CompetitionService = {
 
   updateCompetition: async (
     id: string,
-    updateData: { userId?: string; name?: string; description?: string; deadline?: string; link?: string; status?: CompetitionStatus; type?: CompetitionType }
+    updateData: { userId?: string; name?: string; description?: string; deadline?: string; link?: string; status?: CompetitionStatus; type?: CompetitionType },
   ): Promise<ICompetition> => {
     const { name, description, deadline, link, status, type } = updateData;
     const Competition = await competitionRepository.findCompetitionById(id);
