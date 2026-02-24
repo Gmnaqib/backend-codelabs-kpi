@@ -10,8 +10,8 @@ kpiItemRouter.post("/item", authenticateToken, KPIItemController.addKPIItem);
 kpiItemRouter.get("/item", authenticateToken, KPIItemController.getAllKPIItems);
 
 // KPI Count routes
-kpiItemRouter.get("/me", authenticateToken, KPICountController.getMyTotalPointsSummary);
 kpiItemRouter.get("/", authenticateToken, KPICountController.getTotalPointsSummary);
+kpiItemRouter.get("/me", authenticateToken, KPICountController.getMyTotalPointsSummary);
 
 kpiItemRouter.get("/research/points-summary/me", authenticateToken, KPICountController.getMyResearchPointsSummary);
 kpiItemRouter.get("/research/points-summary", authenticateToken, KPICountController.getResearchPointsSummary);
