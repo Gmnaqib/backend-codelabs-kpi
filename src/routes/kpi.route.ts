@@ -16,11 +16,11 @@ kpiItemRouter.get("/research/", authenticateToken, KPICountController.getResearc
 kpiItemRouter.get("/operational/me", authenticateToken, KPICountController.getMyOperationalPointsSummary);
 kpiItemRouter.get("/operational/", authenticateToken, KPICountController.getOperationalPointsSummary);
 
-kpiItemRouter.get("/branding/points-summary/me", authenticateToken, KPICountController.getMyBrandingPointsSummary);
-kpiItemRouter.get("/branding/points-summary", authenticateToken, KPICountController.getBrandingPointsSummary);
+kpiItemRouter.get("/branding/me", authenticateToken, KPICountController.getMyBrandingPointsSummary);
+kpiItemRouter.get("/branding/", authenticateToken, KPICountController.getBrandingPointsSummary);
 
-kpiItemRouter.get("/competition/points-summary/me", authenticateToken, KPICountController.getMyCompetitionPointsSummary);
-kpiItemRouter.get("/competition/points-summary", authenticateToken, KPICountController.getCompetitionPointsSummary);
+kpiItemRouter.get("/competition/me", authenticateToken, KPICountController.getMyCompetitionPointsSummary);
+kpiItemRouter.get("/competition/", authenticateToken, KPICountController.getCompetitionPointsSummary);
 
 kpiItemRouter.get("/item/:id", authenticateToken, KPIItemController.getKPIItemById);
 kpiItemRouter.put("/item/:id", authenticateToken, roleMiddlewares(["admin"]), KPIItemController.updateKPIItem);

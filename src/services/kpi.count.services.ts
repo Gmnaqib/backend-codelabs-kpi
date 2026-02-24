@@ -509,24 +509,23 @@ const KPICountService = {
     const contentKPI = await KPIRepository.findKPIByCode("CONTENT");
     const contentPoint = contentKPI?.point || 0;
 
-    // Build summary per user
-    const summary = await Promise.all(
-      Array.from(userMap.entries()).map(async ([userId, brandings]) => {
-        const user = await userRepository.findUserById(userId);
-        const userName = user?.name || "Unknown User";
-        const count = brandings.length;
-        const totalPoints = count * contentPoint;
+    // Get all active users
+    const allUsers = await userRepository.findUsersByFilter({ status: Status.active });
 
-        return {
-          userId,
-          userName,
-          count,
-          code: "CONTENT",
-          point: contentPoint,
-          totalPoints,
-        };
-      }),
-    );
+    // Build summary for all users
+    const summary = allUsers.map((user) => {
+      const userId = user._id?.toString() || "";
+      const brandings = userMap.get(userId) || [];
+      const count = brandings.length;
+      const totalPoints = count * contentPoint;
+
+      return {
+        userId,
+        userName: user.name,
+        count,
+        totalPoints,
+      };
+    });
 
     return summary;
   },
@@ -554,8 +553,6 @@ const KPICountService = {
       userId,
       userName,
       count,
-      code: "CONTENT",
-      point: contentPoint,
       totalPoints,
     };
   },
@@ -595,33 +592,29 @@ const KPICountService = {
     const informationKPI = await KPIRepository.findKPIByCode("INFORMATION");
     const informationPoint = informationKPI?.point || 0;
 
-    // Build summary per user
-    const summary = await Promise.all(
-      Array.from(userMap.entries()).map(async ([userId, competitions]) => {
-        const user = await userRepository.findUserById(userId);
-        const userName = user?.name || "Unknown User";
-        const count = competitions.length;
-        const totalPoints = count * informationPoint;
+    // Get all active users
+    const allUsers = await userRepository.findUsersByFilter({ status: Status.active });
 
-        return {
-          userId,
-          userName,
-          count,
-          code: "INFORMATION",
-          point: informationPoint,
-          totalPoints,
-        };
-      }),
-    );
+    // Build summary for all users
+    const summary = allUsers.map((user) => {
+      const userId = user._id?.toString() || "";
+      const competitions = userMap.get(userId) || [];
+      const count = competitions.length;
+      const totalPoints = count * informationPoint;
+
+      return {
+        userId,
+        userName: user.name,
+        count,
+        totalPoints,
+      };
+    });
 
     return summary;
   },
 
   getMyCompetitionPointsSummary: async (userId: string, dateFilter?: { year: number; month?: number }) => {
-    // Fetch user's approved competition records
     const approvedCompetitions = await competitionRepository.findMyCompetitions(userId, dateFilter?.year, dateFilter?.month);
-
-    // Filter by approved status
     const filteredCompetitions = approvedCompetitions.filter((competition) => competition.status === CompetitionStatus.Approved);
 
     // Get KPI point for INFORMATION code
@@ -640,8 +633,6 @@ const KPICountService = {
       userId,
       userName,
       count,
-      code: "INFORMATION",
-      point: informationPoint,
       totalPoints,
     };
   },
@@ -730,8 +721,6 @@ const KPICountService = {
         userData.totalPoints += user.totalPoints;
         userData.branding = {
           count: user.count,
-          code: user.code,
-          point: user.point,
           totalPoints: user.totalPoints,
         };
       });
@@ -751,8 +740,6 @@ const KPICountService = {
         userData.totalPoints += user.totalPoints;
         userData.competition = {
           count: user.count,
-          code: user.code,
-          point: user.point,
           totalPoints: user.totalPoints,
         };
       });
@@ -767,7 +754,6 @@ const KPICountService = {
     };
   },
 
-  // Total Points Summary - Single User
   getMyTotalPointsSummary: async (userId: string, dateFilter?: { year: number; month?: number }) => {
     // Get all KPI summaries for specific user
     const [researchData, attendanceData, scheduleData, brandingData, competitionData] = await Promise.all([
@@ -810,14 +796,10 @@ const KPICountService = {
         },
         branding: {
           count: brandingData.count,
-          code: brandingData.code,
-          point: brandingData.point,
           totalPoints: brandingTotal,
         },
         competition: {
           count: competitionData.count,
-          code: competitionData.code,
-          point: competitionData.point,
           totalPoints: competitionTotal,
         },
       },
