@@ -10,9 +10,6 @@ kpiItemRouter.post("/item", authenticateToken, KPIItemController.addKPIItem);
 kpiItemRouter.get("/item", authenticateToken, KPIItemController.getAllKPIItems);
 
 // KPI Count routes
-kpiItemRouter.get("/", authenticateToken, KPICountController.getTotalPointsSummary);
-kpiItemRouter.get("/me", authenticateToken, KPICountController.getMyTotalPointsSummary);
-
 kpiItemRouter.get("/research/points-summary/me", authenticateToken, KPICountController.getMyResearchPointsSummary);
 kpiItemRouter.get("/research/points-summary", authenticateToken, KPICountController.getResearchPointsSummary);
 
@@ -47,5 +44,6 @@ kpiItemRouter.put("/item/:id", authenticateToken, roleMiddlewares(["admin"]), KP
 kpiItemRouter.get("/statistic", authenticateToken, KPICountController.kpiStatistic);
 // kpiRouter.get("/me", authenticateToken, KPIController.getTotalPointSummary);
 // kpiRouter.get("/:userId", authenticateToken, KPIController.getTotalPointSummaryById);
-
+kpiItemRouter.get("/me", authenticateToken, KPICountController.getMyTotalPointsSummary);
+kpiItemRouter.get("/", authenticateToken, KPICountController.getTotalPointsSummary);
 export default kpiItemRouter;
