@@ -24,26 +24,10 @@ kpiItemRouter.get("/competition/", authenticateToken, KPICountController.getComp
 
 kpiItemRouter.get("/item/:id", authenticateToken, KPIItemController.getKPIItemById);
 kpiItemRouter.put("/item/:id", authenticateToken, roleMiddlewares(["admin"]), KPIItemController.updateKPIItem);
-// kpiRouter.get("/operational", authenticateToken, roleMiddlewares(["admin", "minister of operation", "lecturer"]), KPIController.getAllOperationalSummary);
-// kpiRouter.get("/operational/me", authenticateToken, KPIController.getOperationalSummary);
-// kpiRouter.get("/operational/:userId", authenticateToken, roleMiddlewares(["admin", "minister of operation", "lecturer"]), KPIController.getOperationalSummaryById);
 
-// kpiRouter.get("/research", authenticateToken, roleMiddlewares(["admin", "minister of research", "lecturer"]), KPIController.getAllResearchSummary);
-// kpiRouter.get("/research/me", authenticateToken, KPIController.getResearchSummary);
-// kpiRouter.get("/research/:userId", authenticateToken, roleMiddlewares(["admin", "minister of research", "lecturer"]), KPIController.getResearchSummaryById);
-
-// kpiRouter.get("/branding", authenticateToken, roleMiddlewares(["admin", "minister of branding", "lecturer"]), KPIController.getAllBrandingSummary);
-// kpiRouter.get("/branding/me", authenticateToken, KPIController.getBrandingSummary);
-// kpiRouter.get("/branding/:userId", authenticateToken, roleMiddlewares(["admin", "minister of branding", "lecturer"]), KPIController.getBrandingSummaryById);
-
-// kpiRouter.get("/competition", authenticateToken, roleMiddlewares(["admin", "minister of competition", "lecturer"]), KPIController.getAllCompetitionSummary);
-// kpiRouter.get("/competition/me", authenticateToken, KPIController.getCompetitionSummary);
-// kpiRouter.get("/competition/:userId", authenticateToken, roleMiddlewares(["admin", "minister of competition", "lecturer"]), KPIController.getCompetitionSummaryById);
-
-// kpiRouter.get("/", authenticateToken, KPIController.getAllTotalPointSummary);
 kpiItemRouter.get("/statistic", authenticateToken, KPICountController.kpiStatistic);
-// kpiRouter.get("/me", authenticateToken, KPIController.getTotalPointSummary);
-// kpiRouter.get("/:userId", authenticateToken, KPIController.getTotalPointSummaryById);
+kpiItemRouter.get("/summary/:userId", authenticateToken, KPICountController.getMyComprehensiveSummary);
 kpiItemRouter.get("/me", authenticateToken, KPICountController.getMyTotalPointsSummary);
+// kpiItemRouter.get("/summary", authenticateToken, KPICountController.getAllSummary);
 kpiItemRouter.get("/", authenticateToken, KPICountController.getTotalPointsSummary);
 export default kpiItemRouter;

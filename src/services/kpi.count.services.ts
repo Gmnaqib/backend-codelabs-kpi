@@ -805,6 +805,111 @@ const KPICountService = {
       },
     };
   },
+
+  // Comprehensive Summary - All activities for specific user
+  getMyComprehensiveSummary: async (userId: string, dateFilter?: { year: number; month?: number }) => {
+    // Get all KPI summaries for specific user
+    const [researchData, attendanceData, scheduleData, brandingData, competitionData] = await Promise.all([
+      KPICountService.getMyResearchPointsSummary(userId, dateFilter),
+      KPICountService.getMyAttendancePointsSummary(userId, dateFilter),
+      KPICountService.getMySchedulePointsSummary(userId, dateFilter),
+      KPICountService.getMyBrandingPointsSummary(userId, dateFilter),
+      KPICountService.getMyCompetitionPointsSummary(userId, dateFilter),
+    ]);
+
+    // Get user name
+    const user = await userRepository.findUserById(userId);
+    const userName = user?.name || "Unknown User";
+
+    // Calculate totals
+    const researchTotal = researchData.totalPoints || 0;
+    const attendanceTotal = attendanceData.totalPoints || 0;
+    const scheduleTotal = scheduleData.totalPoints || 0;
+    const brandingTotal = brandingData.totalPoints || 0;
+    const competitionTotal = competitionData.totalPoints || 0;
+
+    const allTotal = researchTotal + attendanceTotal + scheduleTotal + brandingTotal + competitionTotal;
+
+    // Get KPI points for point per item
+    const cocreationKPI = await KPIRepository.findKPIByCode("COCREATION");
+    const workshopKPI = await KPIRepository.findKPIByCode("WORKSHOP");
+    const picketKPI = await KPIRepository.findKPIByCode("PICKET");
+    const attendanceKPI = await KPIRepository.findKPIByCode("ATTENDANCE");
+
+    const cocreationPoint = cocreationKPI?.point || 0;
+    const workshopPoint = workshopKPI?.point || 0;
+    const picketPoint = picketKPI?.point || 0;
+    const attendancePoint = attendanceKPI?.point || 0;
+
+    // Calculate total activities count
+    const researchCount = (researchData.byCategory?.personal?.count || 0) + (researchData.byCategory?.product?.count || 0) + (researchData.byCategory?.workshop?.count || 0);
+    const operationalCount = (scheduleData.operationalDetail?.picket?.count || 0) + (scheduleData.operationalDetail?.thematic?.count || 0);
+    const attendanceCount = attendanceData.detail?.present?.count || 0;
+    const brandingCount = brandingData.count || 0;
+    const competitionCount = competitionData.count || 0;
+
+    const year = dateFilter?.year || new Date().getFullYear();
+    const month = dateFilter?.month || new Date().getMonth() + 1;
+
+    return {
+      userId,
+      userName,
+      period: {
+        year,
+        month,
+      },
+      summary: {
+        research: {
+          count: researchCount,
+          totalPoints: researchTotal,
+          personal: {
+            count: researchData.byCategory?.personal?.count || 0,
+            totalPoints: researchData.byCategory?.personal?.total || 0,
+          },
+          product: {
+            count: researchData.byCategory?.product?.count || 0,
+            totalPoints: researchData.byCategory?.product?.total || 0,
+          },
+          workshop: {
+            count: researchData.byCategory?.workshop?.count || 0,
+            totalPoints: researchData.byCategory?.workshop?.total || 0,
+          },
+        },
+        operational: {
+          count: operationalCount,
+          totalPoints: scheduleTotal,
+          picket: {
+            count: scheduleData.operationalDetail?.picket?.count || 0,
+            pointPerItem: picketPoint,
+            totalPoints: scheduleData.operationalDetail?.picket?.total || 0,
+          },
+          thematic: {
+            count: scheduleData.operationalDetail?.thematic?.count || 0,
+            pointPerItem: picketPoint, // Assuming same point as picket
+            totalPoints: scheduleData.operationalDetail?.thematic?.total || 0,
+          },
+        },
+        attendance: {
+          count: attendanceCount,
+          totalPoints: attendanceTotal,
+          present: {
+            count: attendanceData.detail?.present?.count || 0,
+            pointPerItem: attendancePoint,
+            totalPoints: attendanceData.detail?.present?.total || 0,
+          },
+        },
+        branding: {
+          count: brandingCount,
+          totalPoints: brandingTotal,
+        },
+        competition: {
+          count: competitionCount,
+          totalPoints: competitionTotal,
+        },
+        grandTotalPoints: allTotal,
+      },
+    };
+  },
 };
 
 export default KPICountService;

@@ -543,11 +543,7 @@ const KPICountController = {
       summary.byUser.forEach((user: any) => {
         pointsMap.set(user.userName, user.totalPoints);
       });
-      console.log("Status enum:", Status);
-      console.log("Looking for status:", Status.active);
       const allUsers = await userRepository.findUsersByFilter({ status: Status.active });
-      console.log("Found active users:", allUsers.length);
-      console.log("First user:", allUsers[0]);
       let simplifiedData = allUsers.map((user: any) => ({
         name: user.name,
         totalPoints: pointsMap.get(user.name) || 0,
@@ -636,6 +632,43 @@ const KPICountController = {
     } catch (error: any) {
       console.error("Error getting my total points summary:", error);
       return response({ res, code: 500, message: "Failed to retrieve your total points summary" });
+    }
+  },
+
+  getMyComprehensiveSummary: async (req: AuthRequest, res: Response): Promise<any> => {
+    try {
+      const userId = (req.params.userId as string);
+      if (!userId) {
+        return response({ res, code: 400, message: "User ID is required" });
+      }
+
+      const { year, month } = req.query;
+      const dateFilter: any = {};
+
+      if (year) {
+        const yearNum = parseInt(year as string);
+        if (isNaN(yearNum) || yearNum < 1900) {
+          return response({ res, code: 400, message: "Year must be a valid number" });
+        }
+        dateFilter.year = yearNum;
+      }
+
+      if (month) {
+        if (!year) {
+          return response({ res, code: 400, message: "Year is required when filtering by month" });
+        }
+        const monthNum = parseInt(month as string);
+        if (isNaN(monthNum) || monthNum < 1 || monthNum > 12) {
+          return response({ res, code: 400, message: "Month must be a number between 1 and 12" });
+        }
+        dateFilter.month = monthNum;
+      }
+
+      const summary = await KPICountService.getMyComprehensiveSummary(userId, Object.keys(dateFilter).length > 0 ? dateFilter : undefined);
+      return response({ res, code: 200, message: "Comprehensive summary retrieved successfully", data: summary });
+    } catch (error: any) {
+      console.error("Error getting comprehensive summary:", error);
+      return response({ res, code: 500, message: "Failed to retrieve comprehensive summary" });
     }
   },
 };
