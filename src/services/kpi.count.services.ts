@@ -626,7 +626,6 @@ const KPICountService = {
 
   // Total Points Summary - All Users
   getTotalPointsSummary: async (dateFilter?: { year: number; month?: number }) => {
-    // Get all KPI summaries from each module
     const [researchData, attendanceData, scheduleData, brandingData, competitionData] = await Promise.all([
       KPICountService.getResearchPointsSummary(dateFilter),
       KPICountService.getAttendancePointsSummary(dateFilter),

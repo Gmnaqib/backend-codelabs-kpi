@@ -10,6 +10,9 @@ kpiItemRouter.post("/item", authenticateToken, KPIItemController.addKPIItem);
 kpiItemRouter.get("/item", authenticateToken, KPIItemController.getAllKPIItems);
 
 // KPI Count routes
+kpiItemRouter.get("/me", authenticateToken, KPICountController.getMyTotalPointsSummary);
+kpiItemRouter.get("/", authenticateToken, KPICountController.getTotalPointsSummary);
+
 kpiItemRouter.get("/research/points-summary/me", authenticateToken, KPICountController.getMyResearchPointsSummary);
 kpiItemRouter.get("/research/points-summary", authenticateToken, KPICountController.getResearchPointsSummary);
 
@@ -21,9 +24,6 @@ kpiItemRouter.get("/branding/points-summary", authenticateToken, KPICountControl
 
 kpiItemRouter.get("/competition/points-summary/me", authenticateToken, KPICountController.getMyCompetitionPointsSummary);
 kpiItemRouter.get("/competition/points-summary", authenticateToken, KPICountController.getCompetitionPointsSummary);
-
-kpiItemRouter.get("/total-points/me", authenticateToken, KPICountController.getMyTotalPointsSummary);
-kpiItemRouter.get("/total-points", authenticateToken, KPICountController.getTotalPointsSummary);
 
 kpiItemRouter.get("/item/:id", authenticateToken, KPIItemController.getKPIItemById);
 kpiItemRouter.put("/item/:id", authenticateToken, roleMiddlewares(["admin"]), KPIItemController.updateKPIItem);

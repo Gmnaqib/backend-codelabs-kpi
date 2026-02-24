@@ -2,7 +2,9 @@ import { Request, Response } from "express";
 import { AuthRequest } from "../middlewares/auth.middlewares";
 import KPICountService from "../services/kpi.count.services";
 import KPIItemService from "../services/kpi.services";
+import userRepository from "../repository/user.repository";
 import response from "../helper/response";
+import { Status } from "../models/user/user.interface";
 
 const KPICountController = {
   getResearchPointsSummary: async (req: Request, res: Response): Promise<any> => {
@@ -437,7 +439,7 @@ const KPICountController = {
 
   getTotalPointsSummary: async (req: Request, res: Response): Promise<any> => {
     try {
-      const { year, month } = req.query;
+      const { year, month, status } = req.query;
       const dateFilter: any = {};
 
       if (year) {
@@ -460,7 +462,26 @@ const KPICountController = {
       }
 
       const summary = await KPICountService.getTotalPointsSummary(Object.keys(dateFilter).length > 0 ? dateFilter : undefined);
-      return response({ res, code: 200, message: "Total points summary retrieved successfully", data: summary });
+
+      const pointsMap = new Map<string, number>();
+      summary.byUser.forEach((user: any) => {
+        pointsMap.set(user.userName, user.totalPoints);
+      });
+
+      const allUsers = await userRepository.findUsersByFilter({ status: Status.active });
+      let simplifiedData = allUsers.map((user: any) => ({
+        name: user.name,
+        totalPoints: pointsMap.get(user.name) || 0,
+      }));
+
+      // Sort by totalPoints descending and add rank
+      simplifiedData.sort((a, b) => b.totalPoints - a.totalPoints);
+      simplifiedData = simplifiedData.map((user, index) => ({
+        rank: index + 1,
+        ...user,
+      }));
+
+      return response({ res, code: 200, message: "Total points summary retrieved successfully", data: simplifiedData });
     } catch (error: any) {
       console.error("Error getting total points summary:", error);
       return response({ res, code: 500, message: "Failed to retrieve total points summary" });
@@ -497,7 +518,14 @@ const KPICountController = {
       }
 
       const summary = await KPICountService.getMyTotalPointsSummary(userId, Object.keys(dateFilter).length > 0 ? dateFilter : undefined);
-      return response({ res, code: 200, message: "Your total points summary retrieved successfully", data: summary });
+
+      // Return only name and total points
+      const simplifiedData = {
+        name: summary.userName,
+        totalPoints: summary.totalPoints,
+      };
+
+      return response({ res, code: 200, message: "Your total points summary retrieved successfully", data: simplifiedData });
     } catch (error: any) {
       console.error("Error getting my total points summary:", error);
       return response({ res, code: 500, message: "Failed to retrieve your total points summary" });
