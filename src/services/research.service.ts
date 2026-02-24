@@ -17,12 +17,6 @@ const researchService = {
       throw new Error("Invalid URL format for link field");
     }
 
-    const existingResearch = await researchRepository.findDuplicateResearch(researchData.userId.toString(), researchData.week, researchData.title);
-
-    if (existingResearch) {
-      throw new Error(`Research already exists for user on week ${researchData.week} with title "${researchData.title}"`);
-    }
-
     if (!researchData.status) {
       researchData.status = statusResearch.pending;
     }
@@ -160,6 +154,53 @@ const researchService = {
   checkResearchExists: async (userId: string, week: number, title: string): Promise<boolean> => {
     const exists = await researchRepository.researchExists(userId, week, title);
     return !!exists;
+  },
+
+  getResearchSummary: async (dateFilter?: { year: number; month?: number }) => {
+    const approvedResearch = await researchRepository.findResearchWithFilters({
+      status: statusResearch.approved,
+      ...(dateFilter && { date: dateFilter }),
+    });
+
+    // Group by user
+    const userMap = new Map<string, { userName: string; data: IResearch[] }>();
+
+    approvedResearch.forEach((research) => {
+      const userId = (research.userId as any)?._id?.toString() || research.userId.toString();
+      if (!userMap.has(userId)) {
+        userMap.set(userId, {
+          userName: (research.userId as any)?.name || "Unknown User",
+          data: [],
+        });
+      }
+      userMap.get(userId)!.data.push(research);
+    });
+
+    // Build summary per user
+    const byUser = Array.from(userMap.entries()).map(([userId, userData]) => {
+      const categoryCounts = {
+        [CategoryType.Personal]: 0,
+        [CategoryType.Product]: 0,
+        [CategoryType.workshop]: 0,
+      };
+
+      userData.data.forEach((research) => {
+        categoryCounts[research.category]++;
+      });
+
+      return {
+        userId,
+        userName: userData.userName,
+        total: userData.data.length,
+        byCategory: categoryCounts,
+        data: userData.data,
+      };
+    });
+
+    return {
+      totalApproved: approvedResearch.length,
+      byUser,
+    };
   },
 };
 

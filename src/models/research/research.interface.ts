@@ -15,6 +15,7 @@ interface IResearch {
 export enum CategoryType {
   Personal = "personal",
   Product = "product",
+  workshop = "workshop",
 }
 
 export enum progressStatus {

@@ -8,6 +8,7 @@ interface IBranding {
   level: string;
   link: string;
   status: brandingStatus;
+  createdAt?: Date;
 }
 
 export enum brandingStatus {

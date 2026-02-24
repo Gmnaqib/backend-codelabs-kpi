@@ -1,8 +1,14 @@
-import { Types } from "mongoose";
-
 export interface IKPIItem {
-  name: string;
+  category: KPICategory;
+  code: string;
   point: number;
+}
+
+export enum KPICategory {
+  RESEARCH = "RESEARCH",
+  COMPETITION = "COMPETITION",
+  OPERATIONAL = "OPERATIONAL",
+  BRANDING = "BRANDING",
 }
 
 export default IKPIItem;

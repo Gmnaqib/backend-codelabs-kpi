@@ -30,7 +30,8 @@ const attendanceService = {
 
   checkOut: async (userId: Types.ObjectId, deviceId: { device_id: string }): Promise<IAttendance> => {
     const userObjectId = new Types.ObjectId(userId);
-    await attendanceValidate.checkOut(userId, deviceId);
+
+    // await attendanceValidate.checkOut(userId, deviceId);
 
     const today = new Date();
     const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0, 0);

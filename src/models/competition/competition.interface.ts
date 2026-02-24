@@ -8,6 +8,7 @@ interface ICompetition {
   link: string;
   status: CompetitionStatus;
   type: CompetitionType;
+  createdAt?: Date;
 }
 
 export enum CompetitionType {
