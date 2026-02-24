@@ -1,9 +1,5 @@
 import { Schema, model } from "mongoose";
-import IResearch, {
-  statusResearch,
-  CategoryType,
-  progressStatus,
-} from "./research.interface";
+import IResearch, { statusResearch, CategoryType, progressStatus } from "./research.interface";
 
 const researchSchema = new Schema<IResearch>(
   {
@@ -14,7 +10,6 @@ const researchSchema = new Schema<IResearch>(
       enum: Object.values(CategoryType),
       required: true,
     },
-    research_type: { type: String, required: true },
     title: { type: String, required: true },
     link: { type: String, required: true },
     progress: {

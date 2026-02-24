@@ -7,7 +7,6 @@ interface ResearchFilter {
   userId?: Types.ObjectId | string;
   week?: number;
   category?: CategoryType;
-  research_type?: string;
   title?: string;
   progress?: progressStatus;
   status?: statusResearch;
@@ -27,15 +26,7 @@ const researchRepository = {
   findResearchByCategory: (category: CategoryType) => Research.find({ category }).populate("userId", "name").sort({ createdAt: -1 }),
   findResearchByProgress: (progress: progressStatus) => Research.find({ progress }).populate("userId", "name").sort({ createdAt: -1 }),
   findResearchByStatus: (status: statusResearch) => Research.find({ status }).populate("userId", "name").sort({ createdAt: -1 }),
-  findResearchWithFilters: (filters: {
-    userId?: string;
-    week?: number;
-    category?: CategoryType;
-    progress?: progressStatus;
-    status?: statusResearch;
-    research_type?: string;
-    date?: { year: number; month?: number };
-  }) => {
+  findResearchWithFilters: (filters: { userId?: string; week?: number; category?: CategoryType; progress?: progressStatus; status?: statusResearch; date?: { year: number; month?: number } }) => {
     const query: any = {};
 
     if (filters.userId) query.userId = filters.userId;
@@ -43,7 +34,6 @@ const researchRepository = {
     if (filters.category) query.category = filters.category;
     if (filters.progress) query.progress = filters.progress;
     if (filters.status) query.status = filters.status;
-    if (filters.research_type) query.research_type = { $regex: filters.research_type, $options: "i" };
     if (filters.date) {
       if (filters.date.month) {
         // Filter by month and year
@@ -82,15 +72,7 @@ const researchRepository = {
   countResearch: () => Research.countDocuments(),
   countResearchByFilter: (filter: ResearchFilter) => Research.countDocuments(filter),
 
-  countResearchWithFilters: (filters: {
-    userId?: string;
-    week?: number;
-    category?: CategoryType;
-    progress?: progressStatus;
-    status?: statusResearch;
-    research_type?: string;
-    date?: { year: number; month?: number };
-  }) => {
+  countResearchWithFilters: (filters: { userId?: string; week?: number; category?: CategoryType; progress?: progressStatus; status?: statusResearch; date?: { year: number; month?: number } }) => {
     const query: any = {};
 
     if (filters.userId) query.userId = filters.userId;
@@ -98,7 +80,6 @@ const researchRepository = {
     if (filters.category) query.category = filters.category;
     if (filters.progress) query.progress = filters.progress;
     if (filters.status) query.status = filters.status;
-    if (filters.research_type) query.research_type = { $regex: filters.research_type, $options: "i" };
     if (filters.date) {
       if (filters.date.month) {
         // Filter by month and year

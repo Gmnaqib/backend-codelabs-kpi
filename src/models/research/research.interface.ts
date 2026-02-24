@@ -4,7 +4,6 @@ interface IResearch {
   userId: Types.ObjectId;
   week: number;
   category: CategoryType;
-  research_type: string;
   title: string;
   link: string;
   progress: progressStatus;

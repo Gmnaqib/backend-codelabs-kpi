@@ -8,11 +8,11 @@ import IResearch, { CategoryType, progressStatus, statusResearch } from "../mode
 const researchController = {
   createResearch: async (req: AuthRequest, res: Response): Promise<any> => {
     try {
-      const { week, category, research_type, title, link, progress, challenge } = req.body;
+      const { week, category, title, link, progress, challenge } = req.body;
       const userId = req.user?.id;
 
-      if (!userId || !week || !category || !research_type || !title || !link || !progress) {
-        return response({ res, code: 400, message: "Missing required fields: week, category, research_type, title, link, and progress are required" });
+      if (!userId || !week || !category || !title || !link || !progress) {
+        return response({ res, code: 400, message: "Missing required fields: week, category, title, link, and progress are required" });
       }
 
       if (!Object.values(CategoryType).includes(category)) {
@@ -32,7 +32,6 @@ const researchController = {
         userId: new Types.ObjectId(userId),
         week: weekNumber,
         category,
-        research_type,
         title,
         link,
         progress,
@@ -55,7 +54,7 @@ const researchController = {
 
   getAllResearch: async (req: Request, res: Response): Promise<any> => {
     try {
-      const { week, category, progress, status, research_type, month, year } = req.query;
+      const { week, category, progress, status, month, year } = req.query;
       const filters: any = {};
       if (week) {
         const weekNumber = parseInt(week as string);
@@ -84,10 +83,6 @@ const researchController = {
           return response({ res, code: 400, message: `Invalid status. Must be one of: ${Object.values(statusResearch).join(", ")}` });
         }
         filters.status = status as statusResearch;
-      }
-
-      if (research_type) {
-        filters.research_type = research_type as string;
       }
 
       if (month || year) {
@@ -217,7 +212,7 @@ const researchController = {
   updateMyResearch: async (req: AuthRequest, res: Response): Promise<any> => {
     try {
       const { id } = req.params as { id: string };
-      const { week, category, research_type, title, link, progress, challenge } = req.body;
+      const { week, category, title, link, progress, challenge } = req.body;
       const userId = req.user?.id;
 
       if (!userId) {
@@ -252,10 +247,6 @@ const researchController = {
           return response({ res, code: 400, message: `Invalid category. Must be one of: ${Object.values(CategoryType).join(", ")}` });
         }
         updateData.category = category;
-      }
-
-      if (research_type !== undefined) {
-        updateData.research_type = research_type;
       }
 
       if (title !== undefined) {
