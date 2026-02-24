@@ -439,7 +439,7 @@ const KPICountController = {
 
   getTotalPointsSummary: async (req: Request, res: Response): Promise<any> => {
     try {
-      const { year, month, status } = req.query;
+      const { year, month } = req.query;
       const dateFilter: any = {};
 
       if (year) {
@@ -467,8 +467,11 @@ const KPICountController = {
       summary.byUser.forEach((user: any) => {
         pointsMap.set(user.userName, user.totalPoints);
       });
-
+      console.log("Status enum:", Status);
+      console.log("Looking for status:", Status.active);
       const allUsers = await userRepository.findUsersByFilter({ status: Status.active });
+      console.log("Found active users:", allUsers.length);
+      console.log("First user:", allUsers[0]);
       let simplifiedData = allUsers.map((user: any) => ({
         name: user.name,
         totalPoints: pointsMap.get(user.name) || 0,
