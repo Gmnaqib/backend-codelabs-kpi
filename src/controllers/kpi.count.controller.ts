@@ -522,8 +522,36 @@ const KPICountController = {
 
       const summary = await KPICountService.getMyTotalPointsSummary(userId, Object.keys(dateFilter).length > 0 ? dateFilter : undefined);
 
-      // Return only name and total points
+      // Get all users' points for ranking
+      const allSummary = await KPICountService.getTotalPointsSummary(Object.keys(dateFilter).length > 0 ? dateFilter : undefined);
+
+      const pointsMap = new Map<string, number>();
+      allSummary.byUser.forEach((user: any) => {
+        pointsMap.set(user.userName, user.totalPoints);
+      });
+
+      // Get all active users with their points
+      const allUsers = await userRepository.findUsersByFilter({ status: Status.active });
+
+      let rankedData: { rank: number; name: any; totalPoints: number }[] = allUsers.map((user: any) => ({
+        name: user.name,
+        totalPoints: pointsMap.get(user.name) || 0,
+        rank: 0,
+      }));
+
+      // Sort by totalPoints descending and add rank
+      rankedData.sort((a, b) => b.totalPoints - a.totalPoints);
+      rankedData = rankedData.map((user, index) => ({
+        rank: index + 1,
+        name: user.name,
+        totalPoints: user.totalPoints,
+      }));
+
+      // Find current user's ranking
+      const userRanking = rankedData.find((u) => u.name === summary.userName);
+
       const simplifiedData = {
+        rank: userRanking?.rank || 0,
         name: summary.userName,
         totalPoints: summary.totalPoints,
       };
