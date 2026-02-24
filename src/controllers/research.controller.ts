@@ -138,7 +138,7 @@ const researchController = {
 
   getResearchById: async (req: Request, res: Response): Promise<any> => {
     try {
-      const { id } = req.params;
+      const { id } = req.params as { id: string };
 
       if (!Types.ObjectId.isValid(id)) {
         return response({ res, code: 400, message: "Invalid research ID format" });
@@ -156,7 +156,7 @@ const researchController = {
 
   updateResearch: async (req: AuthRequest, res: Response): Promise<any> => {
     try {
-      const { id } = req.params;
+      const { id } = req.params as { id: string };
       const updateData = req.body;
 
       if (!Types.ObjectId.isValid(id)) {
@@ -216,7 +216,7 @@ const researchController = {
 
   updateMyResearch: async (req: AuthRequest, res: Response): Promise<any> => {
     try {
-      const { id } = req.params;
+      const { id } = req.params as { id: string };
       const { week, category, research_type, title, link, progress, challenge } = req.body;
       const userId = req.user?.id;
 
@@ -301,7 +301,7 @@ const researchController = {
 
   deleteResearch: async (req: AuthRequest, res: Response): Promise<any> => {
     try {
-      const { id } = req.params;
+      const { id } = req.params as { id: string };
       const userId = req.user?.id;
 
       if (!Types.ObjectId.isValid(id)) {

@@ -28,7 +28,7 @@ const KPIItemController = {
   },
   getKPIItemById: async (req: AuthRequest, res: Response): Promise<any> => {
     try {
-      const { id } = req.params;
+      const { id } = req.params as { id: string };
       const kpiItem = await KPIItemService.findKPIItemById(id);
       if (!kpiItem) {
         return response({ res, code: 404, message: "KPI item not found" });
@@ -40,7 +40,7 @@ const KPIItemController = {
   },
   updateKPIItem: async (req: AuthRequest, res: Response): Promise<any> => {
     try {
-      const { id } = req.params;
+      const { id } = req.params as { id: string };
       const kpiData = req.body;
       const updatedKPIItem = await KPIItemService.updateKPIItem(id, kpiData);
       if (!updatedKPIItem) {
