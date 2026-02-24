@@ -10,6 +10,7 @@ import { attendanceStatus } from "../models/attendance/attendance.Interface";
 import { ScheduleType } from "../models/schedule/schedule.interface";
 import IBranding, { brandingStatus } from "../models/branding/branding.interface";
 import ICompetition, { CompetitionStatus } from "../models/competition/competition.interface";
+import { Status } from "../models/user/user.interface";
 
 const KPICountService = {
   getResearchSummary: async (dateFilter?: { year: number; month?: number }) => {
@@ -70,40 +71,67 @@ const KPICountService = {
     const coCreationPoint = coCreationKPI?.point || 0;
     const workshopPoint = workshopKPI?.point || 0;
 
-    // Calculate points for each user
-    const byUserWithPoints = researchSummary.byUser.map((user) => {
-      const personalPoints = user.byCategory[CategoryType.Personal] * coCreationPoint;
-      const productPoints = user.byCategory[CategoryType.Product] * coCreationPoint;
-      const workshopPoints = user.byCategory[CategoryType.workshop] * workshopPoint;
+    // Create a map of research data by userId
+    const researchMap = new Map<string, any>();
+    researchSummary.byUser.forEach((user) => {
+      researchMap.set(user.userId, user);
+    });
 
-      const totalPoints = personalPoints + productPoints + workshopPoints;
+    // Get all active users
+    const allUsers = await userRepository.findUsersByFilter({ status: Status.active });
 
-      return {
-        userId: user.userId,
-        userName: user.userName,
-        total: user.total,
-        totalPoints,
-        byCategory: {
-          personal: {
-            count: user.byCategory[CategoryType.Personal],
-            code: "COCREATION",
-            point: coCreationPoint,
-            total: personalPoints,
+    // Map all users with research data or defaults
+    const byUserWithPoints = allUsers.map((user) => {
+      const userData = researchMap.get(user._id?.toString() || "");
+
+      if (userData) {
+        const personalPoints = userData.byCategory[CategoryType.Personal] * coCreationPoint;
+        const productPoints = userData.byCategory[CategoryType.Product] * coCreationPoint;
+        const workshopPoints = userData.byCategory[CategoryType.workshop] * workshopPoint;
+        const totalPoints = personalPoints + productPoints + workshopPoints;
+
+        return {
+          userId: userData.userId,
+          userName: userData.userName,
+          total: userData.total,
+          totalPoints,
+          byCategory: {
+            personal: {
+              count: userData.byCategory[CategoryType.Personal],
+              total: personalPoints,
+            },
+            product: {
+              count: userData.byCategory[CategoryType.Product],
+              total: productPoints,
+            },
+            workshop: {
+              count: userData.byCategory[CategoryType.workshop],
+              total: workshopPoints,
+            },
           },
-          product: {
-            count: user.byCategory[CategoryType.Product],
-            code: "COCREATION",
-            point: coCreationPoint,
-            total: productPoints,
+        };
+      } else {
+        return {
+          userId: user._id?.toString(),
+          userName: user.name,
+          total: 0,
+          totalPoints: 0,
+          byCategory: {
+            personal: {
+              count: 0,
+              total: 0,
+            },
+            product: {
+              count: 0,
+              total: 0,
+            },
+            workshop: {
+              count: 0,
+              total: 0,
+            },
           },
-          workshop: {
-            count: user.byCategory[CategoryType.workshop],
-            code: "WORKSHOP",
-            point: workshopPoint,
-            total: workshopPoints,
-          },
-        },
-      };
+        };
+      }
     });
 
     return {
@@ -152,20 +180,14 @@ const KPICountService = {
       byCategory: {
         personal: {
           count: categoryCounts[CategoryType.Personal],
-          code: "COCREATION",
-          point: coCreationPoint,
           total: personalPoints,
         },
         product: {
           count: categoryCounts[CategoryType.Product],
-          code: "COCREATION",
-          point: coCreationPoint,
           total: productPoints,
         },
         workshop: {
           count: categoryCounts[CategoryType.workshop],
-          code: "WORKSHOP",
-          point: workshopPoint,
           total: workshopPoints,
         },
       },
