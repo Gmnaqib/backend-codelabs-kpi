@@ -202,8 +202,39 @@ const KPICountController = {
         dateFilter.month = monthNum;
       }
 
-      const summary = await KPICountService.getSchedulePointsSummary(Object.keys(dateFilter).length > 0 ? dateFilter : undefined);
-      return response({ res, code: 200, message: "Operational points summary (picket & thematic) retrieved successfully", data: summary });
+      // Get schedule points summary
+      const scheduleSummary = await KPICountService.getSchedulePointsSummary(Object.keys(dateFilter).length > 0 ? dateFilter : undefined);
+
+      // Get attendance points summary
+      const attendanceSummary = await KPICountService.getAttendancePointsSummary(Object.keys(dateFilter).length > 0 ? dateFilter : undefined);
+
+      // Create a map of attendance data by userName for quick lookup
+      const attendanceMap = new Map<string, any>();
+      attendanceSummary.byUser.forEach((user: any) => {
+        attendanceMap.set(user.userName, user);
+      });
+
+      // Merge schedule and attendance data into one operationalDetail
+      const mergedData = scheduleSummary.byUser.map((user: any) => {
+        const attendanceData = attendanceMap.get(user.userName);
+        return {
+          userId: user.userId,
+          userName: user.userName,
+          totalPoints: user.totalPoints,
+          operationalDetail: {
+            picket: user.operationalDetail.picket,
+            thematic: user.operationalDetail.thematic,
+            attendance: {
+              count: attendanceData?.total || 0,
+              code: "ATTENDANCE",
+              point: attendanceData?.detail?.present?.point || 0,
+              total: attendanceData?.totalPoints || 0,
+            },
+          },
+        };
+      });
+
+      return response({ res, code: 200, message: "Operational points summary (picket & thematic) with attendance retrieved successfully", data: mergedData });
     } catch (error: any) {
       console.error("Error getting operational points summary:", error);
       return response({ res, code: 500, message: "Failed to retrieve operational points summary" });
@@ -277,8 +308,30 @@ const KPICountController = {
         dateFilter.month = monthNum;
       }
 
-      const summary = await KPICountService.getMySchedulePointsSummary(userId, Object.keys(dateFilter).length > 0 ? dateFilter : undefined);
-      return response({ res, code: 200, message: "Your operational points summary (picket & thematic) retrieved successfully", data: summary });
+      // Get schedule points summary
+      const scheduleSummary = await KPICountService.getMySchedulePointsSummary(userId, Object.keys(dateFilter).length > 0 ? dateFilter : undefined);
+      
+      // Get attendance points summary
+      const attendanceSummary = await KPICountService.getMyAttendancePointsSummary(userId, Object.keys(dateFilter).length > 0 ? dateFilter : undefined);
+
+      // Combine schedule and attendance into one operationalDetail
+      const mergedData = {
+        userId: scheduleSummary.userId,
+        userName: scheduleSummary.userName,
+        totalPoints: scheduleSummary.totalPoints,
+        operationalDetail: {
+          picket: scheduleSummary.operationalDetail.picket,
+          thematic: scheduleSummary.operationalDetail.thematic,
+          attendance: {
+            count: attendanceSummary.total,
+            code: "ATTENDANCE",
+            point: attendanceSummary.detail?.present?.point || 0,
+            total: attendanceSummary.totalPoints,
+          },
+        },
+      };
+
+      return response({ res, code: 200, message: "Your operational points summary (picket & thematic) with attendance retrieved successfully", data: mergedData });
     } catch (error: any) {
       console.error("Error getting my operational points summary:", error);
       return response({ res, code: 500, message: "Failed to retrieve your operational points summary" });

@@ -13,8 +13,8 @@ kpiItemRouter.get("/item", authenticateToken, KPIItemController.getAllKPIItems);
 kpiItemRouter.get("/research/points-summary/me", authenticateToken, KPICountController.getMyResearchPointsSummary);
 kpiItemRouter.get("/research/points-summary", authenticateToken, KPICountController.getResearchPointsSummary);
 
-kpiItemRouter.get("/operational/points-summary/me", authenticateToken, KPICountController.getMyOperationalPointsSummary);
-kpiItemRouter.get("/operational/points-summary", authenticateToken, KPICountController.getOperationalPointsSummary);
+kpiItemRouter.get("/operational/me", authenticateToken, KPICountController.getMyOperationalPointsSummary);
+kpiItemRouter.get("/operational/", authenticateToken, KPICountController.getOperationalPointsSummary);
 
 kpiItemRouter.get("/branding/points-summary/me", authenticateToken, KPICountController.getMyBrandingPointsSummary);
 kpiItemRouter.get("/branding/points-summary", authenticateToken, KPICountController.getBrandingPointsSummary);

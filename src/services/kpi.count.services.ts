@@ -367,7 +367,7 @@ const KPICountService = {
         userName,
         total: userData.picket + userData.thematic,
         totalPoints,
-        byScheduleType: {
+        operationalDetail: {
           picket: {
             count: userData.picket,
             code: "PICKET",
@@ -438,7 +438,7 @@ const KPICountService = {
       userName,
       total: picketCount + thematicCount,
       totalPoints,
-      byScheduleType: {
+      operationalDetail: {
         picket: {
           count: picketCount,
           code: "PICKET",
@@ -689,7 +689,7 @@ const KPICountService = {
         userData.totalPoints += user.totalPoints;
         userData.operational = {
           totalPoints: user.totalPoints,
-          byScheduleType: user.byScheduleType,
+          operationalDetail: user.operationalDetail,
         };
       });
     }
@@ -784,7 +784,7 @@ const KPICountService = {
         },
         operational: {
           totalPoints: scheduleTotal,
-          byScheduleType: scheduleData.byScheduleType,
+          operationalDetail: scheduleData.operationalDetail,
         },
         branding: {
           count: brandingData.count,
