@@ -208,26 +208,45 @@ const KPICountController = {
       // Get attendance points summary
       const attendanceSummary = await KPICountService.getAttendancePointsSummary(Object.keys(dateFilter).length > 0 ? dateFilter : undefined);
 
+      // Get all active users
+      const allUsers = await userRepository.findUsersByFilter({ status: Status.active });
+
+      // Create maps for schedule data by userName
+      const scheduleMap = new Map<string, any>();
+      scheduleSummary.byUser.forEach((user: any) => {
+        scheduleMap.set(user.userName, user);
+      });
+
       // Create a map of attendance data by userName for quick lookup
       const attendanceMap = new Map<string, any>();
       attendanceSummary.byUser.forEach((user: any) => {
         attendanceMap.set(user.userName, user);
       });
 
-      // Merge schedule and attendance data into one operationalDetail
-      const mergedData = scheduleSummary.byUser.map((user: any) => {
-        const attendanceData = attendanceMap.get(user.userName);
+      // Merge all users with schedule and attendance data
+      const mergedData = allUsers.map((user: any) => {
+        const scheduleData = scheduleMap.get(user.name);
+        const attendanceData = attendanceMap.get(user.name);
+
         return {
-          userId: user.userId,
-          userName: user.userName,
-          totalPoints: user.totalPoints,
+          userId: scheduleData?.userId || user._id?.toString(),
+          userName: user.name,
+          totalPoints: (scheduleData?.totalPoints || 0) + (attendanceData?.totalPoints || 0),
           operationalDetail: {
-            picket: user.operationalDetail.picket,
-            thematic: user.operationalDetail.thematic,
+            picket: scheduleData?.operationalDetail?.picket
+              ? { count: scheduleData.operationalDetail.picket.count, total: scheduleData.operationalDetail.picket.total }
+              : {
+                  count: 0,
+                  total: 0,
+                },
+            thematic: scheduleData?.operationalDetail?.thematic
+              ? { count: scheduleData.operationalDetail.thematic.count, total: scheduleData.operationalDetail.thematic.total }
+              : {
+                  count: 0,
+                  total: 0,
+                },
             attendance: {
               count: attendanceData?.total || 0,
-              code: "ATTENDANCE",
-              point: attendanceData?.detail?.present?.point || 0,
               total: attendanceData?.totalPoints || 0,
             },
           },
@@ -310,7 +329,7 @@ const KPICountController = {
 
       // Get schedule points summary
       const scheduleSummary = await KPICountService.getMySchedulePointsSummary(userId, Object.keys(dateFilter).length > 0 ? dateFilter : undefined);
-      
+
       // Get attendance points summary
       const attendanceSummary = await KPICountService.getMyAttendancePointsSummary(userId, Object.keys(dateFilter).length > 0 ? dateFilter : undefined);
 
@@ -320,12 +339,16 @@ const KPICountController = {
         userName: scheduleSummary.userName,
         totalPoints: scheduleSummary.totalPoints,
         operationalDetail: {
-          picket: scheduleSummary.operationalDetail.picket,
-          thematic: scheduleSummary.operationalDetail.thematic,
+          picket: {
+            count: scheduleSummary.operationalDetail.picket.count,
+            total: scheduleSummary.operationalDetail.picket.total,
+          },
+          thematic: {
+            count: scheduleSummary.operationalDetail.thematic.count,
+            total: scheduleSummary.operationalDetail.thematic.total,
+          },
           attendance: {
             count: attendanceSummary.total,
-            code: "ATTENDANCE",
-            point: attendanceSummary.detail?.present?.point || 0,
             total: attendanceSummary.totalPoints,
           },
         },
