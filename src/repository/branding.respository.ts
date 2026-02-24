@@ -53,6 +53,50 @@ const brandingRepository = {
 
     return Branding.find(query);
   },
+  getMyBrandingStats: (
+    userId: string,
+    filter?: { year?: number; month?: number; week?: number }
+  ) => {
+    const match: any = {
+      userId: new Types.ObjectId(userId),
+    };
+
+    if (filter?.year) {
+      const start = new Date(filter.year, 0, 1);
+      const end = new Date(filter.year, 11, 31, 23, 59, 59, 999);
+      match.createdAt = { $gte: start, $lte: end };
+    }
+
+    if (filter?.month && filter?.year) {
+      const start = new Date(filter.year, filter.month - 1, 1);
+      const end = new Date(filter.year, filter.month, 0, 23, 59, 59, 999);
+      match.createdAt = { $gte: start, $lte: end };
+    }
+
+    if (filter?.week && filter?.year) {
+      const firstDayOfYear = new Date(filter.year, 0, 1);
+      const start = new Date(firstDayOfYear);
+      start.setDate(firstDayOfYear.getDate() + (filter.week - 1) * 7);
+
+      const end = new Date(start);
+      end.setDate(start.getDate() + 6);
+      end.setHours(23, 59, 59, 999);
+
+      match.createdAt = { $gte: start, $lte: end };
+    }
+
+    return Branding.aggregate([
+      { $match: match },
+      {
+        $group: {
+          _id: "$userId",
+          total: { $sum: 1 },
+          brandings: { $push: "$$ROOT" },
+        },
+      },
+    ]);
+  },
+
   updateBrandingById: (id: string, updateData: Partial<IBranding>) => Branding.findByIdAndUpdate(id, updateData, { new: true }),
   updateBranding: (filter: BrandingFilter, updateData: Partial<IBranding>) => Branding.updateOne(filter, updateData),
   deleteBrandingById: (id: string) => Branding.findByIdAndDelete(id),

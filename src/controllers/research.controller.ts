@@ -163,7 +163,7 @@ const researchController = {
         return response({ res, code: 400, message: "Invalid research ID format" });
       }
 
-      const existingResearch = await researchService.getResearchById(id);
+      const existingResearch = await researchService.getResearchById(id as string);
       if (!existingResearch) {
         return response({ res, code: 404, message: "Research record not found" });
       }
@@ -192,7 +192,7 @@ const researchController = {
         delete updateData.userId;
       }
 
-      const updatedResearch = await researchService.updateResearch(id, updateData);
+      const updatedResearch = await researchService.updateResearch(id as string, updateData);
 
       if (!updatedResearch) {
         return response({ res, code: 404, message: "Research record not found" });
@@ -228,7 +228,7 @@ const researchController = {
         return response({ res, code: 400, message: "Invalid research ID format" });
       }
 
-      const existingResearch = await researchService.getResearchByIdWithoutPopulate(id);
+      const existingResearch = await researchService.getResearchByIdWithoutPopulate(id as string);
       if (!existingResearch) {
         return response({ res, code: 404, message: "Research record not found" });
       }
@@ -277,7 +277,7 @@ const researchController = {
         updateData.challenge = challenge;
       }
 
-      const updatedResearch = await researchService.updateMyResearch(id, updateData);
+      const updatedResearch = await researchService.updateMyResearch(id as string, updateData);
 
       if (!updatedResearch) {
         return response({ res, code: 404, message: "Research record not found" });
@@ -308,12 +308,12 @@ const researchController = {
         return response({ res, code: 400, message: "Invalid research ID format" });
       }
 
-      const existingResearch = await researchService.getResearchById(id);
+      const existingResearch = await researchService.getResearchById(id as string);
       if (!existingResearch) {
         return response({ res, code: 404, message: "Research record not found" });
       }
 
-      const deletedResearch = await researchService.deleteResearch(id);
+      const deletedResearch = await researchService.deleteResearch(id as string);
 
       if (!deletedResearch) {
         return response({ res, code: 404, message: "Research record not found" });

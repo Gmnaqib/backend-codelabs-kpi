@@ -32,7 +32,7 @@ const ProductController = {
     try {
       const { id } = req.params;
       const { productManager, name, description, status } = req.body;
-      const product = await productServices.updateProduct(id, { productManager, name, description, status });
+      const product = await productServices.updateProduct(id as string, { productManager, name, description, status });
       return response({ res, code: 201, message: "Update product success", data: product });
     } catch (error: any) {
       return response({ res, code: error.message === "Product not found" ? 400 : 500, message: error.message, data: null });
@@ -42,7 +42,7 @@ const ProductController = {
   findProductById: async (req: Request, res: Response): Promise<any> => {
     try {
       const { id } = req.params;
-      const product = await productServices.findProductById(id);
+      const product = await productServices.findProductById(id as string);
       return response({ res, code: 201, message: "Get product by id success", data: product });
     } catch (error: any) {
       return response({ res, code: error.message === "Product not found" ? 400 : 500, message: error.message, data: null });
@@ -52,7 +52,7 @@ const ProductController = {
   deleteProduct: async (req: Request, res: Response): Promise<any> => {
     try {
       const { id } = req.params;
-      await productServices.deleteProduct(id);
+      await productServices.deleteProduct(id as string);
       return response({ res, code: 201, message: "Delete product success", data: null });
     } catch (error: any) {
       return response({ res, code: error.message === "Product not found" ? 400 : 500, message: error.message, data: null });

@@ -25,7 +25,7 @@ const settingController = {
   findSettingById: async (req: Request, res: Response): Promise<any> => {
     try {
       const { id } = req.params;
-      const setting = await settingService.findSettingById(id);
+      const setting = await settingService.findSettingById(id as string);
       return response({ res, code: 201, message: "get settings by id success", data: setting });
     } catch (error: any) {
       return response({ res, code: error.message === "Setting not found" ? 404 : 500, message: error.message, data: null });
@@ -37,7 +37,7 @@ const settingController = {
       const { id } = req.params;
       const { code, name, value } = req.body;
 
-      const setting = await settingService.updateSetting(id, { code, name, value });
+      const setting = await settingService.updateSetting(id as string, { code, name, value });
       return response({ res, code: 201, message: "update settings success", data: setting });
     } catch (error: any) {
       return response({ res, code: error.message === "setting not found" ? 400 : 500, message: error.message, data: null });
@@ -47,7 +47,7 @@ const settingController = {
   deleteSetting: async (req: Request, res: Response): Promise<any> => {
     try {
       const { id } = req.params;
-      const deletedSetting = await settingService.deleteSetting(id);
+      const deletedSetting = await settingService.deleteSetting(id as string);
       return response({ res, code: 201, message: "delete setting success", data: deletedSetting });
     } catch (error: any) {
       return response({ res, code: error.message === "setting not found" ? 400 : 500, message: error.message, data: null });

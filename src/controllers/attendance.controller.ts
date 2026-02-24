@@ -3,34 +3,9 @@ import response from "../helper/response";
 import { AuthRequest } from "../middlewares/auth.middlewares";
 import attendanceService from "../services/attendance.service";
 import fileUploadService from "../services/fileUpload.service";
-import { promises as dns } from "dns";
 import { Types } from "mongoose";
 
 const attendanceController = {
-  checkMyConnection: async (req: Request, res: Response) => {
-    try {
-      const ip = (req.headers["x-forwarded-for"] || req.connection.remoteAddress) as string;
-
-      const isLocalhost = ip === "::1" || ip === "127.0.0.1" || ip?.includes("127.0.0.1");
-
-      let hostname = "unknown";
-      if (!isLocalhost) {
-        try {
-          const hostnames = await dns.reverse(ip);
-          hostname = hostnames[0] || "unknown";
-        } catch (dnsError) {
-          hostname = "unknown";
-        }
-      } else {
-        hostname = "localhost";
-      }
-
-      response({ res, code: 201, message: "Get data success", data: { ip, hostname } });
-    } catch (error: any) {
-      console.log(error.message);
-      response({ res, code: 500, message: error.message, data: null });
-    }
-  },
   checkin: async (req: AuthRequest, res: Response): Promise<any> => {
     try {
       const userId = req.user?.id;
@@ -107,7 +82,7 @@ const attendanceController = {
   getAttendanceSummaryDetail: async (req: Request, res: Response): Promise<any> => {
     try {
       const { year, month } = req.query;
-      const userId = req.params.id;
+      const userId = req.params.id as string;
       const yearNum = year ? Number(year) : undefined;
       const monthNum = month ? Number(month) : undefined;
       const detailSummary = await attendanceService.getAttendanceSummaryDetail(new Types.ObjectId(userId), yearNum, monthNum);
@@ -150,7 +125,7 @@ const attendanceController = {
 
   getLeaveRequestById: async (req: Request, res: Response): Promise<any> => {
     try {
-      const requestId = req.params.id;
+      const requestId = req.params.id as string;
       const leaveRequest = await attendanceService.getLeaveRequestById(new Types.ObjectId(requestId));
       return response({ res, code: 200, message: "Get Leave request by ID success", data: leaveRequest });
     } catch (error: any) {
@@ -162,7 +137,7 @@ const attendanceController = {
     try {
       const reviewerUserId = req.user?.id;
       const { approvalStatus } = req.body;
-      const attendanceId = req.params.requestId;
+      const attendanceId = req.params.requestId as string;
       await attendanceService.reviewLeaveRequest(reviewerUserId, new Types.ObjectId(attendanceId), approvalStatus);
       return response({ res, code: 200, message: "Leave request reviewed successfully" });
     } catch (error: any) {

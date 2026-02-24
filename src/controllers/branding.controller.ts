@@ -53,7 +53,7 @@ const brandingController = {
         return response({ res, code: 401, message: "Authentication required", data: null });
       }
 
-      const updatedBranding = await BrandingService.updateMyBranding(id, userId, { name, description, link, research, level });
+      const updatedBranding = await BrandingService.updateMyBranding(id as string, userId, { name, description, link, research, level });
       return response({ res, code: 200, message: "Update my branding success", data: updatedBranding });
     } catch (error: any) {
       if (error.message === "Branding not found") {
@@ -68,10 +68,48 @@ const brandingController = {
   findBrandingById: async (req: Request, res: Response): Promise<any> => {
     try {
       const { id } = req.params;
-      const Branding = await BrandingService.findBrandingById(id);
+      const Branding = await BrandingService.findBrandingById(id as string);
       return response({ res, code: 201, message: "get Brandings by id success", data: Branding });
     } catch (error: any) {
       return response({ res, code: error.message === "Branding not found" ? 404 : 500, message: error.message, data: null });
+    }
+  },
+
+  getMyBrandingStats: async (req: AuthRequest, res: Response): Promise<void> => {
+    try {
+      const userId = req.user?.id;
+      const { year, month, week } = req.query;
+
+      if (!userId) {
+        response({
+          res,
+          code: 401,
+          message: "Authentication required",
+          data: null,
+        });
+        return;
+      }
+
+      const stats = await BrandingService.getMyBrandingStats(
+        userId,
+        year ? Number(year) : undefined,
+        month ? Number(month) : undefined,
+        week ? Number(week) : undefined
+      );
+
+      response({
+        res,
+        code: 200,
+        message: "Get my branding stats success",
+        data: stats,
+      });
+    } catch (error: any) {
+      response({
+        res,
+        code: 500,
+        message: error.message,
+        data: null,
+      });
     }
   },
 
@@ -80,7 +118,7 @@ const brandingController = {
       const { id } = req.params;
       const { name, description, link, status, research, level } = req.body;
 
-      const Branding = await BrandingService.updateBranding(id, { name, description, link, status, research, level });
+      const Branding = await BrandingService.updateBranding(id as string, { name, description, link, status, research, level });
       return response({ res, code: 201, message: "update Brandings success", data: Branding });
     } catch (error: any) {
       return response({ res, code: error.message === "Branding not found" ? 400 : 500, message: error.message, data: null });
@@ -90,7 +128,7 @@ const brandingController = {
   deleteBranding: async (req: Request, res: Response): Promise<any> => {
     try {
       const { id } = req.params;
-      const deletedBranding = await BrandingService.deleteBranding(id);
+      const deletedBranding = await BrandingService.deleteBranding(id as string);
       return response({ res, code: 201, message: "delete Brandings success", data: deletedBranding });
     } catch (error: any) {
       return response({ res, code: error.message === "Branding not found" ? 400 : 500, message: error.message, data: null });

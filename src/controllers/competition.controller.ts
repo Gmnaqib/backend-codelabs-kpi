@@ -53,7 +53,7 @@ const competitionController = {
         return response({ res, code: 401, message: "Authentication required", data: null });
       }
 
-      const updatedCompetition = await CompetitionService.updateMyCompetition(id, userId, { name, description, deadline, link, type });
+      const updatedCompetition = await CompetitionService.updateMyCompetition(id as string, userId, { name, description, deadline, link, type });
       return response({ res, code: 200, message: "Update my competition success", data: updatedCompetition });
     } catch (error: any) {
       if (error.message === "Competition not found") {
@@ -68,7 +68,7 @@ const competitionController = {
   findCompetitionById: async (req: Request, res: Response): Promise<any> => {
     try {
       const { id } = req.params;
-      const Competition = await CompetitionService.findCompetitionById(id);
+      const Competition = await CompetitionService.findCompetitionById(id as string);
       return response({ res, code: 201, message: "get Competitions by id success", data: Competition });
     } catch (error: any) {
       return response({ res, code: error.message === "Competition not found" ? 404 : 500, message: error.message, data: null });
@@ -80,7 +80,7 @@ const competitionController = {
       const { id } = req.params;
       const { name, description, deadline, link, status, type } = req.body;
 
-      const Competition = await CompetitionService.updateCompetition(id, { name, description, deadline, link, status, type });
+      const Competition = await CompetitionService.updateCompetition(id as string, { name, description, deadline, link, status, type });
       return response({ res, code: 201, message: "update Competitions success", data: Competition });
     } catch (error: any) {
       return response({ res, code: error.message === "Competition not found" ? 400 : 500, message: error.message, data: null });
@@ -90,7 +90,7 @@ const competitionController = {
   deleteCompetition: async (req: Request, res: Response): Promise<any> => {
     try {
       const { id } = req.params;
-      const deletedCompetition = await CompetitionService.deleteCompetition(id);
+      const deletedCompetition = await CompetitionService.deleteCompetition(id as string);
       return response({ res, code: 201, message: "delete Competition success", data: deletedCompetition });
     } catch (error: any) {
       return response({ res, code: error.message === "Competition not found" ? 400 : 500, message: error.message, data: null });
