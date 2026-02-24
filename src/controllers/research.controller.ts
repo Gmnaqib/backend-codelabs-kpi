@@ -227,7 +227,7 @@ const researchController = {
     try {
       const { id } = req.params;
 
-      if (!Types.ObjectId.isValid(id)) {
+      if (!Types.ObjectId.isValid(id as string)) {
         return response({
           res,
           code: 400,
@@ -235,7 +235,7 @@ const researchController = {
         });
       }
 
-      const research = await researchService.getResearchById(id);
+      const research = await researchService.getResearchById(id as string);
 
       if (!research) {
         return response({
@@ -266,7 +266,7 @@ const researchController = {
       const { id } = req.params;
       const updateData = req.body;
 
-      if (!Types.ObjectId.isValid(id)) {
+      if (!Types.ObjectId.isValid(id as string)) {
         return response({
           res,
           code: 400,
@@ -274,7 +274,7 @@ const researchController = {
         });
       }
 
-      const existingResearch = await researchService.getResearchById(id);
+      const existingResearch = await researchService.getResearchById(id as string);
       if (!existingResearch) {
         return response({
           res,
@@ -323,7 +323,7 @@ const researchController = {
         delete updateData.userId;
       }
 
-      const updatedResearch = await researchService.updateResearch(id, updateData);
+      const updatedResearch = await researchService.updateResearch(id as string, updateData);
 
       if (!updatedResearch) {
         return response({
@@ -384,7 +384,7 @@ const researchController = {
         });
       }
 
-      if (!Types.ObjectId.isValid(id)) {
+      if (!Types.ObjectId.isValid(id as string)) {
         return response({
           res,
           code: 400,
@@ -392,7 +392,7 @@ const researchController = {
         });
       }
 
-      const existingResearch = await researchService.getResearchByIdWithoutPopulate(id);
+      const existingResearch = await researchService.getResearchByIdWithoutPopulate(id as string);
       if (!existingResearch) {
         return response({
           res,
@@ -461,7 +461,7 @@ const researchController = {
         updateData.challenge = challenge;
       }
 
-      const updatedResearch = await researchService.updateMyResearch(id, updateData);
+      const updatedResearch = await researchService.updateMyResearch(id as string, updateData);
 
       if (!updatedResearch) {
         return response({
@@ -513,7 +513,7 @@ const researchController = {
       const { id } = req.params;
       const userId = req.user?.id;
 
-      if (!Types.ObjectId.isValid(id)) {
+      if (!Types.ObjectId.isValid(id as string)) {
         return response({
           res,
           code: 400,
@@ -521,7 +521,7 @@ const researchController = {
         });
       }
 
-      const existingResearch = await researchService.getResearchById(id);
+      const existingResearch = await researchService.getResearchById(id as string);
       if (!existingResearch) {
         return response({
           res,
@@ -530,7 +530,7 @@ const researchController = {
         });
       }
 
-      const deletedResearch = await researchService.deleteResearch(id);
+      const deletedResearch = await researchService.deleteResearch(id as string);
 
       if (!deletedResearch) {
         return response({

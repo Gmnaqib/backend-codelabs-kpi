@@ -160,7 +160,7 @@ const operationalRecordController = {
     try {
       const { id } = req.params;
 
-      if (!Types.ObjectId.isValid(id)) {
+      if (!Types.ObjectId.isValid(id as string)) {
         return response({
           res,
           code: 400,
@@ -168,7 +168,7 @@ const operationalRecordController = {
         });
       }
 
-      const record = await operationalRecordService.getOperationalRecordById(id);
+      const record = await operationalRecordService.getOperationalRecordById(id as string);
 
       if (!record) {
         return response({
@@ -198,7 +198,7 @@ const operationalRecordController = {
     try {
       const { id } = req.params;
 
-      if (!Types.ObjectId.isValid(id)) {
+      if (!Types.ObjectId.isValid(id as string)) {
         return response({
           res,
           code: 400,
@@ -206,7 +206,7 @@ const operationalRecordController = {
         });
       }
 
-      const deletedRecord = await operationalRecordService.deleteOperationalRecord(id);
+      const deletedRecord = await operationalRecordService.deleteOperationalRecord(id as string);
 
       if (!deletedRecord) {
         return response({

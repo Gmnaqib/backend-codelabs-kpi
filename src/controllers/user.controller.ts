@@ -15,8 +15,8 @@ const userController = {
 
   getUserById: async (req: Request, res: Response): Promise<any> => {
     try {
-      const userId = req.params.id;
-      const user = await userService.getUserById(userId);
+      const userId = req.params.id as string;
+      const user = await userService.getUserById(userId as string);
       return response({ res, code: 200, message: "User fetched successfully", data: user });
     } catch (error: any) {
       return response({ res, code: error.message === "User not found" ? 404 : 500, message: error.message });
@@ -37,10 +37,10 @@ const userController = {
 
   updateByAdmin: async (req: Request, res: Response): Promise<any> => {
     try {
-      const userId = req.params.id;
+      const userId = req.params.id as string;
       const { name, password, role, status, research, change_device_id, product_id } = req.body;
 
-      const user = await userService.updateByAdmin(userId, {
+      const user = await userService.updateByAdmin(userId as string, {
         name,
         password,
         role,
@@ -80,8 +80,8 @@ const userController = {
 
   deleteUser: async (req: Request, res: Response): Promise<any> => {
     try {
-      const userId = req.params.id;
-      const user = await userService.deleteUser(userId);
+      const userId = req.params.id as string;
+      const user = await userService.deleteUser(userId as string);
       return response({ res, code: 200, message: "User deleted successfully", data: user });
     } catch (error: any) {
       return response({ res, code: error.message === "User not found" ? 404 : 500, message: error.message });
