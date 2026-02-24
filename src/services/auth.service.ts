@@ -82,7 +82,7 @@ const authService = {
   nim: string,
   password: string,
   device_id?: string
-  ): Promise<{ user: any; token: string }> => {
+): Promise<{ user: any; token: string }> => {
 
   await authValidate.login(nim, password);
 
@@ -98,7 +98,10 @@ const authService = {
     throw new Error("Invalid credentials");
   }
 
-  if (user.role !== "admin") {
+  const isPrivilegedRole =
+    user.role === "admin" || user.role === "lecturer";
+
+  if (!isPrivilegedRole) {
 
     if (!device_id) {
       throw new Error("Device ID is required");
@@ -124,7 +127,7 @@ const authService = {
 
   const secret = process.env.JWT_SECRET;
   if (!secret) {
-    throw new Error("JWT_SECRET is not defined in environment variables");
+    throw new Error("JWT_SECRET is not defined");
   }
 
   const token = jwt.sign(
@@ -133,7 +136,7 @@ const authService = {
       name: user.name,
       role: user.role,
       nim: user.nim,
-      device_id: user.role === "admin" ? null : user.device_id,
+      device_id: isPrivilegedRole ? null : user.device_id,
     },
     secret,
     { expiresIn: "1d" }
