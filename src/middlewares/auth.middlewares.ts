@@ -31,6 +31,7 @@ export const authenticateToken = (req: AuthRequest, res: Response, next: NextFun
       years: decoded.years,
       status: decoded.status,
       research: decoded.research,
+      change_device_id: decoded.change_device_id,
       device_id: decoded.device_id,
     };
     next();

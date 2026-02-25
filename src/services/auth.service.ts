@@ -78,78 +78,68 @@ const authService = {
     });
   },
 
-  login: async (
-  nim: string,
-  password: string,
-  device_id?: string
-): Promise<{ user: any; token: string }> => {
+  login: async (nim: string, password: string, device_id?: string): Promise<{ user: any; token: string }> => {
+    await authValidate.login(nim, password);
 
-  await authValidate.login(nim, password);
+    const user = await userRepository.findUserByNim(nim, true);
 
-  const user = await userRepository.findUserByNim(nim, true);
-
-  if (!user) {
-    throw new Error("User not found");
-  }
-
-  const isPasswordValid = await bcrypt.compare(password, user.password);
-
-  if (!isPasswordValid) {
-    throw new Error("Invalid credentials");
-  }
-
-  const isPrivilegedRole =
-    user.role === "admin" || user.role === "lecturer";
-
-  if (!isPrivilegedRole) {
-
-    if (!device_id) {
-      throw new Error("Device ID is required");
+    if (!user) {
+      throw new Error("User not found");
     }
 
-    if (!user.device_id || user.device_id === "null") {
+    const isPasswordValid = await bcrypt.compare(password, user.password);
 
-      await userRepository.updateUserById(user._id.toString(), {
-        device_id,
-        change_device_id: false,
-      });
+    if (!isPasswordValid) {
+      throw new Error("Invalid credentials");
+    }
 
-      user.device_id = device_id;
+    const isPrivilegedRole = user.role === "admin" || user.role === "lecturer";
 
-    } else {
-
-      if (user.device_id !== device_id) {
-        throw new Error("This account is already registered on another device");
+    if (!isPrivilegedRole) {
+      if (!device_id) {
+        throw new Error("Device ID is required");
       }
 
+      if (!user.device_id || user.device_id === "null") {
+        await userRepository.updateUserById(user._id.toString(), {
+          device_id,
+          change_device_id: false,
+        });
+
+        user.device_id = device_id;
+      } else {
+        if (user.device_id !== device_id) {
+          throw new Error("This account is already registered on another device");
+        }
+      }
     }
-  }
 
-  const secret = process.env.JWT_SECRET;
-  if (!secret) {
-    throw new Error("JWT_SECRET is not defined");
-  }
+    const secret = process.env.JWT_SECRET;
+    if (!secret) {
+      throw new Error("JWT_SECRET is not defined");
+    }
 
-  const token = jwt.sign(
-    {
-      id: user._id,
-      name: user.name,
-      role: user.role,
-      nim: user.nim,
-      device_id: isPrivilegedRole ? null : user.device_id,
-    },
-    secret,
-    { expiresIn: "1d" }
-  );
+    const token = jwt.sign(
+      {
+        id: user._id,
+        name: user.name,
+        role: user.role,
+        nim: user.nim,
+        change_device_id: user.change_device_id,
+        device_id: isPrivilegedRole ? null : user.device_id,
+      },
+      secret,
+      { expiresIn: "1d" },
+    );
 
-  return {
-    user: {
-      id: user._id,
-      name: user.name,
-      nim: user.nim,
-      role: user.role,
-    },
-    token,
+    return {
+      user: {
+        id: user._id,
+        name: user.name,
+        nim: user.nim,
+        role: user.role,
+      },
+      token,
     };
   },
 
