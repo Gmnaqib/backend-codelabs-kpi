@@ -545,6 +545,7 @@ const KPICountController = {
       });
       const allUsers = await userRepository.findUsersByFilter({ status: Status.active });
       let simplifiedData = allUsers.map((user: any) => ({
+        userId: user._id?.toString(),
         name: user.name,
         totalPoints: pointsMap.get(user.name) || 0,
       }));
@@ -623,6 +624,7 @@ const KPICountController = {
       const userRanking = rankedData.find((u) => u.name === summary.userName);
 
       const simplifiedData = {
+        userId: userId,
         rank: userRanking?.rank || 0,
         name: summary.userName,
         totalPoints: summary.totalPoints,
@@ -637,7 +639,7 @@ const KPICountController = {
 
   getMyComprehensiveSummary: async (req: AuthRequest, res: Response): Promise<any> => {
     try {
-      const userId = (req.params.userId as string);
+      const userId = req.params.userId as string;
       if (!userId) {
         return response({ res, code: 400, message: "User ID is required" });
       }
