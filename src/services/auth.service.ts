@@ -126,6 +126,7 @@ const authService = {
         role: user.role,
         nim: user.nim,
         change_device_id: user.change_device_id,
+        device_id: user.device_id,
         // device_id: isPrivilegedRole ? null : user.device_id,
       },
       secret,
@@ -138,6 +139,7 @@ const authService = {
         name: user.name,
         nim: user.nim,
         role: user.role,
+        device_id: user.device_id,
       },
       token,
     };
