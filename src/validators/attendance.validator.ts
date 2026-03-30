@@ -10,7 +10,7 @@ export const attendanceValidate = {
     const now = dateHelper.getNowWIBAsDateTime();
     const startOfDay = dateHelper.getStartOfDayWIB();
     const endOfDay = dateHelper.getEndOfDayWIB();
-    const timeIn = dateHelper.getTimeTodayWIB(1);
+    const timeIn = dateHelper.getTimeTodayWIB(6);
     const timeLimit = dateHelper.getTimeTodayWIB(9);
     const timeLateLimit = dateHelper.getTimeTodayWIB(10);
     const { device_id } = device;
@@ -58,7 +58,7 @@ export const attendanceValidate = {
     const now = dateHelper.getNowWIBAsDateTime();
     const startOfDay = dateHelper.getStartOfDayWIB();
     const endOfDay = dateHelper.getEndOfDayWIB();
-    let timeOut = dateHelper.getTimeTodayWIB(5);
+    let timeOut = dateHelper.getTimeTodayWIB(17);
     const { device_id } = device;
 
     const isRamadhan = await settingRepository.findSettingByCode("RAMADHAN");
@@ -96,7 +96,7 @@ export const attendanceValidate = {
 
   leaveOrSick: async (userId: Types.ObjectId, status: attendanceStatus, reason: string, attachmentUrl: string, startDate: Date, endDate: Date): Promise<void> => {
     const now = dateHelper.getNowWIBAsDateTime();
-    let timeLimit = dateHelper.getTimeTodayWIB(24);
+    let timeLimit = dateHelper.getTimeTodayWIB(10);
     const userObjectId = new Types.ObjectId(userId);
 
     if (!status || !reason || !attachmentUrl || !startDate || !endDate) {

@@ -19,8 +19,8 @@ const authService = {
       let years = "20" + nim.substring(3, 5);
 
       let major = "";
-      if (majors === "101") major = "Informatika";
-      else if (majors === "111") major = "Sistem Informasi";
+      if (majors === "101") major = "Teknik Informatika";
+      else if (majors === "105") major = "Sistem Informasi";
       else if (majors === "121") major = "Desain Komunikasi Visual";
       else major = "Unknown";
 
