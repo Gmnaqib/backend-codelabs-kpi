@@ -43,8 +43,6 @@ const userService = {
       change_device_id?: boolean;
     },
   ): Promise<IUser> => {
-    await userValidate.updateByAdmin(userId, userData);
-
     const { name, password, role, status, research, product_id, change_device_id } = userData;
     const user = await userRepository.findUserById(userId, true);
 

@@ -46,12 +46,11 @@ const authController = {
 
   login: async (req: Request, res: Response): Promise<any> => {
     try {
-      const { nim, password, device_id } = req.body;
+      const { nim, password } = req.body;
 
       const { user, token } = await authService.login(
         nim,
         password,
-        device_id
       );
 
       return response({

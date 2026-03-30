@@ -78,7 +78,7 @@ const authService = {
     });
   },
 
-  login: async (nim: string, password: string, device_id?: string): Promise<{ user: any; token: string }> => {
+  login: async (nim: string, password: string): Promise<{ user: any; token: string }> => {
     await authValidate.login(nim, password);
 
     const user = await userRepository.findUserByNim(nim, true);
@@ -93,26 +93,26 @@ const authService = {
       throw new Error("Invalid credentials");
     }
 
-    const isPrivilegedRole = user.role === "admin" || user.role === "lecturer";
+    // const isPrivilegedRole = user.role === "admin" || user.role === "lecturer";
 
-    if (!isPrivilegedRole) {
-      if (!device_id) {
-        throw new Error("Device ID is required");
-      }
+    // if (!isPrivilegedRole) {
+    //   if (!device_id) {
+    //     throw new Error("Device ID is required");
+    //   }
 
-      if (!user.device_id || user.device_id === "null") {
-        await userRepository.updateUserById(user._id.toString(), {
-          device_id,
-          change_device_id: false,
-        });
+      // if (!user.device_id || user.device_id === "null") {
+      //   await userRepository.updateUserById(user._id.toString(), {
+      //     device_id,
+      //     change_device_id: false,
+      //   });
 
-        user.device_id = device_id;
-      } else {
-        if (user.device_id !== device_id) {
-          throw new Error("This account is already registered on another device");
-        }
-      }
-    }
+      //   user.device_id = device_id;
+      // } else {
+      //   if (user.device_id !== device_id) {
+      //     throw new Error("This account is already registered on another device");
+      //   }
+      // }
+    // }
 
     const secret = process.env.JWT_SECRET;
     if (!secret) {
@@ -126,7 +126,8 @@ const authService = {
         role: user.role,
         nim: user.nim,
         change_device_id: user.change_device_id,
-        device_id: isPrivilegedRole ? null : user.device_id,
+        device_id: user.device_id,
+        // device_id: isPrivilegedRole ? null : user.device_id,
       },
       secret,
       { expiresIn: "1d" },
@@ -138,6 +139,7 @@ const authService = {
         name: user.name,
         nim: user.nim,
         role: user.role,
+        device_id: user.device_id,
       },
       token,
     };
