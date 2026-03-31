@@ -148,7 +148,8 @@ const operationalRecordController = {
         const startDate = new Date(y, m - 1, 1);
         const endDate = new Date(y, m, 0, 23, 59, 59, 999);
 
-        filters.dateRange = { $gte: startDate, $lte: endDate };
+        filters.startDate = startDate;
+        filters.endDate = endDate;
       }
 
       if (status) filters.status = status as string;
