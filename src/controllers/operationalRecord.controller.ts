@@ -96,7 +96,7 @@ const operationalRecordController = {
   },
   getAllOperationalRecords: async (req: Request, res: Response): Promise<any> => {
     try {
-      const { scheduleId, userId, type, date, startDate, endDate, status } = req.query;
+      const { scheduleId, userId, type, year, month, status } = req.query;
 
       const filters: any = {};
 
@@ -133,9 +133,24 @@ const operationalRecordController = {
         filters.type = type as ScheduleType;
       }
 
-      if (date) filters.date = new Date(date as string);
-      if (startDate) filters.startDate = new Date(startDate as string);
-      if (endDate) filters.endDate = new Date(endDate as string);
+      if (year || month) {
+        const y = year ? parseInt(year as string) : new Date().getFullYear();
+        const m = month ? parseInt(month as string) : new Date().getMonth() + 1;
+
+        if (isNaN(y) || isNaN(m) || m < 1 || m > 12) {
+          return response({
+            res,
+            code: 400,
+            message: "Invalid year or month format. Month must be 1-12",
+          });
+        }
+
+        const startDate = new Date(y, m - 1, 1);
+        const endDate = new Date(y, m, 0, 23, 59, 59, 999);
+
+        filters.dateRange = { $gte: startDate, $lte: endDate };
+      }
+
       if (status) filters.status = status as string;
 
       const records = await operationalRecordService.getAllOperationalRecords(filters);

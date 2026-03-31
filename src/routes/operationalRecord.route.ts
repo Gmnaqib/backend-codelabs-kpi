@@ -8,7 +8,6 @@ const operationalRecordRouter = Router();
 operationalRecordRouter.post("/", authenticateToken, operationalRecordController.createOperationalRecord);
 operationalRecordRouter.get("/", authenticateToken, roleMiddlewares(["admin", "minister of operation"]), operationalRecordController.getAllOperationalRecords);
 operationalRecordRouter.get("/:id", authenticateToken, roleMiddlewares(["admin", "minister of operation"]), operationalRecordController.getOperationalRecordById);
-// operationalRecordRouter.put("/:id", roleMiddlewares(["admin", "minister of operation"]), authenticateToken, operationalRecordController.updateOperationalRecord);
 operationalRecordRouter.delete("/:id", roleMiddlewares(["admin", "minister of operation"]), authenticateToken, operationalRecordController.deleteOperationalRecord);
 
 export default operationalRecordRouter;
