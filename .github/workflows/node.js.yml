@@ -38,6 +38,6 @@ jobs:
           password: ${{ secrets.VPS_PASSWORD }}
           script: |
             cd /home/adminiztrator/codelabskpi-2026/my-codelabs-api-v2
+            docker image prune -f
             docker compose pull
             docker compose up -d
-            docker image prune -f
