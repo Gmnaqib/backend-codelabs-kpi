@@ -37,8 +37,8 @@ RUN npm ci --omit=dev && \
 COPY --from=builder /app/dist ./dist
 
 # Create non-root user for security
-RUN addgroup -g 1001 -S nodejs && \
-    adduser -S nodejs -u 1001
+RUN groupadd -r -g 1001 nodejs && \
+    useradd -r -u 1001 -g nodejs nodejs
 
 USER nodejs
 
