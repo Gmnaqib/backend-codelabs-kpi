@@ -36,6 +36,6 @@ jobs:
           username: ${{ secrets.VPS_USERNAME }}
           password: ${{ secrets.VPS_PASSWORD }}
           script: |
-            cd /home/${{ secrets.VPS_USERNAME }}/my-app
+            cd /home/adminiztrator/codelabskpi-2026/my-codelabs-api-v2
             docker compose pull
             docker compose up -d
