@@ -2,43 +2,30 @@ FROM node:20-slim AS builder
 
 WORKDIR /app
 
-# Copy package files
 COPY package*.json ./
-
-# Install dependencies
 RUN npm ci
 
-# Copy source code
 COPY . .
-
-# Build application
 RUN npm run build
 
-# Remove source files after build to save space
-RUN rm -rf src/ tsconfig.json
+# prune dev dependencies
+RUN npm prune --omit=dev
 
 
 FROM node:20-slim
 
 WORKDIR /app
-
-# Set NODE_ENV for production
 ENV NODE_ENV=production
 
-# Copy package files
+# copy node_modules + dist langsung
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/dist ./dist
 COPY package*.json ./
 
-# Install only production dependencies
-RUN npm ci --omit=dev && \
-    npm cache clean --force && \
-    rm -rf /root/.npm
-
-# Copy built application from builder stage
-COPY --from=builder /app/dist ./dist
-
-# Create non-root user for security
+# create non-root user
 RUN groupadd -r -g 1001 nodejs && \
-    useradd -r -u 1001 -g nodejs nodejs
+    useradd -r -u 1001 -g nodejs nodejs && \
+    chown -R nodejs:nodejs /app
 
 USER nodejs
 
