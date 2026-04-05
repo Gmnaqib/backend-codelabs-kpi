@@ -17,7 +17,6 @@ FROM node:20-slim
 WORKDIR /app
 ENV NODE_ENV=production
 
-# copy node_modules + dist langsung
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
 COPY package*.json ./
