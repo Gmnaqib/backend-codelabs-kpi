@@ -3,7 +3,7 @@ services:
     container_name: codelabs-api-v2
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: dockerfile
     ports:
       - "5500:5500"
     env_file:
