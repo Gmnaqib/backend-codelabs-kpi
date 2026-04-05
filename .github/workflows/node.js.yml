@@ -22,6 +22,7 @@ jobs:
         with:
           context: .
           push: true
+          no-cache: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/my-app:latest
 
   deploy:
@@ -39,3 +40,4 @@ jobs:
             cd /home/adminiztrator/codelabskpi-2026/my-codelabs-api-v2
             docker compose pull
             docker compose up -d
+            docker image prune -f
