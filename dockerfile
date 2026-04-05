@@ -23,8 +23,7 @@ COPY --from=builder /app/dist ./dist
 COPY package*.json ./
 
 # create non-root user
-RUN groupadd -r -g 1001 nodejs && \
-    useradd -r -u 1001 -g nodejs nodejs && \
+RUN useradd -m -u 1001 nodejs && \
     chown -R nodejs:nodejs /app
 
 USER nodejs
