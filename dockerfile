@@ -22,12 +22,6 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
 COPY package*.json ./
 
-# create non-root user
-RUN useradd -m -u 1001 nodejs && \
-    chown -R nodejs:nodejs /app
-
-USER nodejs
-
 EXPOSE 3000
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
