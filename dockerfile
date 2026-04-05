@@ -1,19 +1,50 @@
-FROM node:22-alpine AS builder  
+FROM node:20-slim AS builder
 
-WORKDIR /app  
-COPY package*.json ./  
-RUN npm install  
-COPY . .  
-RUN npm run build  
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install dependencies
+RUN npm ci
+
+# Copy source code
+COPY . .
+
+# Build application
+RUN npm run build
+
+# Remove source files after build to save space
+RUN rm -rf src/ tsconfig.json
 
 
-FROM node:22-alpine  
+FROM node:20-slim
 
-WORKDIR /app  
-COPY package*.json ./  
-RUN npm install --omit=dev  
+WORKDIR /app
 
-COPY --from=builder /app/dist ./dist  
+# Set NODE_ENV for production
+ENV NODE_ENV=production
 
-EXPOSE 3000  
-CMD ["node","dist/index.js"]
+# Copy package files
+COPY package*.json ./
+
+# Install only production dependencies
+RUN npm ci --omit=dev && \
+    npm cache clean --force && \
+    rm -rf /root/.npm
+
+# Copy built application from builder stage
+COPY --from=builder /app/dist ./dist
+
+# Create non-root user for security
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nodejs -u 1001
+
+USER nodejs
+
+EXPOSE 3000
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD node -e "require('http').get('http://localhost:3000', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})"
+
+CMD ["node", "dist/index.js"]
