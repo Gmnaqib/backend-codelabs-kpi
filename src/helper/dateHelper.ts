@@ -40,6 +40,19 @@ const dateHelper = {
     }
     return isoDate;
   },
+
+  convertToIndonesiaTime(date: Date | null | undefined): Date | null {
+    if (!date) return null;
+    // Convert UTC to Indonesia time (UTC+7)
+    const dt = DateTime.fromJSDate(date).setZone(ZONE);
+    return dt.toJSDate();
+  },
+
+  formatToIndonesiaTimeISO(date: Date | null | undefined): string | null {
+    if (!date) return null;
+    const dt = DateTime.fromJSDate(date).setZone(ZONE);
+    return dt.toISO();
+  },
 };
 
 export default dateHelper;

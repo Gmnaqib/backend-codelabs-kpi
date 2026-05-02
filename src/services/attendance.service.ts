@@ -5,6 +5,34 @@ import leaveRequestValidate from "../validators/leaveRequest.validator";
 import IAttendance, { attendanceStatus, approvalStatus } from "../models/attendance/attendance.Interface";
 import { Status } from "../models/user/user.interface";
 import { Types } from "mongoose";
+import dateHelper from "../helper/dateHelper";
+
+// Helper function to convert all dates in attendance record to Indonesia time
+// Helper function to convert records array with dates to Indonesia time
+const convertRecordsToIndonesiaTime = (records: any[]): any[] => {
+  return records.map((r) => ({
+    ...r,
+    date: r.date ? dateHelper.formatToIndonesiaTimeISO(r.date) : null,
+    createdAt: r.createdAt ? dateHelper.formatToIndonesiaTimeISO(r.createdAt) : null,
+  }));
+};
+
+const convertAttendanceToIndonesiaTime = (record: any) => {
+  if (!record) return record;
+  
+  // Convert Mongoose document to plain object first
+  const plainRecord = typeof record.toObject === 'function' ? record.toObject() : JSON.parse(JSON.stringify(record));
+  
+  return {
+    ...plainRecord,
+    checkIn: plainRecord.checkIn ? dateHelper.formatToIndonesiaTimeISO(new Date(plainRecord.checkIn)) : null,
+    checkOut: plainRecord.checkOut ? dateHelper.formatToIndonesiaTimeISO(new Date(plainRecord.checkOut)) : null,
+    start_date: plainRecord.start_date ? dateHelper.formatToIndonesiaTimeISO(new Date(plainRecord.start_date)) : null,
+    end_date: plainRecord.end_date ? dateHelper.formatToIndonesiaTimeISO(new Date(plainRecord.end_date)) : null,
+    createdAt: plainRecord.createdAt ? dateHelper.formatToIndonesiaTimeISO(new Date(plainRecord.createdAt)) : null,
+    updatedAt: plainRecord.updatedAt ? dateHelper.formatToIndonesiaTimeISO(new Date(plainRecord.updatedAt)) : null,
+  };
+};
 
 const attendanceService = {
   checkIn: async (userId: Types.ObjectId, deviceId: { device_id: string }, reason?: string): Promise<IAttendance> => {
@@ -12,21 +40,23 @@ const attendanceService = {
     const userObjectId = new Types.ObjectId(userId);
 
     if (validationResult.isLateCheckIn) {
-      return await attendanceRepository.create({
+      const record = await attendanceRepository.create({
         userId: userObjectId,
         status: attendanceStatus.PRESENT,
         checkIn: new Date(),
         checkOut: null,
         reason: reason,
       });
+      return convertAttendanceToIndonesiaTime(record);
     }
 
-    return await attendanceRepository.create({
+    const record = await attendanceRepository.create({
       userId: userObjectId,
       status: attendanceStatus.PRESENT,
       checkIn: new Date(),
       checkOut: null,
     });
+    return convertAttendanceToIndonesiaTime(record);
   },
 
   checkOut: async (userId: Types.ObjectId, deviceId: { device_id: string }): Promise<IAttendance> => {
@@ -52,8 +82,8 @@ const attendanceService = {
     }
 
     userAttendance.checkOut = new Date();
-    await userAttendance.save();
-    return userAttendance;
+    const result = await userAttendance.save();
+    return convertAttendanceToIndonesiaTime(result);
   },
 
   submitleaveRequest: async (
@@ -66,7 +96,7 @@ const attendanceService = {
     approvalStatus?: approvalStatus.PENDING,
   ): Promise<IAttendance> => {
     const userObjectId = new Types.ObjectId(userId);
-    return await attendanceRepository.create({
+    const record = await attendanceRepository.create({
       userId: userObjectId,
       status: type,
       reason: reason,
@@ -75,13 +105,16 @@ const attendanceService = {
       end_date: end_date,
       approval_status: approvalStatus,
     });
+    return convertAttendanceToIndonesiaTime(record);
   },
 
   getLeaveRequests: async (year?: number, month?: number, day?: number): Promise<IAttendance[]> => {
     if (year !== undefined || month !== undefined || day !== undefined) {
-      return await attendanceRepository.findAllWithApprovalStatusAndDate({ year, month, day });
+      const records = await attendanceRepository.findAllWithApprovalStatusAndDate({ year, month, day });
+      return records.map(convertAttendanceToIndonesiaTime);
     }
-    return await attendanceRepository.findAllWithApprovalStatus();
+    const records = await attendanceRepository.findAllWithApprovalStatus();
+    return records.map(convertAttendanceToIndonesiaTime);
   },
 
   getLeaveRequestById: async (attendanceId: Types.ObjectId): Promise<IAttendance> => {
@@ -89,7 +122,7 @@ const attendanceService = {
     if (!attendanceData) {
       throw new Error("Attendance ID is required");
     }
-    return attendanceData;
+    return convertAttendanceToIndonesiaTime(attendanceData);
   },
 
   reviewLeaveRequest: async (reviewerUserId: Types.ObjectId, attendanceId: Types.ObjectId, approvalStatus: approvalStatus): Promise<void> => {
@@ -102,9 +135,11 @@ const attendanceService = {
 
   getAttendance: async (year?: number, month?: number, day?: number): Promise<IAttendance[]> => {
     if (year !== undefined || month !== undefined || day !== undefined) {
-      return await attendanceRepository.findAllWithDate({ year, month, day });
+      const records = await attendanceRepository.findAllWithDate({ year, month, day });
+      return records.map(convertAttendanceToIndonesiaTime);
     }
-    return await attendanceRepository.findAll({});
+    const records = await attendanceRepository.findAll({});
+    return records.map(convertAttendanceToIndonesiaTime);
   },
 
   getAttendanceSummary: async (year?: number, month?: number, day?: number): Promise<any> => {
@@ -260,11 +295,13 @@ const attendanceService = {
       statusSummary.push({
         status: "late",
         count: lateRecords.length,
-        records: lateRecords.map((r) => ({
-          date: r.createdAt,
-          reason: r.reason,
-          attendanceStatus: r.status,
-        })),
+        records: convertRecordsToIndonesiaTime(
+          lateRecords.map((r) => ({
+            date: r.createdAt,
+            reason: r.reason,
+            attendanceStatus: r.status,
+          }))
+        ),
       });
     }
 
@@ -274,10 +311,12 @@ const attendanceService = {
       statusSummary.push({
         status: "present",
         count: presentRecords.length,
-        records: presentRecords.map((r) => ({
-          date: r.createdAt,
-          attendanceStatus: r.status,
-        })),
+        records: convertRecordsToIndonesiaTime(
+          presentRecords.map((r) => ({
+            date: r.createdAt,
+            attendanceStatus: r.status,
+          }))
+        ),
       });
     }
 
@@ -287,12 +326,14 @@ const attendanceService = {
       statusSummary.push({
         status: "sick",
         count: sickRecords.length,
-        records: sickRecords.map((r) => ({
-          date: r.createdAt,
-          reason: r.reason || null,
-          attendanceStatus: r.status,
-          approvalStatus: r.approval_status || null,
-        })),
+        records: convertRecordsToIndonesiaTime(
+          sickRecords.map((r) => ({
+            date: r.createdAt,
+            reason: r.reason || null,
+            attendanceStatus: r.status,
+            approvalStatus: r.approval_status || null,
+          }))
+        ),
       });
     }
 
@@ -302,12 +343,14 @@ const attendanceService = {
       statusSummary.push({
         status: "permit",
         count: permitRecords.length,
-        records: permitRecords.map((r) => ({
-          date: r.createdAt,
-          reason: r.reason,
-          attendanceStatus: r.status,
-          approvalStatus: r.approval_status,
-        })),
+        records: convertRecordsToIndonesiaTime(
+          permitRecords.map((r) => ({
+            date: r.createdAt,
+            reason: r.reason,
+            attendanceStatus: r.status,
+            approvalStatus: r.approval_status,
+          }))
+        ),
       });
     }
 
@@ -379,7 +422,7 @@ const attendanceService = {
       statusSummary.push({
         status: "absent",
         count: absentRecords.length,
-        records: absentRecords,
+        records: convertRecordsToIndonesiaTime(absentRecords),
       });
     }
 
@@ -432,21 +475,21 @@ const attendanceService = {
       if (sickRecords.length > 0) {
         details.sick = {
           count: sickRecords.length,
-          dates: sickRecords.map((r) => r.createdAt),
+          dates: sickRecords.map((r) => dateHelper.formatToIndonesiaTimeISO(r.createdAt!)),
         };
       }
 
       if (permitRecords.length > 0) {
         details.permit = {
           count: permitRecords.length,
-          dates: permitRecords.map((r) => r.createdAt),
+          dates: permitRecords.map((r) => dateHelper.formatToIndonesiaTimeISO(r.createdAt!)),
         };
       }
 
       if (absentRecords.length > 0) {
         details.absent = {
           count: absentRecords.length,
-          dates: absentRecords.map((r) => r.createdAt),
+          dates: absentRecords.map((r) => dateHelper.formatToIndonesiaTimeISO(r.createdAt!)),
         };
       }
 

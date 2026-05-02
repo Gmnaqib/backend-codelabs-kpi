@@ -12,8 +12,8 @@ const attendanceController = {
       const deviceData = req.body;
       const reason = req.body.reason;
 
-      await attendanceService.checkIn(userId, deviceData, reason);
-      return response({ res, code: 201, message: "Checkin success" });
+      const result = await attendanceService.checkIn(userId, deviceData, reason);
+      return response({ res, code: 201, message: "Checkin success", data: result });
     } catch (error: any) {
       return response({ res, code: 500, message: error.message });
     }
@@ -24,8 +24,8 @@ const attendanceController = {
       const userId = req.user?.id;
       const deviceData = req.body;
 
-      await attendanceService.checkOut(userId, deviceData);
-      return response({ res, code: 200, message: "Checkout success" });
+      const result = await attendanceService.checkOut(userId, deviceData);
+      return response({ res, code: 200, message: "Checkout success", data: result });
     } catch (error: any) {
       return response({ res, code: 500, message: error.message });
     }
