@@ -512,6 +512,9 @@ const attendanceService = {
       throw new Error("Reason for checkout is required");
     }
 
+    // Validate checkout time
+    await attendanceValidate.checkOutByMinister(targetUserId);
+
     const today = new Date();
     const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0, 0);
     const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59, 999);

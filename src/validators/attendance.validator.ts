@@ -11,12 +11,12 @@ export const attendanceValidate = {
     const startOfDay = dateHelper.getStartOfDayWIB();
     const endOfDay = dateHelper.getEndOfDayWIB();
     const timeIn = dateHelper.getTimeTodayWIB(6);
-    const timeLimit = dateHelper.getTimeTodayWIB(9);
-    const timeLateLimit = dateHelper.getTimeTodayWIB(10);
+    const timeLimit = dateHelper.getTimeTodayWIB(15);
+    const timeLateLimit = dateHelper.getTimeTodayWIB(16);
     const { device_id } = device;
 
     if (now < timeIn) {
-      throw new Error("You can check in after 6:00 AM");
+      throw new Error("You can check in after 6:00");
     }
 
     if (now > timeLateLimit) {
@@ -126,6 +126,27 @@ export const attendanceValidate = {
 
     if (!Types.ObjectId.isValid(requestId)) {
       throw new Error("Invalid request ID format");
+    }
+  },
+
+  checkOutByMinister: async (targetUserId: Types.ObjectId): Promise<void> => {
+    const now = dateHelper.getNowWIBAsDateTime();
+    let timeOutStart = dateHelper.getTimeTodayWIB(17);
+    const timeOutEnd = dateHelper.getTimeTodayWIB(19);
+
+    // Check for Ramadhan setting
+    const isRamadhan = await settingRepository.findSettingByCode("RAMADHAN");
+    if (isRamadhan?.value === true) {
+      timeOutStart = dateHelper.getTimeTodayWIB(16);
+    }
+
+    // Validate checkout time is within allowed range (17:00-19:00 or 16:00-19:00 during Ramadhan)
+    if (now < timeOutStart) {
+      throw new Error("Too early to check out");
+    }
+
+    if (now > timeOutEnd) {
+      throw new Error("Checkout time has passed (allowed until 19:00)");
     }
   },
 };
