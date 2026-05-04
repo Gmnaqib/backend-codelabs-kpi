@@ -6,6 +6,7 @@ interface IAttendance {
   checkIn?: Date;
   checkOut?: Date | null;
   reason?: string;
+  reasonCheckOut?: string;
   attachment_url?: string;
   start_date?: Date;
   end_date?: Date;

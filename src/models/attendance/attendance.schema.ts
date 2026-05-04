@@ -24,6 +24,9 @@ const attendanceSchema = new Schema<IAttendance>(
     reason: {
       type: String,
     },
+    reasonCheckOut: {
+      type: String,
+    },
     start_date: {
       type: Date,
     },

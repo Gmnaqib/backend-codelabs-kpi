@@ -144,6 +144,25 @@ const attendanceController = {
       return response({ res, code: 500, message: error.message });
     }
   },
+
+  checkOutByMinister: async (req: AuthRequest, res: Response): Promise<any> => {
+    try {
+      const { userId, reasonCheckOut } = req.body;
+
+      if (!userId) {
+        return response({ res, code: 400, message: "Target user ID is required" });
+      }
+
+      if (!reasonCheckOut || reasonCheckOut.trim() === "") {
+        return response({ res, code: 400, message: "Reason for checkout is required" });
+      }
+
+      const result = await attendanceService.checkOutByMinister(new Types.ObjectId(userId), reasonCheckOut);
+      return response({ res, code: 200, message: "Checkout by minister success", data: result });
+    } catch (error: any) {
+      return response({ res, code: 500, message: error.message });
+    }
+  },
 };
 
 export default attendanceController;

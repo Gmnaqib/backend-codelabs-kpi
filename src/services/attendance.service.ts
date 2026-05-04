@@ -19,10 +19,10 @@ const convertRecordsToIndonesiaTime = (records: any[]): any[] => {
 
 const convertAttendanceToIndonesiaTime = (record: any) => {
   if (!record) return record;
-  
+
   // Convert Mongoose document to plain object first
-  const plainRecord = typeof record.toObject === 'function' ? record.toObject() : JSON.parse(JSON.stringify(record));
-  
+  const plainRecord = typeof record.toObject === "function" ? record.toObject() : JSON.parse(JSON.stringify(record));
+
   return {
     ...plainRecord,
     checkIn: plainRecord.checkIn ? dateHelper.formatToIndonesiaTimeISO(new Date(plainRecord.checkIn)) : null,
@@ -300,7 +300,7 @@ const attendanceService = {
             date: r.createdAt,
             reason: r.reason,
             attendanceStatus: r.status,
-          }))
+          })),
         ),
       });
     }
@@ -315,7 +315,7 @@ const attendanceService = {
           presentRecords.map((r) => ({
             date: r.createdAt,
             attendanceStatus: r.status,
-          }))
+          })),
         ),
       });
     }
@@ -332,7 +332,7 @@ const attendanceService = {
             reason: r.reason || null,
             attendanceStatus: r.status,
             approvalStatus: r.approval_status || null,
-          }))
+          })),
         ),
       });
     }
@@ -349,7 +349,7 @@ const attendanceService = {
             reason: r.reason,
             attendanceStatus: r.status,
             approvalStatus: r.approval_status,
-          }))
+          })),
         ),
       });
     }
@@ -501,6 +501,42 @@ const attendanceService = {
     });
 
     return detailSummary;
+  },
+
+  checkOutByMinister: async (targetUserId: Types.ObjectId, reasonCheckOut: string): Promise<IAttendance> => {
+    if (!targetUserId) {
+      throw new Error("Target user ID is required");
+    }
+
+    if (!reasonCheckOut || reasonCheckOut.trim() === "") {
+      throw new Error("Reason for checkout is required");
+    }
+
+    const today = new Date();
+    const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0, 0);
+    const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59, 999);
+
+    const userAttendance = await attendanceRepository.findOne({
+      userId: targetUserId,
+      createdAt: { $gte: startOfDay, $lte: endOfDay },
+    });
+
+    if (!userAttendance) {
+      throw new Error("Attendance record not found for this user today");
+    }
+
+    if (!userAttendance.checkIn) {
+      throw new Error("User has not checked in today");
+    }
+
+    if (userAttendance.checkOut != null) {
+      throw new Error("User has already checked out");
+    }
+
+    userAttendance.checkOut = new Date();
+    userAttendance.reasonCheckOut = reasonCheckOut;
+    const result = await userAttendance.save();
+    return convertAttendanceToIndonesiaTime(result);
   },
 };
 
