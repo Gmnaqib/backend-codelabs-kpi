@@ -44,9 +44,13 @@ const attendanceSchema = new Schema<IAttendance>(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
     },
+    submitted_by: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
   },
 
-  { timestamps: true }
+  { timestamps: true },
 );
 
 attendanceSchema.pre("save", function (next) {

@@ -163,6 +163,52 @@ const attendanceController = {
       return response({ res, code: 500, message: error.message });
     }
   },
+
+  submitLeaveByOperational: async (req: AuthRequest, res: Response): Promise<any> => {
+    try {
+      const operationalUserId = req.user?.id;
+      const { userId, type, reason, start_date, end_date } = req.body;
+      let attachment_url = req.body.attachment_url;
+
+      if (!userId) {
+        return response({ res, code: 400, message: "Target user ID is required" });
+      }
+
+      if (!type || !["sick", "permit"].includes(type)) {
+        return response({ res, code: 400, message: "Type must be 'sick' or 'permit'" });
+      }
+
+      if (!reason || reason.trim() === "") {
+        return response({ res, code: 400, message: "Reason is required" });
+      }
+
+      if (!start_date || !end_date) {
+        return response({ res, code: 400, message: "Start date and end date are required" });
+      }
+
+      if (req.file) {
+        const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/jpg"];
+        if (!allowedTypes.includes(req.file.mimetype)) {
+          return response({ res, code: 400, message: "File must be image (JPEG, PNG, WebP)" });
+        }
+        attachment_url = await fileUploadService.uploadFile(req.file);
+      }
+
+      const result = await attendanceService.submitLeaveByOperational(
+        new Types.ObjectId(operationalUserId),
+        new Types.ObjectId(userId),
+        type,
+        reason,
+        new Date(start_date),
+        new Date(end_date),
+        attachment_url,
+      );
+
+      return response({ res, code: 201, message: "Leave request created by operational successfully", data: result });
+    } catch (error: any) {
+      return response({ res, code: 500, message: error.message });
+    }
+  },
 };
 
 export default attendanceController;

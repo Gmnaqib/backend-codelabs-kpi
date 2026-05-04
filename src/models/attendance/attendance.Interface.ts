@@ -12,6 +12,7 @@ interface IAttendance {
   end_date?: Date;
   approval_status?: approvalStatus;
   approved_by?: Types.ObjectId;
+  submitted_by?: Types.ObjectId;
   createdAt?: Date;
   updatedAt?: Date;
 }

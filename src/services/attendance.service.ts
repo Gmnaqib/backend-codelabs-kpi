@@ -538,6 +538,54 @@ const attendanceService = {
     const result = await userAttendance.save();
     return convertAttendanceToIndonesiaTime(result);
   },
+
+  submitLeaveByOperational: async (
+    operationalUserId: Types.ObjectId,
+    userId: Types.ObjectId,
+    type: attendanceStatus,
+    reason: string,
+    start_date: Date,
+    end_date: Date,
+    attachment_url?: string,
+  ): Promise<IAttendance> => {
+    if (!operationalUserId) {
+      throw new Error("Operational user ID is required");
+    }
+
+    if (!userId) {
+      throw new Error("Target user ID is required");
+    }
+
+    if (!type || !["sick", "permit"].includes(type)) {
+      throw new Error("Type must be 'sick' or 'permit'");
+    }
+
+    if (!reason || reason.trim() === "") {
+      throw new Error("Reason is required");
+    }
+
+    if (!start_date || !end_date) {
+      throw new Error("Start date and end date are required");
+    }
+
+    if (new Date(end_date) < new Date(start_date)) {
+      throw new Error("End date must be after start date");
+    }
+
+    const record = await attendanceRepository.create({
+      userId: userId,
+      status: type as attendanceStatus,
+      reason: reason,
+      attachment_url: attachment_url,
+      start_date: start_date,
+      end_date: end_date,
+      approval_status: approvalStatus.APPROVED,
+      approved_by: operationalUserId,
+      submitted_by: operationalUserId,
+    });
+
+    return convertAttendanceToIndonesiaTime(record);
+  },
 };
 
 export default attendanceService;
