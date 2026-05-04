@@ -11,8 +11,8 @@ export const attendanceValidate = {
     const startOfDay = dateHelper.getStartOfDayWIB();
     const endOfDay = dateHelper.getEndOfDayWIB();
     const timeIn = dateHelper.getTimeTodayWIB(6);
-    const timeLimit = dateHelper.getTimeTodayWIB(15);
-    const timeLateLimit = dateHelper.getTimeTodayWIB(16);
+    const timeLimit = dateHelper.getTimeTodayWIB(9);
+    const timeLateLimit = dateHelper.getTimeTodayWIB(10);
     const { device_id } = device;
 
     if (now < timeIn) {
