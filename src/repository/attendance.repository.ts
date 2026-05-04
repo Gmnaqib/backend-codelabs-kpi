@@ -38,10 +38,12 @@ const attendanceRepository = {
 
       if (dateFilter.month !== undefined) {
         startDate.setMonth(dateFilter.month - 1, 1);
+        startDate.setHours(0, 0, 0, 0);
         endDate.setMonth(dateFilter.month, 0);
         endDate.setHours(23, 59, 59, 999);
       } else if (dateFilter.year !== undefined) {
         startDate.setMonth(0, 1);
+        startDate.setHours(0, 0, 0, 0);
         endDate.setMonth(11, 31);
         endDate.setHours(23, 59, 59, 999);
       }
@@ -79,10 +81,12 @@ const attendanceRepository = {
 
       if (dateFilter.month !== undefined) {
         startDate.setMonth(dateFilter.month - 1, 1);
+        startDate.setHours(0, 0, 0, 0);
         endDate.setMonth(dateFilter.month, 0);
         endDate.setHours(23, 59, 59, 999);
       } else if (dateFilter.year !== undefined) {
         startDate.setMonth(0, 1);
+        startDate.setHours(0, 0, 0, 0);
         endDate.setMonth(11, 31);
         endDate.setHours(23, 59, 59, 999);
       }
