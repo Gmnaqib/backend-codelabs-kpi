@@ -3,3 +3,4 @@ node_modules/
 dist
 REFACTORING_SUMMARY.md
 package-lock.json
+uploads/

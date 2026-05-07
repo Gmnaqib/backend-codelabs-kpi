@@ -2,6 +2,8 @@ import userRepository from "../repository/user.repository";
 import userValidate from "../validators/user.validator";
 import IUser, { Role, Status, Research } from "../models/user/user.interface";
 import bcrypt from "bcrypt";
+import fs from "fs";
+import path from "path";
 
 const userService = {
   getAllUsers: async (): Promise<IUser[]> => {
@@ -16,9 +18,9 @@ const userService = {
     return user;
   },
 
-  updateByUser: async (userId: string, userData: { name?: string; password?: string }): Promise<IUser> => {
+  updateByUser: async (userId: string, userData: { name?: string; password?: string; address?: string }, imageFile?: Express.Multer.File): Promise<IUser> => {
     await userValidate.updateByUser(userId, userData);
-    const { name, password } = userData;
+    const { name, password, address } = userData;
     const user = await userRepository.findUserById(userId, true);
 
     if (password) {
@@ -26,6 +28,22 @@ const userService = {
       user!.password = hashedPassword;
     }
     user!.name = name || user!.name;
+    if (address) user!.address = address;
+
+    // Handle image upload
+    if (imageFile) {
+      // Delete old image if exists
+      if (user!.image) {
+        const oldImagePath = path.join(process.cwd(), user!.image);
+        if (fs.existsSync(oldImagePath)) {
+          fs.unlinkSync(oldImagePath);
+        }
+      }
+
+      // Save new image path
+      const imageUrl = `/uploads/profiles/${imageFile.filename}`;
+      user!.image = imageUrl;
+    }
 
     await user!.save();
     return user!;

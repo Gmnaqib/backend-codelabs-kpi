@@ -1,5 +1,7 @@
 import express from "express";
 import "dotenv/config";
+import path from "path";
+import multer from "multer";
 const app = express();
 const port = process.env.PORT;
 import { connectDB } from "./config/db";
@@ -18,7 +20,32 @@ import cors from "cors";
 
 connectDB();
 app.use(cors());
-app.use(express.json());
+
+// Middleware untuk handle multipart vs JSON
+app.use((req, res, next) => {
+  next();
+});
+
+// Middleware untuk handle multipart vs JSON
+const contentTypeHandler = (req: express.Request, res: express.Response, next: express.NextFunction) => {
+  const contentType = req.get("content-type") || "";
+
+  if (contentType.includes("multipart/form-data")) {
+    // Skip json/urlencoded, let multer handle it in route
+    next();
+  } else if (contentType.includes("application/json")) {
+    express.json()(req, res, next);
+  } else if (contentType.includes("application/x-www-form-urlencoded")) {
+    express.urlencoded({ extended: true })(req, res, next);
+  } else {
+    express.json()(req, res, next);
+  }
+};
+
+app.use(contentTypeHandler);
+
+// Serve static files from uploads directory
+app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
 app.get("/", (req, res) => {
   res.status(200).json({

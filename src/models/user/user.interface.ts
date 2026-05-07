@@ -1,7 +1,7 @@
 interface IUser {
   name: string;
   email: string;
-  dob?: string;
+  dob?: Date;
   address?: string;
   image?: string;
   password: string;

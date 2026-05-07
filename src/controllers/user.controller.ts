@@ -26,9 +26,17 @@ const userController = {
   updateByUser: async (req: AuthRequest, res: Response): Promise<any> => {
     try {
       const userId = req.user?.id;
-      const { name, password } = req.body;
 
-      const user = await userService.updateByUser(userId, { name, password });
+      if (!userId) {
+        return response({ res, code: 401, message: "Unauthorized", data: null });
+      }
+
+      // Safely extract body data
+      const body = req.body || {};
+      const { name, password, address } = body;
+      const file = req.file;
+
+      const user = await userService.updateByUser(userId, { name, password, address }, file);
       return response({ res, code: 200, message: "User updated successfully", data: user });
     } catch (error: any) {
       return response({ res, code: error.message === "User not found" ? 404 : 500, message: error.message, data: null });
