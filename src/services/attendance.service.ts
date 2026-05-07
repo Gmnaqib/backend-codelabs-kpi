@@ -2,13 +2,13 @@ import attendanceRepository from "../repository/attendance.repository";
 import attendanceValidate from "../validators/attendance.validator";
 import userRepository from "../repository/user.repository";
 import leaveRequestValidate from "../validators/leaveRequest.validator";
+import operationalRecordService from "./operationalRecord.service";
 import IAttendance, { attendanceStatus, approvalStatus } from "../models/attendance/attendance.Interface";
 import { Status } from "../models/user/user.interface";
+import { ScheduleType } from "../models/schedule/schedule.interface";
 import { Types } from "mongoose";
 import dateHelper from "../helper/dateHelper";
 
-// Helper function to convert all dates in attendance record to Indonesia time
-// Helper function to convert records array with dates to Indonesia time
 const convertRecordsToIndonesiaTime = (records: any[]): any[] => {
   return records.map((r) => ({
     ...r,
@@ -20,7 +20,6 @@ const convertRecordsToIndonesiaTime = (records: any[]): any[] => {
 const convertAttendanceToIndonesiaTime = (record: any) => {
   if (!record) return record;
 
-  // Convert Mongoose document to plain object first
   const plainRecord = typeof record.toObject === "function" ? record.toObject() : JSON.parse(JSON.stringify(record));
 
   return {
@@ -62,8 +61,6 @@ const attendanceService = {
   checkOut: async (userId: Types.ObjectId, deviceId: { device_id: string }): Promise<IAttendance> => {
     const userObjectId = new Types.ObjectId(userId);
 
-    // await attendanceValidate.checkOut(userId, deviceId);
-
     const today = new Date();
     const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0, 0);
     const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59, 999);
@@ -81,8 +78,20 @@ const attendanceService = {
       throw new Error("You have already checked out");
     }
 
-    userAttendance.checkOut = new Date();
+    const checkOutTime = new Date();
+    userAttendance.checkOut = checkOutTime;
     const result = await userAttendance.save();
+
+    try {
+      await operationalRecordService.createOperationalRecord({
+        userId: userObjectId,
+        type: ScheduleType.thematic,
+        date: today,
+      });
+    } catch (error) {
+      console.log("Operational record creation skipped:", (error as any).message);
+    }
+
     return convertAttendanceToIndonesiaTime(result);
   },
 
@@ -539,6 +548,19 @@ const attendanceService = {
     userAttendance.checkOut = new Date();
     userAttendance.reasonCheckOut = reasonCheckOut;
     const result = await userAttendance.save();
+
+    // Create operational record
+    try {
+      await operationalRecordService.createOperationalRecord({
+        userId: targetUserId,
+        type: ScheduleType.thematic,
+        date: today,
+      });
+    } catch (error) {
+      console.log("Operational record creation skipped:", (error as any).message);
+      // Jangan throw error jika operational record gagal, tetap return attendance result
+    }
+
     return convertAttendanceToIndonesiaTime(result);
   },
 

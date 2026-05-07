@@ -5,7 +5,6 @@ import { roleMiddlewares } from "../middlewares/role.middlewares";
 import upload from "../helper/fileUpload";
 const userRouter = Router();
 
-// Middleware untuk handle multer dengan error handling
 const uploadMiddleware = (req: Request, res: Response, next: NextFunction) => {
   upload.single("image")(req, res, function (err: any) {
     if (err) {

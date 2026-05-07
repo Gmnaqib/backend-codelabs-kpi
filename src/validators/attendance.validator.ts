@@ -11,8 +11,8 @@ export const attendanceValidate = {
     const startOfDay = dateHelper.getStartOfDayWIB();
     const endOfDay = dateHelper.getEndOfDayWIB();
     const timeIn = dateHelper.getTimeTodayWIB(6);
-    const timeLimit = dateHelper.getTimeTodayWIB(9);
-    const timeLateLimit = dateHelper.getTimeTodayWIB(10);
+    const timeLimit = dateHelper.getTimeTodayWIB(12);
+    const timeLateLimit = dateHelper.getTimeTodayWIB(14);
     const { device_id } = device;
 
     if (now < timeIn) {
@@ -45,7 +45,6 @@ export const attendanceValidate = {
       throw new Error("You have already checked in");
     }
 
-    // Check if it's a late check-in and validate reason requirement
     const isLateCheckIn = now > timeLimit && now < timeLateLimit;
     if (isLateCheckIn && !reason) {
       throw new Error("Reason is required for late check-in");
@@ -58,7 +57,7 @@ export const attendanceValidate = {
     const now = dateHelper.getNowWIBAsDateTime();
     const startOfDay = dateHelper.getStartOfDayWIB();
     const endOfDay = dateHelper.getEndOfDayWIB();
-    let timeOut = dateHelper.getTimeTodayWIB(17);
+    let timeOut = dateHelper.getTimeTodayWIB(11);
     const { device_id } = device;
 
     const isRamadhan = await settingRepository.findSettingByCode("RAMADHAN");
