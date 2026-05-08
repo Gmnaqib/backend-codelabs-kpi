@@ -93,27 +93,6 @@ const authService = {
       throw new Error("Invalid credentials");
     }
 
-    // const isPrivilegedRole = user.role === "admin" || user.role === "lecturer";
-
-    // if (!isPrivilegedRole) {
-    //   if (!device_id) {
-    //     throw new Error("Device ID is required");
-    //   }
-
-      // if (!user.device_id || user.device_id === "null") {
-      //   await userRepository.updateUserById(user._id.toString(), {
-      //     device_id,
-      //     change_device_id: false,
-      //   });
-
-      //   user.device_id = device_id;
-      // } else {
-      //   if (user.device_id !== device_id) {
-      //     throw new Error("This account is already registered on another device");
-      //   }
-      // }
-    // }
-
     const secret = process.env.JWT_SECRET;
     if (!secret) {
       throw new Error("JWT_SECRET is not defined");
@@ -123,11 +102,16 @@ const authService = {
       {
         id: user._id,
         name: user.name,
+        email: user.email,
         role: user.role,
         nim: user.nim,
+        majors: user.majors,
+        years: user.years,
+        image: user.image,
+        status: user.status,
+        research: user.research,
         change_device_id: user.change_device_id,
         device_id: user.device_id,
-        // device_id: isPrivilegedRole ? null : user.device_id,
       },
       secret,
       { expiresIn: "1d" },
@@ -137,17 +121,28 @@ const authService = {
       user: {
         id: user._id,
         name: user.name,
+        email: user.email,
         nim: user.nim,
         role: user.role,
         device_id: user.device_id,
+        change_device_id: user.change_device_id,
+        image: user.image ?? null,
+        majors: user.majors,
+        years: user.years,
+        status: user.status,
+        research: user.research,
       },
       token,
     };
   },
 
-  getMe: (user: any): any => {
+  getMe: async (user: any): Promise<IUser> => {
     authValidate.getMe(user);
-    return user;
+    const fullUser = await userRepository.findUserById(user.id);
+    if (!fullUser) {
+      throw new Error("User not found");
+    }
+    return fullUser;
   },
 };
 

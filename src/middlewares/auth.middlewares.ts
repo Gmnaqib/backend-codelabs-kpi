@@ -13,6 +13,7 @@ export const authenticateToken = (req: AuthRequest, res: Response, next: NextFun
 
   if (!token) {
     res.status(401).json({ message: "Access denied, token missing" });
+    return;
   }
 
   try {
@@ -21,6 +22,7 @@ export const authenticateToken = (req: AuthRequest, res: Response, next: NextFun
       throw new Error("JWT_SECRET is not defined in environment variables");
     }
     const decoded: any = jwt.verify(token as string, secret);
+
     req.user = {
       id: decoded.id,
       name: decoded.name,
@@ -29,6 +31,7 @@ export const authenticateToken = (req: AuthRequest, res: Response, next: NextFun
       role: decoded.role,
       majors: decoded.majors,
       years: decoded.years,
+      image: decoded.image,
       status: decoded.status,
       research: decoded.research,
       change_device_id: decoded.change_device_id,

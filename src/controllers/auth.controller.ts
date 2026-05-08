@@ -48,10 +48,7 @@ const authController = {
     try {
       const { nim, password } = req.body;
 
-      const { user, token } = await authService.login(
-        nim,
-        password,
-      );
+      const { user, token } = await authService.login(nim, password);
 
       return response({
         res,
@@ -67,9 +64,9 @@ const authController = {
     }
   },
 
-  me: (req: AuthRequest, res: Response): any => {
+  me: async (req: AuthRequest, res: Response): Promise<any> => {
     try {
-      const userData = authService.getMe(req.user);
+      const userData = await authService.getMe(req.user);
       return response({ res, code: 200, message: "Get me success", data: userData });
     } catch (error: any) {
       return response({ res, code: 401, message: error.message });
