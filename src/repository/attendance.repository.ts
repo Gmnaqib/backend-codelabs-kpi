@@ -26,7 +26,7 @@ const attendanceRepository = {
 
   findAllWithApprovalStatusAndDate: async (dateFilter: Partial<filterAttendance>): Promise<IAttendance[]> => {
     const query: any = { approval_status: { $exists: true } };
-    const UTC_OFFSET_HOURS = 7; 
+    const UTC_OFFSET_HOURS = 7;
 
     if (dateFilter.year !== undefined || dateFilter.month !== undefined || dateFilter.day !== undefined) {
       const startDate = new Date();
@@ -69,7 +69,7 @@ const attendanceRepository = {
 
   findAllWithDate: async (dateFilter: Partial<filterAttendance>): Promise<IAttendance[]> => {
     const query: any = {};
-    const UTC_OFFSET_HOURS = 7; 
+    const UTC_OFFSET_HOURS = 7;
 
     if (dateFilter.userId !== undefined) {
       query.userId = dateFilter.userId;

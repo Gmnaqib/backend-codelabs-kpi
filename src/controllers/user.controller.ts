@@ -4,9 +4,10 @@ import response from "../helper/response";
 import userService from "../services/user.service";
 
 const userController = {
-  getAllUsers: async (req: Request, res: Response): Promise<any> => {
+  getAllUsers: async (req: AuthRequest, res: Response): Promise<any> => {
     try {
-      const users = await userService.getAllUsers();
+      const currentUserRole = req.user?.role;
+      const users = await userService.getAllUsers(currentUserRole);
       return response({ res, code: 200, message: "Get all user success", data: users });
     } catch (error) {
       return response({ res, code: 500, message: "Error fetching users" });

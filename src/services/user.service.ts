@@ -6,8 +6,14 @@ import fs from "fs";
 import path from "path";
 
 const userService = {
-  getAllUsers: async (): Promise<IUser[]> => {
-    return await userRepository.findAllUsers();
+  getAllUsers: async (currentUserRole?: Role): Promise<IUser[]> => {
+    const users = await userRepository.findAllUsers();
+
+    if (currentUserRole === Role.Admin) {
+      return users;
+    }
+
+    return users.filter((user) => user.role !== Role.Admin && user.role !== Role.Lecturer);
   },
 
   getUserById: async (userId: string): Promise<IUser> => {
