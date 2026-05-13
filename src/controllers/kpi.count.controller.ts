@@ -513,7 +513,7 @@ const KPICountController = {
     }
   },
 
-  getTotalPointsSummary: async (req: Request, res: Response): Promise<any> => {
+  getTotalPointsSummary: async (req: AuthRequest, res: Response): Promise<any> => {
     try {
       const { year, month } = req.query;
       const dateFilter: any = {};
@@ -549,6 +549,15 @@ const KPICountController = {
         name: user.name,
         totalPoints: pointsMap.get(user.name) || 0,
       }));
+
+      // Filter based on user role
+      const currentUserRole = req.user?.role;
+      if (currentUserRole !== "admin") {
+        simplifiedData = simplifiedData.filter((user) => {
+          const userObj = allUsers.find((u) => u._id?.toString() === user.userId);
+          return userObj?.role !== "admin" && userObj?.role !== "lecturer";
+        });
+      }
 
       // Sort by totalPoints descending and add rank
       simplifiedData.sort((a, b) => b.totalPoints - a.totalPoints);
