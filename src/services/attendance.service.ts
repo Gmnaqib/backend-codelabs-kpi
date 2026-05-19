@@ -61,9 +61,8 @@ const attendanceService = {
   checkOut: async (userId: Types.ObjectId, deviceId: { device_id: string }): Promise<IAttendance> => {
     const userObjectId = new Types.ObjectId(userId);
 
-    const today = new Date();
-    const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0, 0);
-    const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59, 999);
+    const startOfDay = dateHelper.getStartOfDayWIB();
+    const endOfDay = dateHelper.getEndOfDayWIB();
 
     const userAttendance = await attendanceRepository.findOne({
       userId: userObjectId,
@@ -86,7 +85,7 @@ const attendanceService = {
       await operationalRecordService.createOperationalRecord({
         userId: userObjectId,
         type: ScheduleType.thematic,
-        date: today,
+        date: new Date(),
       });
     } catch (error) {
       console.log("Operational record creation skipped:", (error as any).message);
