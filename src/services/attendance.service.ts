@@ -61,12 +61,15 @@ const attendanceService = {
   checkOut: async (userId: Types.ObjectId, deviceId: { device_id: string }): Promise<IAttendance> => {
     const userObjectId = new Types.ObjectId(userId);
 
+    // Validate checkout
+    await attendanceValidate.checkOut(userObjectId, deviceId);
+
     const startOfDay = dateHelper.getStartOfDayWIB();
     const endOfDay = dateHelper.getEndOfDayWIB();
 
     const userAttendance = await attendanceRepository.findOne({
       userId: userObjectId,
-      createdAt: { $gte: startOfDay, $lte: endOfDay },
+      checkIn: { $gte: startOfDay, $lt: endOfDay },
     });
 
     if (!userAttendance) {
