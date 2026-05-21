@@ -3,6 +3,8 @@ import response from "../helper/response";
 import { AuthRequest } from "../middlewares/auth.middlewares";
 import attendanceService from "../services/attendance.service";
 import fileUploadService from "../services/fileUpload.service";
+import attendanceRepository from "../repository/attendance.repository";
+import dateHelper from "../helper/dateHelper";
 import { Types } from "mongoose";
 
 const attendanceController = {
@@ -36,6 +38,19 @@ const attendanceController = {
       const userId = req.user?.id;
       const { type, reason, start_date, end_date } = req.body;
       let attachment_url = req.body.attachment_url;
+
+      const startOfDay = dateHelper.getStartOfDayWIB();
+      const endOfDay = dateHelper.getEndOfDayWIB();
+
+      const existingLeaveRequest = await attendanceRepository.findOne({
+        userId: new Types.ObjectId(userId),
+        start_date: { $gte: startOfDay, $lt: endOfDay } as any,
+        approval_status: { $exists: true } as any,
+      });
+
+      if (existingLeaveRequest) {
+        return response({ res, code: 400, message: "Anda sudah submit leave/sick request hari ini. Tidak bisa submit lagi" });
+      }
 
       if (req.file) {
         const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/jpg"];
