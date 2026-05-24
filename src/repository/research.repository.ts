@@ -1,5 +1,5 @@
 import Research from "../models/research/research.schema";
-import IResearch, { CategoryType, progressStatus, statusResearch } from "../models/research/research.interface";
+import IResearch, { CategoryType, progressStatus, ResearchStatus, statusResearch } from "../models/research/research.interface";
 import { Types } from "mongoose";
 
 interface ResearchFilter {
@@ -9,7 +9,7 @@ interface ResearchFilter {
   category?: CategoryType;
   title?: string;
   progress?: progressStatus;
-  status?: statusResearch;
+  status?: ResearchStatus | { $ne: any } | { $gte: number };
   createdAt?: { $gte?: Date; $lte?: Date };
   updatedAt?: { $gte?: Date; $lte?: Date };
 }
@@ -25,8 +25,8 @@ const researchRepository = {
   findResearchByWeek: (week: number) => Research.find({ week }).populate("userId", "name").sort({ createdAt: -1 }),
   findResearchByCategory: (category: CategoryType) => Research.find({ category }).populate("userId", "name").sort({ createdAt: -1 }),
   findResearchByProgress: (progress: progressStatus) => Research.find({ progress }).populate("userId", "name").sort({ createdAt: -1 }),
-  findResearchByStatus: (status: statusResearch) => Research.find({ status }).populate("userId", "name").sort({ createdAt: -1 }),
-  findResearchWithFilters: (filters: { userId?: string; week?: number; category?: CategoryType; progress?: progressStatus; status?: statusResearch; date?: { year: number; month?: number } }) => {
+  findResearchByStatus: (status: ResearchStatus) => Research.find({ status }).populate("userId", "name").sort({ createdAt: -1 }),
+  findResearchWithFilters: (filters: { userId?: string; week?: number; category?: CategoryType; progress?: progressStatus; status?: ResearchStatus; date?: { year: number; month?: number } }) => {
     const query: any = {};
 
     if (filters.userId) query.userId = filters.userId;
@@ -72,7 +72,7 @@ const researchRepository = {
   countResearch: () => Research.countDocuments(),
   countResearchByFilter: (filter: ResearchFilter) => Research.countDocuments(filter),
 
-  countResearchWithFilters: (filters: { userId?: string; week?: number; category?: CategoryType; progress?: progressStatus; status?: statusResearch; date?: { year: number; month?: number } }) => {
+  countResearchWithFilters: (filters: { userId?: string; week?: number; category?: CategoryType; progress?: progressStatus; status?: ResearchStatus; date?: { year: number; month?: number } }) => {
     const query: any = {};
 
     if (filters.userId) query.userId = filters.userId;

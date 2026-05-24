@@ -12,6 +12,8 @@ kpiItemRouter.get("/item", authenticateToken, KPIItemController.getAllKPIItems);
 // KPI Count routes
 kpiItemRouter.get("/research/me", authenticateToken, KPICountController.getMyResearchPointsSummary);
 kpiItemRouter.get("/research/", authenticateToken, KPICountController.getResearchPointsSummary);
+kpiItemRouter.get('/research-points-summary', KPICountController.getResearchPointsSummary);
+kpiItemRouter.get('/research/my-points-summary', authenticateToken, KPICountController.getMyResearchPointsSummary);
 
 kpiItemRouter.get("/operational/me", authenticateToken, KPICountController.getMyOperationalPointsSummary);
 kpiItemRouter.get("/operational/", authenticateToken, KPICountController.getOperationalPointsSummary);

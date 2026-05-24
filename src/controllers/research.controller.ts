@@ -3,7 +3,7 @@ import { Types } from "mongoose";
 import { AuthRequest } from "../middlewares/auth.middlewares";
 import researchService from "../services/research.service";
 import response from "../helper/response";
-import IResearch, { CategoryType, progressStatus, statusResearch } from "../models/research/research.interface";
+import IResearch, { CategoryType, progressStatus, statusResearch, ResearchStatus } from "../models/research/research.interface";
 
 const researchController = {
   createResearch: async (req: AuthRequest, res: Response): Promise<any> => {
@@ -79,10 +79,11 @@ const researchController = {
       }
 
       if (status) {
-        if (!Object.values(statusResearch).includes(status as statusResearch)) {
-          return response({ res, code: 400, message: `Invalid status. Must be one of: ${Object.values(statusResearch).join(", ")}` });
+        const statusNum = Number(status);
+        if (isNaN(statusNum) || statusNum < 0 || statusNum > 5) {
+          return response({ res, code: 400, message: `Invalid status. Must be a number between 0 and 5` });
         }
-        filters.status = status as statusResearch;
+        filters.status = statusNum;
       }
 
       if (month || year) {
@@ -171,8 +172,12 @@ const researchController = {
         return response({ res, code: 400, message: `Invalid progress. Must be one of: ${Object.values(progressStatus).join(", ")}` });
       }
 
-      if (updateData.status && !Object.values(statusResearch).includes(updateData.status)) {
-        return response({ res, code: 400, message: `Invalid status. Must be one of: ${Object.values(statusResearch).join(", ")}` });
+      if (updateData.status !== undefined) {
+        const statusNum = Number(updateData.status);
+        if (isNaN(statusNum) || statusNum < 0 || statusNum > 5) {
+          return response({ res, code: 400, message: `Invalid status. Must be a number between 0 and 5` });
+        }
+        updateData.status = statusNum;
       }
 
       if (updateData.week) {

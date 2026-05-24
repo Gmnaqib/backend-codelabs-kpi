@@ -1,4 +1,4 @@
-import IResearch, { CategoryType, progressStatus, statusResearch } from "../models/research/research.interface";
+import IResearch, { CategoryType, progressStatus, statusResearch, ResearchStatus } from "../models/research/research.interface";
 import researchRepository from "../repository/research.repository";
 
 const researchService = {
@@ -17,10 +17,6 @@ const researchService = {
       throw new Error("Invalid URL format for link field");
     }
 
-    if (!researchData.status) {
-      researchData.status = statusResearch.pending;
-    }
-
     const newResearch = await researchRepository.createResearch(researchData);
     return newResearch;
   },
@@ -30,7 +26,7 @@ const researchService = {
     week?: number;
     category?: CategoryType;
     progress?: progressStatus;
-    status?: statusResearch;
+    status?: ResearchStatus;
     date?: { year: number; month?: number };
   }): Promise<IResearch[]> => {
     const research = await researchRepository.findResearchWithFilters(filters || {});
@@ -157,7 +153,7 @@ const researchService = {
 
   getResearchSummary: async (dateFilter?: { year: number; month?: number }) => {
     const approvedResearch = await researchRepository.findResearchWithFilters({
-      status: statusResearch.approved,
+      status: { $ne: null } as any,
       ...(dateFilter && { date: dateFilter }),
     });
 

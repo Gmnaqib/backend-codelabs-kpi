@@ -1,5 +1,5 @@
 import { Schema, model } from "mongoose";
-import IResearch, { statusResearch, CategoryType, progressStatus } from "./research.interface";
+import IResearch, { RESEARCH_STATUS_VALUES, ResearchStatus, CategoryType, progressStatus } from "./research.interface";
 
 const researchSchema = new Schema<IResearch>(
   {
@@ -19,9 +19,12 @@ const researchSchema = new Schema<IResearch>(
     },
     challenge: { type: String, required: false },
     status: {
-      type: String,
-      enum: Object.values(statusResearch),
-      default: "pending",
+      type: Number,
+      enum: RESEARCH_STATUS_VALUES,
+      default: null,
+      min: 0,
+      max: 5,
+      required: false,
     },
   },
   { timestamps: true },

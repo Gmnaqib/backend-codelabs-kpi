@@ -1,4 +1,4 @@
-import IResearch, { CategoryType, progressStatus, statusResearch } from "../models/research/research.interface";
+import IResearch, { CategoryType, progressStatus, statusResearch, ResearchStatus } from "../models/research/research.interface";
 import researchRepository from "../repository/research.repository";
 import KPIRepository from "../repository/kpi.respository";
 import attendanceRepository from "../repository/attendance.repository";
@@ -15,11 +15,9 @@ import { Status } from "../models/user/user.interface";
 const KPICountService = {
   getResearchSummary: async (dateFilter?: { year: number; month?: number }) => {
     const approvedResearch = await researchRepository.findResearchWithFilters({
-      status: statusResearch.approved,
+      status: { $ne: null } as any,
       ...(dateFilter && { date: dateFilter }),
     });
-
-    // Group by user
     const userMap = new Map<string, { userName: string; data: IResearch[] }>();
 
     approvedResearch.forEach((research) => {
@@ -33,7 +31,7 @@ const KPICountService = {
       userMap.get(userId)!.data.push(research);
     });
 
-    // Build summary per user
+    // Build summary per user with points calculation
     const byUser = Array.from(userMap.entries()).map(([userId, userData]) => {
       const categoryCounts = {
         [CategoryType.Personal]: 0,
@@ -41,16 +39,41 @@ const KPICountService = {
         [CategoryType.workshop]: 0,
       };
 
+      const totalPointsByCategory = {
+        [CategoryType.Personal]: 0,
+        [CategoryType.Product]: 0,
+        [CategoryType.workshop]: 0,
+      };
+
       userData.data.forEach((research) => {
         categoryCounts[research.category]++;
+        
+        // Status value IS the total point (no base point added)
+        const totalPoint = research.status || 0;
+        totalPointsByCategory[research.category] += totalPoint;
       });
 
       return {
         userId,
         userName: userData.userName,
         total: userData.data.length,
-        byCategory: categoryCounts,
-        data: userData.data,
+        totalPoints: totalPointsByCategory[CategoryType.Personal] + 
+                    totalPointsByCategory[CategoryType.Product] + 
+                    totalPointsByCategory[CategoryType.workshop], 
+        byCategory: {
+          personal: {
+            count: categoryCounts[CategoryType.Personal],
+            total: totalPointsByCategory[CategoryType.Personal]
+          },
+          product: {
+            count: categoryCounts[CategoryType.Product],
+            total: totalPointsByCategory[CategoryType.Product]
+          },
+          workshop: {
+            count: categoryCounts[CategoryType.workshop],
+            total: totalPointsByCategory[CategoryType.workshop]
+          },
+        },
       };
     });
 
@@ -61,99 +84,17 @@ const KPICountService = {
   },
 
   getResearchPointsSummary: async (dateFilter?: { year: number; month?: number }) => {
-    // Get research summary grouped by user
     const researchSummary = await KPICountService.getResearchSummary(dateFilter);
-
-    // Get KPI points for each code
-    const coCreationKPI = await KPIRepository.findKPIByCode("COCREATION");
-    const workshopKPI = await KPIRepository.findKPIByCode("WORKSHOP");
-
-    const coCreationPoint = coCreationKPI?.point || 0;
-    const workshopPoint = workshopKPI?.point || 0;
-
-    // Create a map of research data by userId
-    const researchMap = new Map<string, any>();
-    researchSummary.byUser.forEach((user) => {
-      researchMap.set(user.userId, user);
-    });
-
-    // Get all active users
-    const allUsers = await userRepository.findUsersByFilter({ status: Status.active });
-
-    // Map all users with research data or defaults
-    const byUserWithPoints = allUsers.map((user) => {
-      const userData = researchMap.get(user._id?.toString() || "");
-
-      if (userData) {
-        const personalPoints = userData.byCategory[CategoryType.Personal] * coCreationPoint;
-        const productPoints = userData.byCategory[CategoryType.Product] * coCreationPoint;
-        const workshopPoints = userData.byCategory[CategoryType.workshop] * workshopPoint;
-        const totalPoints = personalPoints + productPoints + workshopPoints;
-
-        return {
-          userId: userData.userId,
-          userName: userData.userName,
-          total: userData.total,
-          totalPoints,
-          byCategory: {
-            personal: {
-              count: userData.byCategory[CategoryType.Personal],
-              total: personalPoints,
-            },
-            product: {
-              count: userData.byCategory[CategoryType.Product],
-              total: productPoints,
-            },
-            workshop: {
-              count: userData.byCategory[CategoryType.workshop],
-              total: workshopPoints,
-            },
-          },
-        };
-      } else {
-        return {
-          userId: user._id?.toString(),
-          userName: user.name,
-          total: 0,
-          totalPoints: 0,
-          byCategory: {
-            personal: {
-              count: 0,
-              total: 0,
-            },
-            product: {
-              count: 0,
-              total: 0,
-            },
-            workshop: {
-              count: 0,
-              total: 0,
-            },
-          },
-        };
-      }
-    });
-
-    return {
-      totalApproved: researchSummary.totalApproved,
-      byUser: byUserWithPoints,
-    };
+    return researchSummary;
   },
 
   getMyResearchPointsSummary: async (userId: string, dateFilter?: { year: number; month?: number }) => {
     // Get approved research for specific user
     const approvedResearch = await researchRepository.findResearchWithFilters({
       userId,
-      status: statusResearch.approved,
+      status: { $ne: null } as any,
       ...(dateFilter && { date: dateFilter }),
     });
-
-    // Get KPI points for each code
-    const coCreationKPI = await KPIRepository.findKPIByCode("COCREATION");
-    const workshopKPI = await KPIRepository.findKPIByCode("WORKSHOP");
-
-    const coCreationPoint = coCreationKPI?.point || 0;
-    const workshopPoint = workshopKPI?.point || 0;
 
     // Count by category
     const categoryCounts = {
@@ -162,14 +103,25 @@ const KPICountService = {
       [CategoryType.workshop]: 0,
     };
 
+    // Calculate points including status value
+    const categoryPoints = {
+      [CategoryType.Personal]: 0,
+      [CategoryType.Product]: 0,
+      [CategoryType.workshop]: 0,
+    };
+
     approvedResearch.forEach((research) => {
       categoryCounts[research.category]++;
+      
+      //Status value IS the total point (no base point)
+      const totalPoint = research.status || 0;
+      categoryPoints[research.category] += totalPoint;
     });
 
-    // Calculate points
-    const personalPoints = categoryCounts[CategoryType.Personal] * coCreationPoint;
-    const productPoints = categoryCounts[CategoryType.Product] * coCreationPoint;
-    const workshopPoints = categoryCounts[CategoryType.workshop] * workshopPoint;
+    // Use categoryPoints directly
+    const personalPoints = categoryPoints[CategoryType.Personal];
+    const productPoints = categoryPoints[CategoryType.Product];
+    const workshopPoints = categoryPoints[CategoryType.workshop];
     const totalPoints = personalPoints + productPoints + workshopPoints;
 
     return {
@@ -885,7 +837,7 @@ const KPICountService = {
           },
           thematic: {
             count: scheduleData.operationalDetail?.thematic?.count || 0,
-            pointPerItem: picketPoint, // Assuming same point as picket
+            pointPerItem: picketPoint,
             totalPoints: scheduleData.operationalDetail?.thematic?.total || 0,
           },
         },

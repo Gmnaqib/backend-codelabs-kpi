@@ -131,10 +131,11 @@ const KPIItemService = {
         }
 
         // Count approved dan hitung point
-        if (record.status === statusResearch.approved) {
+        if (record.status != null) {
           totalApproved++;
           // Point calculation: APPROVED & FINISHED = 15, APPROVED & UNFINISHED = 5
-          totalPoint += record.progress === progressStatus.Finished ? 15 : 5;
+          const basePoint = record.progress === progressStatus.Finished ? 10 : 5;
+          totalPoint += basePoint + record.status; // Tambahkan status sebagai poin tambahan (0-5)
         }
       });
 
