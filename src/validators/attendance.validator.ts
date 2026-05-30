@@ -61,13 +61,12 @@ export const attendanceValidate = {
     const { device_id } = device;
 
     const isRamadhan = await settingRepository.findSettingByCode("RAMADHAN");
-    const dayOfWeek = now.getDay(); 
 
     if (isRamadhan?.value === true) {
       timeOut = dateHelper.getTimeTodayWIB(16);
     }
 
-    if (dayOfWeek === 6) { 
+    if (now.weekday === 6) { // Saturday in Luxon (1=Mon, 6=Sat, 7=Sun)
       timeOut = dateHelper.getTimeTodayWIB(16);
     }
 
