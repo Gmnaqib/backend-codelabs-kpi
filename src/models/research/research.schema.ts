@@ -1,14 +1,15 @@
 import { Schema, model } from "mongoose";
-import IResearch, { RESEARCH_STATUS_VALUES, ResearchStatus, CategoryType, progressStatus } from "./research.interface";
+import IResearch, { RESEARCH_STATUS_VALUES, progressStatus } from "./research.interface";
 
 const researchSchema = new Schema<IResearch>(
   {
     userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
     week: { type: Number, required: true },
-    category: {
-      type: String,
-      enum: Object.values(CategoryType),
-      required: true,
+    id_kpi_detail: {
+      type: Schema.Types.ObjectId,
+      ref: "KPIDetail",
+      required: false,
+      default: null,
     },
     title: { type: String, required: true },
     link: { type: String, required: true },

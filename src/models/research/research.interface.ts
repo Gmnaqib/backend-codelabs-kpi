@@ -3,18 +3,12 @@ import { Types } from "mongoose";
 interface IResearch {
   userId: Types.ObjectId;
   week: number;
-  category: CategoryType;
+  id_kpi_detail?: Types.ObjectId;
   title: string;
   link: string;
   progress: progressStatus;
   challenge?: string;
   status?: ResearchStatus;
-}
-
-export enum CategoryType {
-  Personal = "personal",
-  Product = "product",
-  workshop = "workshop",
 }
 
 export enum progressStatus {

@@ -3,33 +3,27 @@ import KPIItemController from "../controllers/kpi.item.controller";
 import KPICountController from "../controllers/kpi.count.controller";
 import { authenticateToken } from "../middlewares/auth.middlewares";
 import { roleMiddlewares } from "../middlewares/role.middlewares";
+
 const kpiItemRouter = Router();
 
-// KPI CRUD Item routes
-kpiItemRouter.post("/item", authenticateToken, KPIItemController.addKPIItem);
-kpiItemRouter.get("/item", authenticateToken, KPIItemController.getAllKPIItems);
+// ─── KPI Master (admin only untuk CUD) ───────────────────────────────────────
+kpiItemRouter.post("/master", authenticateToken, roleMiddlewares(["admin"]), KPIItemController.addMaster);
+kpiItemRouter.get("/master", authenticateToken, KPIItemController.getAllMasters);
+kpiItemRouter.get("/master/:id", authenticateToken, KPIItemController.getMasterById);
+kpiItemRouter.put("/master/:id", authenticateToken, roleMiddlewares(["admin"]), KPIItemController.updateMaster);
+kpiItemRouter.delete("/master/:id", authenticateToken, roleMiddlewares(["admin"]), KPIItemController.deleteMaster);
 
-// KPI Count routes
-kpiItemRouter.get("/research/me", authenticateToken, KPICountController.getMyResearchPointsSummary);
-kpiItemRouter.get("/research/", authenticateToken, KPICountController.getResearchPointsSummary);
-kpiItemRouter.get('/research-points-summary', KPICountController.getResearchPointsSummary);
-kpiItemRouter.get('/research/my-points-summary', authenticateToken, KPICountController.getMyResearchPointsSummary);
+// ─── KPI Detail (admin only untuk CUD) ───────────────────────────────────────
+kpiItemRouter.post("/detail", authenticateToken, roleMiddlewares(["admin"]), KPIItemController.addDetail);
+kpiItemRouter.get("/detail", authenticateToken, KPIItemController.getAllDetails);
+kpiItemRouter.get("/detail/master/:masterId", authenticateToken, KPIItemController.getDetailsByMasterId);
+kpiItemRouter.get("/detail/:id", authenticateToken, KPIItemController.getDetailById);
+kpiItemRouter.put("/detail/:id", authenticateToken, roleMiddlewares(["admin"]), KPIItemController.updateDetail);
+kpiItemRouter.delete("/detail/:id", authenticateToken, roleMiddlewares(["admin"]), KPIItemController.deleteDetail);
 
-kpiItemRouter.get("/operational/me", authenticateToken, KPICountController.getMyOperationalPointsSummary);
-kpiItemRouter.get("/operational/", authenticateToken, KPICountController.getOperationalPointsSummary);
+// ─── KPI Summary ─────────────────────────────────────────────────────────────
+kpiItemRouter.get("/me", authenticateToken, KPICountController.getMyKPISummary);
+kpiItemRouter.get("/summary/:userId", authenticateToken, KPICountController.getKPISummaryByUserId);
+kpiItemRouter.get("/", authenticateToken, KPICountController.getAllKPISummary);
 
-kpiItemRouter.get("/branding/me", authenticateToken, KPICountController.getMyBrandingPointsSummary);
-kpiItemRouter.get("/branding/", authenticateToken, KPICountController.getBrandingPointsSummary);
-
-kpiItemRouter.get("/competition/me", authenticateToken, KPICountController.getMyCompetitionPointsSummary);
-kpiItemRouter.get("/competition/", authenticateToken, KPICountController.getCompetitionPointsSummary);
-
-kpiItemRouter.get("/item/:id", authenticateToken, KPIItemController.getKPIItemById);
-kpiItemRouter.put("/item/:id", authenticateToken, roleMiddlewares(["admin"]), KPIItemController.updateKPIItem);
-
-kpiItemRouter.get("/statistic", authenticateToken, KPICountController.kpiStatistic);
-kpiItemRouter.get("/summary/:userId", authenticateToken, KPICountController.getMyComprehensiveSummary);
-kpiItemRouter.get("/me", authenticateToken, KPICountController.getMyTotalPointsSummary);
-// kpiItemRouter.get("/summary", authenticateToken, KPICountController.getAllSummary);
-kpiItemRouter.get("/", authenticateToken, KPICountController.getTotalPointsSummary);
 export default kpiItemRouter;
