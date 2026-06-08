@@ -7,10 +7,7 @@ import competitionRepository from "../repository/competition.respository";
 import userRepository from "../repository/user.repository";
 import { attendanceStatus } from "../models/attendance/attendance.Interface";
 import { CompetitionStatus } from "../models/competition/competition.interface";
-import { IKPIDetailResult, IKPICategoryResult, IKPISummary } from "../models/kpi/kpi.interface";
 import { Types } from "mongoose";
-
-// ─── Helper ───────────────────────────────────────────────────────────────────
 
 const buildDateFilter = (dateFilter?: { year: number; month?: number }) => {
   if (!dateFilter) return null;
@@ -36,8 +33,6 @@ const hitungPoint = (point: number, maxActivity: number, jumlahActivity: number,
 };
 
 // Khusus item yang pakai range nilai 0-5
-// point_range_per_1 = (point / max_activity) / 5
-// point_akhir       = point_range_per_1 × nilai_status
 const hitungPointRange = (point: number, maxActivity: number, nilaiStatus: number, label: string): number => {
   const pointRangePer1 = point / maxActivity / 5;
   const raw = pointRangePer1 * nilaiStatus;
@@ -45,25 +40,25 @@ const hitungPointRange = (point: number, maxActivity: number, nilaiStatus: numbe
   return parseFloat(result.toFixed(4));
 };
 
-// ─── Service ──────────────────────────────────────────────────────────────────
+// Service
 
 const KPICountService = {
 
   getMyKPISummary: async (
     userId: string,
     dateFilter?: { year: number; month?: number }
-  ): Promise<IKPISummary> => {
+  ) => {
     const userObjectId = new Types.ObjectId(userId);
     const user = await userRepository.findUserById(userId);
     if (!user) throw new Error("User not found");
 
     const dateRange = buildDateFilter(dateFilter);
     const masters = await KPIRepository.findAllMasters();
-    const categories: IKPICategoryResult[] = [];
+    const categories = [];
 
     for (const master of masters) {
       const details = await KPIRepository.findDetailsByMasterId(master._id.toString());
-      const detailResults: IKPIDetailResult[] = [];
+      const detailResults = [];
 
       for (const detail of details) {
         let jumlah_activity = 0;
@@ -72,7 +67,6 @@ const KPICountService = {
         const detailId = detail._id.toString();
 
         if (kementerian === "operational") {
-          // Attendance: filter by id_kpi_detail
           const attendanceRecords = await attendanceRepository.findAll({
             userId: userObjectId,
             id_kpi_detail: detail._id,
@@ -80,8 +74,6 @@ const KPICountService = {
             checkOut: { $ne: null } as any,
             ...(dateRange && { createdAt: dateRange }),
           });
-
-          // OperationalRecord: filter by id_kpi_detail
           const operationalRecords = await operationalRecordRepository.findRecordsWithFilters({
             userId,
             id_kpi_detail: detailId,
@@ -90,12 +82,10 @@ const KPICountService = {
               endDate: new Date(dateFilter.year, dateFilter.month ?? 12, 0, 23, 59, 59, 999),
             }),
           });
-
           jumlah_activity = attendanceRecords.length + operationalRecords.length;
           point_akhir = hitungPoint(detail.point, detail.max_activity, jumlah_activity, detail.label);
 
         } else if (kementerian === "research") {
-          // Research pakai range nilai status 0-5
           const records = await researchRepository.findResearchWithFilters({
             userId,
             id_kpi_detail: detailId,
@@ -109,7 +99,6 @@ const KPICountService = {
           point_akhir = parseFloat(rawTotal.toFixed(4));
 
         } else if (kementerian === "branding") {
-          // Branding: status != null (sudah direview), nilai status 0-5
           const records = await brandingRepository.findBrandingsByFilter(
             { userId: userObjectId, id_kpi_detail: detail._id, status: { $ne: null } },
             dateFilter
@@ -136,6 +125,7 @@ const KPICountService = {
         detailResults.push({
           kpiDetailId: detail._id,
           kpi_item: detail.kpi_item,
+          label: detail.label,
           point_per_activity: parseFloat((detail.point / detail.max_activity).toFixed(4)),
           jumlah_activity,
           point_akhir,

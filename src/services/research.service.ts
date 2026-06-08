@@ -1,5 +1,6 @@
 import IResearch, { progressStatus, ResearchStatus } from "../models/research/research.interface";
 import researchRepository from "../repository/research.repository";
+import { validateKpiDetailKementerian } from "../helper/kpi.detail.validator";
 
 const researchService = {
   createResearch: async (researchData: IResearch): Promise<IResearch> => {
@@ -15,6 +16,11 @@ const researchService = {
       new URL(researchData.link);
     } catch (error) {
       throw new Error("Invalid URL format for link field");
+    }
+
+    // Validasi id_kpi_detail harus milik kementerian research
+    if (researchData.id_kpi_detail) {
+      await validateKpiDetailKementerian(researchData.id_kpi_detail.toString(), "research");
     }
 
     return await researchRepository.createResearch(researchData);
@@ -63,6 +69,10 @@ const researchService = {
       }
     }
 
+    if (updateData.id_kpi_detail) {
+      await validateKpiDetailKementerian(updateData.id_kpi_detail.toString(), "research");
+    }
+
     const updatedResearch = await researchRepository.updateResearchById(researchId, updateData);
     if (!updatedResearch) return null;
 
@@ -84,6 +94,10 @@ const researchService = {
       } catch (error) {
         throw new Error("Invalid URL format for link field");
       }
+    }
+
+    if (updateData.id_kpi_detail) {
+      await validateKpiDetailKementerian(updateData.id_kpi_detail.toString(), "research");
     }
 
     const updatedResearch = await researchRepository.updateResearchById(researchId, updateData);
@@ -109,14 +123,10 @@ const researchService = {
     });
 
     const userMap = new Map<string, { userName: string; data: IResearch[] }>();
-
     research.forEach((r) => {
       const userId = (r.userId as any)?._id?.toString() || r.userId.toString();
       if (!userMap.has(userId)) {
-        userMap.set(userId, {
-          userName: (r.userId as any)?.name || "Unknown User",
-          data: [],
-        });
+        userMap.set(userId, { userName: (r.userId as any)?.name || "Unknown User", data: [] });
       }
       userMap.get(userId)!.data.push(r);
     });

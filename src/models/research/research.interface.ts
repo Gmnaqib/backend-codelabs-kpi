@@ -3,7 +3,7 @@ import { Types } from "mongoose";
 interface IResearch {
   userId: Types.ObjectId;
   week: number;
-  id_kpi_detail?: Types.ObjectId;
+  id_kpi_detail: Types.ObjectId;
   title: string;
   link: string;
   progress: progressStatus;

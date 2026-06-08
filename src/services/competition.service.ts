@@ -1,9 +1,14 @@
 import competitionRepository from "../repository/competition.respository";
 import ICompetition, { CompetitionType, CompetitionStatus } from "../models/competition/competition.interface";
+import { validateKpiDetailKementerian } from "../helper/kpi.detail.validator";
 import { Types } from "mongoose";
 
 const CompetitionService = {
   addCompetition: async (userId: string, name: string, description: string, deadline: string, link: string, type: CompetitionType, id_kpi_detail?: string): Promise<ICompetition> => {
+    if (id_kpi_detail) {
+      await validateKpiDetailKementerian(id_kpi_detail, "competition");
+    }
+
     return await competitionRepository.createCompetition({
       userId: new Types.ObjectId(userId),
       name,
@@ -43,6 +48,10 @@ const CompetitionService = {
     if (!competition) throw new Error("Competition not found");
     if (competition.userId.toString() !== userId) throw new Error("You can only update your own competitions");
 
+    if (updateData.id_kpi_detail) {
+      await validateKpiDetailKementerian(updateData.id_kpi_detail, "competition");
+    }
+
     const { name, description, deadline, link, type, id_kpi_detail } = updateData;
     if (name !== undefined) competition.name = name;
     if (description !== undefined) competition.description = description;
@@ -65,6 +74,10 @@ const CompetitionService = {
   updateCompetition: async (id: string, updateData: { userId?: string; name?: string; description?: string; deadline?: string; link?: string; status?: CompetitionStatus; type?: CompetitionType; id_kpi_detail?: string }): Promise<ICompetition> => {
     const competition = await competitionRepository.findCompetitionById(id);
     if (!competition) throw new Error("Competition not found");
+
+    if (updateData.id_kpi_detail) {
+      await validateKpiDetailKementerian(updateData.id_kpi_detail, "competition");
+    }
 
     const { name, description, deadline, link, status, type, id_kpi_detail } = updateData;
     competition.name = name || competition.name;

@@ -1,9 +1,14 @@
 import brandingRepository from "../repository/branding.respository";
 import IBranding, { BrandingStatus, researchCategory, brandingLevel } from "../models/branding/branding.interface";
+import { validateKpiDetailKementerian } from "../helper/kpi.detail.validator";
 import { Types } from "mongoose";
 
 const BrandingService = {
   addBranding: async (userId: string, name: string, description: string, link: string, research: researchCategory, level: brandingLevel, id_kpi_detail?: string): Promise<IBranding> => {
+    if (id_kpi_detail) {
+      await validateKpiDetailKementerian(id_kpi_detail, "branding");
+    }
+
     return await brandingRepository.createBranding({
       userId: new Types.ObjectId(userId),
       name,
@@ -11,7 +16,7 @@ const BrandingService = {
       link,
       research,
       level,
-      status: undefined, // null by default, belum direview
+      status: undefined,
       ...(id_kpi_detail && { id_kpi_detail: new Types.ObjectId(id_kpi_detail) }),
     });
   },
@@ -50,6 +55,10 @@ const BrandingService = {
     if (!branding) throw new Error("Branding not found");
     if (branding.userId.toString() !== userId) throw new Error("You can only update your own brandings");
 
+    if (updateData.id_kpi_detail) {
+      await validateKpiDetailKementerian(updateData.id_kpi_detail, "branding");
+    }
+
     const { name, description, link, research, level, id_kpi_detail } = updateData;
     if (name !== undefined) branding.name = name;
     if (description !== undefined) branding.description = description;
@@ -69,10 +78,13 @@ const BrandingService = {
     return branding;
   },
 
-  // Admin update - bisa set nilai status 0-5
   updateBranding: async (id: string, updateData: { name?: string; description?: string; link?: string; status?: BrandingStatus; research?: researchCategory; level?: brandingLevel; id_kpi_detail?: string }): Promise<IBranding> => {
     const branding = await brandingRepository.findBrandingById(id);
     if (!branding) throw new Error("Branding not found");
+
+    if (updateData.id_kpi_detail) {
+      await validateKpiDetailKementerian(updateData.id_kpi_detail, "branding");
+    }
 
     const { name, description, link, status, research, level, id_kpi_detail } = updateData;
     if (name !== undefined) branding.name = name;

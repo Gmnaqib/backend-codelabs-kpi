@@ -38,7 +38,7 @@ export enum brandingLevel {
 
 interface IBranding {
   userId: Types.ObjectId;
-  id_kpi_detail?: Types.ObjectId;
+  id_kpi_detail: Types.ObjectId;
   name: string;
   description: string;
   research: researchCategory;

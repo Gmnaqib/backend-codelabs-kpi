@@ -9,6 +9,7 @@ export interface IKPI {
 export interface IKPIDetailResult {
   kpiDetailId: Types.ObjectId;
   kpi_item: string;
+  label: string;
   point_per_activity: number;
   jumlah_activity: number;
   point_akhir: number;

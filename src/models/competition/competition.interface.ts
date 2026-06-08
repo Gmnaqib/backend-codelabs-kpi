@@ -2,7 +2,7 @@ import { Types } from "mongoose";
 
 interface ICompetition {
   userId: Types.ObjectId;
-  id_kpi_detail?: Types.ObjectId;
+  id_kpi_detail: Types.ObjectId;
   name: string;
   description: string;
   deadline: Date;

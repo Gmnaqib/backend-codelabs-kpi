@@ -4,7 +4,7 @@ import response from "../helper/response";
 import KPIItemService from "../services/kpi.services";
 
 const KPIItemController = {
-  // KPI Master
+  // ─── KPI Master ─────────────────────────────────────────────────────────────
 
   addMaster: async (req: AuthRequest, res: Response): Promise<any> => {
     try {
@@ -36,6 +36,29 @@ const KPIItemController = {
     }
   },
 
+  // GET /kpi/master/:kementerian/details
+  getMasterWithDetails: async (req: Request, res: Response): Promise<any> => {
+    try {
+      const kementerian = req.params.kementerian as string;
+      const master = await KPIItemService.findMasterByKementerian(kementerian);
+      if (!master) return response({ res, code: 404, message: "KPI master not found" });
+      const details = await KPIItemService.findDetailsByMasterId((master as any)._id.toString());
+      return response({
+        res,
+        code: 200,
+        message: "KPI master with details retrieved successfully",
+        data: {
+          _id: (master as any)._id,
+          kementerian: master.kementerian,
+          point: master.point,
+          details,
+        },
+      });
+    } catch (error: any) {
+      return response({ res, code: 500, message: error.message });
+    }
+  },
+
   updateMaster: async (req: AuthRequest, res: Response): Promise<any> => {
     try {
       const id = req.params.id as string;
@@ -58,7 +81,7 @@ const KPIItemController = {
     }
   },
 
-  // KPI Detail
+  // ─── KPI Detail ─────────────────────────────────────────────────────────────
 
   addDetail: async (req: AuthRequest, res: Response): Promise<any> => {
     try {

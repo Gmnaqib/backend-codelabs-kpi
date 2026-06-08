@@ -88,7 +88,7 @@ const attendanceService = {
         userId: userObjectId,
         type: ScheduleType.thematic,
         date: new Date(),
-      });
+      } as any);
     } catch (error) {
       console.log("Operational record creation skipped:", (error as any).message);
     }
@@ -555,7 +555,7 @@ const attendanceService = {
         userId: targetUserId,
         type: ScheduleType.thematic,
         date: new Date(),
-      });
+      } as any);
     } catch (error) {
       console.log("Operational record creation skipped:", (error as any).message);
       // Jangan throw error jika operational record gagal, tetap return attendance result
