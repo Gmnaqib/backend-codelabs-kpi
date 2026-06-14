@@ -17,8 +17,7 @@ kpiItemRouter.delete("/master/:id", authenticateToken, roleMiddlewares(["admin"]
 // KPI Detail
 kpiItemRouter.post("/detail", authenticateToken, roleMiddlewares(["admin"]), KPIItemController.addDetail);
 kpiItemRouter.get("/detail", authenticateToken, KPIItemController.getAllDetails);
-kpiItemRouter.get("/detail/master/:masterId", authenticateToken, KPIItemController.getDetailsByMasterId);
-kpiItemRouter.get("/detail/:id", authenticateToken, KPIItemController.getDetailById);
+kpiItemRouter.get("/detail/:masterId", authenticateToken, KPIItemController.getDetailsByMasterId);
 kpiItemRouter.put("/detail/:id", authenticateToken, roleMiddlewares(["admin"]), KPIItemController.updateDetail);
 kpiItemRouter.delete("/detail/:id", authenticateToken, roleMiddlewares(["admin"]), KPIItemController.deleteDetail);
 

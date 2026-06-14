@@ -101,17 +101,6 @@ const KPIItemController = {
     }
   },
 
-  getDetailById: async (req: Request, res: Response): Promise<any> => {
-    try {
-      const id = req.params.id as string;
-      const data = await KPIItemService.findDetailById(id);
-      if (!data) return response({ res, code: 404, message: "KPI detail not found" });
-      return response({ res, code: 200, message: "KPI detail retrieved successfully", data });
-    } catch (error: any) {
-      return response({ res, code: 500, message: error.message });
-    }
-  },
-
   getDetailsByMasterId: async (req: Request, res: Response): Promise<any> => {
     try {
       const masterId = req.params.masterId as string;
