@@ -1,8 +1,8 @@
 import { Types } from "mongoose";
 
 export enum KPILabel {
-  WAJIB       = "WAJIB",
-  TIDAK_WAJIB = "TIDAK_WAJIB",
+  REQUIRED = "REQUIRED",
+  OPTIONAL = "OPTIONAL",
 }
 
 export interface IKPIMaster {

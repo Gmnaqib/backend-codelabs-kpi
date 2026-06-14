@@ -49,18 +49,18 @@ const KPIItemService = {
 
   // KPI Detail
   addDetail: async (data: Partial<IKPIDetail>): Promise<IKPIDetail> => {
-    if (data.label === "WAJIB" && data.id_kpi_master && data.point !== undefined) {
+    if (data.label === "REQUIRED" && data.id_kpi_master && data.point !== undefined) {
       const master = await KPIRepository.findMasterById(data.id_kpi_master.toString());
       if (!master) throw new Error("KPI Master not found");
 
       const existingDetails = await KPIRepository.findDetailsByMasterId(data.id_kpi_master.toString());
-      const totalWajib = existingDetails
-        .filter((d) => d.label === "WAJIB")
+      const totalRequired = existingDetails
+        .filter((d) => d.label === "REQUIRED")
         .reduce((sum, d) => sum + d.point, 0);
 
-      const newTotal = totalWajib + data.point;
+      const newTotal = totalRequired + data.point;
       if (newTotal > master.point) {
-        throw new Error(`Total WAJIB items must not exceed master weight (${master.point}%). Current total is ${totalWajib}%, cannot add ${data.point}%`);
+        throw new Error(`Total REQUIRED items must not exceed master weight (${master.point}%). Current total is ${totalRequired}%, cannot add ${data.point}%`);
       }
     }
 
@@ -87,18 +87,18 @@ const KPIItemService = {
         const label = data.label || existingDetail.label;
         const masterId = existingDetail.id_kpi_master.toString();
 
-        if (label === "WAJIB") {
+        if (label === "REQUIRED") {
           const master = await KPIRepository.findMasterById(masterId);
           if (!master) throw new Error("KPI Master not found");
 
           const allDetails = await KPIRepository.findDetailsByMasterId(masterId);
-          const totalWajib = allDetails
-            .filter((d) => d.label === "WAJIB" && d._id.toString() !== id)
+          const totalRequired = allDetails
+            .filter((d) => d.label === "REQUIRED" && d._id.toString() !== id)
             .reduce((sum, d) => sum + d.point, 0);
 
-          const newTotal = totalWajib + data.point;
+          const newTotal = totalRequired + data.point;
           if (newTotal > master.point) {
-            throw new Error(`Total WAJIB items must not exceed master weight (${master.point}%). Other items total is ${totalWajib}%, cannot set ${data.point}%`);
+            throw new Error(`Total REQUIRED items must not exceed master weight (${master.point}%). Other items total is ${totalRequired}%, cannot set ${data.point}%`);
           }
         }
       }

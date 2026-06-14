@@ -23,12 +23,12 @@ const buildDateFilter = (dateFilter?: { year: number; month?: number }) => {
   };
 };
 
-// WAJIB  : di-cap maksimal = point detail
-// TIDAK_WAJIB : bebas, bisa melebihi bobot item (bonus)
+// REQUIRED : di-cap maksimal = point detail
+// OPTIONAL : bebas, bisa melebihi bobot item (bonus)
 const hitungPoint = (point: number, maxActivity: number, jumlahActivity: number, label: string): number => {
   const pointPerActivity = point / maxActivity;
   const raw = pointPerActivity * jumlahActivity;
-  const result = label === "WAJIB" ? Math.min(raw, point) : raw;
+  const result = label === "REQUIRED" ? Math.min(raw, point) : raw;
   return parseFloat(result.toFixed(4));
 };
 
@@ -36,7 +36,7 @@ const hitungPoint = (point: number, maxActivity: number, jumlahActivity: number,
 const hitungPointRange = (point: number, maxActivity: number, nilaiStatus: number, label: string): number => {
   const pointRangePer1 = point / maxActivity / 5;
   const raw = pointRangePer1 * nilaiStatus;
-  const result = label === "WAJIB" ? Math.min(raw, point) : raw;
+  const result = label === "REQUIRED" ? Math.min(raw, point) : raw;
   return parseFloat(result.toFixed(4));
 };
 
