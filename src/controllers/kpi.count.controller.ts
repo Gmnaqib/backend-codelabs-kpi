@@ -5,39 +5,28 @@ import userRepository from "../repository/user.repository";
 import response from "../helper/response";
 import { Status } from "../models/user/user.interface";
 
-// ─── Helper: parse dateFilter dari query ─────────────────────────────────────
-
 const parseDateFilter = (query: any): { year: number; month?: number } | undefined => {
   const { year, month } = query;
   if (!year) return undefined;
-
   const yearNum = parseInt(year as string);
   if (isNaN(yearNum) || yearNum < 1900) return undefined;
-
   const dateFilter: { year: number; month?: number } = { year: yearNum };
-
   if (month) {
     const monthNum = parseInt(month as string);
     if (!isNaN(monthNum) && monthNum >= 1 && monthNum <= 12) {
       dateFilter.month = monthNum;
     }
   }
-
   return dateFilter;
 };
 
-// ─── Controller ───────────────────────────────────────────────────────────────
-
 const KPICountController = {
 
-  // GET /kpi/me — KPI summary user sendiri
+  // GET /kpi/me
   getMyKPISummary: async (req: AuthRequest, res: Response): Promise<any> => {
     try {
       const userId = req.user?.id;
-      if (!userId) {
-        return response({ res, code: 401, message: "Authentication required" });
-      }
-
+      if (!userId) return response({ res, code: 401, message: "Authentication required" });
       const dateFilter = parseDateFilter(req.query);
       const summary = await KPICountService.getMyKPISummary(userId, dateFilter);
       return response({ res, code: 200, message: "KPI summary retrieved successfully", data: summary });
@@ -46,12 +35,11 @@ const KPICountController = {
     }
   },
 
-  // GET /kpi/ — KPI semua user (admin), sorted by grand_total + rank
+  // GET /kpi/
   getAllKPISummary: async (req: AuthRequest, res: Response): Promise<any> => {
     try {
       const dateFilter = parseDateFilter(req.query);
       const summaries = await KPICountService.getAllKPISummary(dateFilter);
-
       const currentUserRole = req.user?.role;
 
       let data = summaries.map((s, index) => ({
@@ -62,7 +50,6 @@ const KPICountController = {
         categories: s.categories,
       }));
 
-      // Non-admin tidak lihat data admin & lecturer
       if (currentUserRole !== "admin") {
         const allUsers = await userRepository.findAllUsers();
         const filteredIds = new Set(
@@ -80,17 +67,39 @@ const KPICountController = {
     }
   },
 
-  // GET /kpi/summary/:userId — KPI summary user tertentu (admin)
+  // GET /kpi/summary/:userId
   getKPISummaryByUserId: async (req: AuthRequest, res: Response): Promise<any> => {
     try {
       const userId = req.params.userId as string;
-      if (!userId) {
-        return response({ res, code: 400, message: "User ID is required" });
-      }
-
+      if (!userId) return response({ res, code: 400, message: "User ID is required" });
       const dateFilter = parseDateFilter(req.query);
       const summary = await KPICountService.getMyKPISummary(userId, dateFilter);
       return response({ res, code: 200, message: "KPI summary retrieved successfully", data: summary });
+    } catch (error: any) {
+      return response({ res, code: 500, message: error.message });
+    }
+  },
+
+  // GET /kpi/statistic?year=2026
+  getKpiStatistic: async (req: Request, res: Response): Promise<any> => {
+    try {
+      const { year } = req.query;
+      if (!year) return response({ res, code: 400, message: "Year is required" });
+      const yearNum = parseInt(year as string);
+      if (isNaN(yearNum) || yearNum < 1900) return response({ res, code: 400, message: "Invalid year" });
+      const data = await KPICountService.getKpiStatistic(yearNum);
+      return response({ res, code: 200, message: "KPI statistic retrieved successfully", data });
+    } catch (error: any) {
+      return response({ res, code: 500, message: error.message });
+    }
+  },
+
+  // GET /kpi/me/operational?year=2026&month=6
+  getOperationalLeaderboard: async (req: AuthRequest, res: Response): Promise<any> => {
+    try {
+      const dateFilter = parseDateFilter(req.query);
+      const data = await KPICountService.getOperationalLeaderboard(dateFilter);
+      return response({ res, code: 200, message: "Operational leaderboard retrieved successfully", data });
     } catch (error: any) {
       return response({ res, code: 500, message: error.message });
     }

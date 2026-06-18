@@ -29,36 +29,30 @@ const hitungPoint = (point: number, maxActivity: number, jumlahActivity: number,
   const pointPerActivity = point / maxActivity;
   const raw = pointPerActivity * jumlahActivity;
   const result = label === "REQUIRED" ? Math.min(raw, point) : raw;
-  return parseFloat(result.toFixed(4));
+  return Math.floor(result * 10) / 10;
 };
 
-// Khusus item yang pakai range nilai 0-5
 const hitungPointRange = (point: number, maxActivity: number, nilaiStatus: number, label: string): number => {
   const pointRangePer1 = point / maxActivity / 5;
   const raw = pointRangePer1 * nilaiStatus;
   const result = label === "REQUIRED" ? Math.min(raw, point) : raw;
-  return parseFloat(result.toFixed(4));
+  return Math.floor(result * 10) / 10;
 };
-
-// Service
 
 const KPICountService = {
 
-  getMyKPISummary: async (
-    userId: string,
-    dateFilter?: { year: number; month?: number }
-  ) => {
+  getMyKPISummary: async (userId: string, dateFilter?: { year: number; month?: number }) => {
     const userObjectId = new Types.ObjectId(userId);
     const user = await userRepository.findUserById(userId);
     if (!user) throw new Error("User not found");
 
     const dateRange = buildDateFilter(dateFilter);
-    const masters = await KPIRepository.findAllMasters();
-    const categories = [];
+    const masters: any[] = await KPIRepository.findAllMasters();
+    const categories: any[] = [];
 
     for (const master of masters) {
-      const details = await KPIRepository.findDetailsByMasterId(master._id.toString());
-      const detailResults = [];
+      const details: any[] = await KPIRepository.findDetailsByMasterId(master._id.toString());
+      const detailResults: any[] = [];
 
       for (const detail of details) {
         let jumlah_activity = 0;
@@ -96,27 +90,23 @@ const KPICountService = {
           const rawTotal = records.reduce((sum: number, r: any) => {
             return sum + hitungPointRange(detail.point, detail.max_activity, r.status || 0, detail.label);
           }, 0);
-          point_akhir = parseFloat(rawTotal.toFixed(4));
+          point_akhir = Math.floor(rawTotal * 10) / 10;
 
         } else if (kementerian === "branding") {
           const records = await brandingRepository.findBrandingsByFilter(
             { userId: userObjectId, id_kpi_detail: detail._id, status: { $ne: null } },
-            dateFilter
-              ? { year: dateFilter.year, month: dateFilter.month ?? new Date().getMonth() + 1 }
-              : undefined
+            dateFilter ? { year: dateFilter.year, month: dateFilter.month ?? new Date().getMonth() + 1 } : undefined
           );
           jumlah_activity = records.length;
           const rawBranding = records.reduce((sum: number, r: any) => {
             return sum + hitungPointRange(detail.point, detail.max_activity, r.status || 0, detail.label);
           }, 0);
-          point_akhir = parseFloat(rawBranding.toFixed(4));
+          point_akhir = Math.floor(rawBranding * 10) / 10;
 
         } else if (kementerian === "competition") {
           const records = await competitionRepository.findCompetitionsByFilter(
             { userId: userObjectId, id_kpi_detail: detail._id, status: CompetitionStatus.Approved },
-            dateFilter
-              ? { year: dateFilter.year, month: dateFilter.month ?? new Date().getMonth() + 1 }
-              : undefined
+            dateFilter ? { year: dateFilter.year, month: dateFilter.month ?? new Date().getMonth() + 1 } : undefined
           );
           jumlah_activity = records.length;
           point_akhir = hitungPoint(detail.point, detail.max_activity, jumlah_activity, detail.label);
@@ -126,14 +116,14 @@ const KPICountService = {
           kpiDetailId: detail._id,
           kpi_item: detail.kpi_item,
           label: detail.label,
-          point_per_activity: parseFloat((detail.point / detail.max_activity).toFixed(4)),
+          point_per_activity: parseFloat(String(Math.floor((detail.point / detail.max_activity) * 10) / 10)),
           jumlah_activity,
           point_akhir,
         });
       }
 
       const total_point = parseFloat(
-        detailResults.reduce((sum, d) => sum + d.point_akhir, 0).toFixed(4)
+        String(Math.floor(detailResults.reduce((sum, d) => sum + d.point_akhir, 0) * 10) / 10)
       );
 
       categories.push({
@@ -145,7 +135,7 @@ const KPICountService = {
     }
 
     const grand_total = parseFloat(
-      categories.reduce((sum, c) => sum + c.total_point, 0).toFixed(4)
+      String(Math.floor(categories.reduce((sum, c) => sum + c.total_point, 0) * 10) / 10)
     );
 
     return {
@@ -158,11 +148,9 @@ const KPICountService = {
     };
   },
 
-  getAllKPISummary: async (
-    dateFilter?: { year: number; month?: number }
-  ) => {
+  getAllKPISummary: async (dateFilter?: { year: number; month?: number }) => {
     const allUsers = await userRepository.findAllUsers();
-    const summaries = [];
+    const summaries: any[] = [];
 
     for (const user of allUsers) {
       const summary = await KPICountService.getMyKPISummary(user._id.toString(), dateFilter);
@@ -170,6 +158,50 @@ const KPICountService = {
     }
 
     return summaries.sort((a, b) => b.grand_total - a.grand_total);
+  },
+
+  // GET /kpi/statistic?year=2026
+  getKpiStatistic: async (year: number) => {
+    const monthlyStats: any[] = [];
+
+    for (let month = 1; month <= 12; month++) {
+      const startDate = new Date(year, month - 1, 1);
+      const endDate = new Date(year, month, 0, 23, 59, 59, 999);
+
+      const [researchRecords, attendanceRecords] = await Promise.all([
+        researchRepository.findResearchWithFilters({
+          status: { $ne: null } as any,
+          date: { year, month },
+        }),
+        attendanceRepository.findAll({
+          status: attendanceStatus.PRESENT,
+          createdAt: { $gte: startDate, $lte: endDate } as any,
+        }),
+      ]);
+
+      const monthName = new Date(year, month - 1).toLocaleString("id-ID", { month: "long" });
+
+      monthlyStats.push({
+        month,
+        monthName,
+        totalResearch: researchRecords.length,
+        totalAttendance: attendanceRecords.length,
+      });
+    }
+
+    return { year, data: monthlyStats };
+  },
+
+  // GET /kpi/me/operational?year=2026&month=6 — leaderboard ranking
+  getOperationalLeaderboard: async (dateFilter?: { year: number; month?: number }) => {
+    const summaries = await KPICountService.getAllKPISummary(dateFilter);
+
+    return summaries.map((s, index) => ({
+      rank: index + 1,
+      name: s.name,
+      userId: s.userId,
+      point: s.grand_total,
+    }));
   },
 };
 
