@@ -2,18 +2,18 @@ import attendanceRepository from "../repository/attendance.repository";
 import { attendanceStatus } from "../models/attendance/attendance.Interface";
 import userRepository from "../repository/user.repository";
 import settingRepository from "../repository/setting.respository";
+import mikrotikService from "../services/mikrotik.service";
 import dateHelper from "../helper/dateHelper";
 import { Types } from "mongoose";
 
 export const attendanceValidate = {
-  checkIn: async (userId: Types.ObjectId, device: { device_id: string }, reason?: string): Promise<{ isLateCheckIn: boolean }> => {
+  checkIn: async (userId: Types.ObjectId, clientIp: string, reason?: string): Promise<{ isLateCheckIn: boolean }> => {
     const now = dateHelper.getNowWIBAsDateTime();
     const startOfDay = dateHelper.getStartOfDayWIB();
     const endOfDay = dateHelper.getEndOfDayWIB();
     const timeIn = dateHelper.getTimeTodayWIB(6);
     const timeLimit = dateHelper.getTimeTodayWIB(12);
     const timeLateLimit = dateHelper.getTimeTodayWIB(14);
-    const { device_id } = device;
 
     if (now < timeIn) {
       throw new Error("You can check in after 6:00");
@@ -23,13 +23,19 @@ export const attendanceValidate = {
       throw new Error("It's too late to check in");
     }
 
-    const userDevice = await userRepository.findUserDevice(userId);
+    // MikroTik DHCP-based device validation
+    const userDevice = await userRepository.findUserMacAddress(userId);
+    const detectedMac = await mikrotikService.getMacAddressByIp(clientIp);
 
-    if (!userDevice?.device_id) {
+    if (!userDevice?.mac_address) {
       throw new Error("Device not found");
     }
 
-    if (userDevice.device_id !== device_id) {
+    if (!detectedMac) {
+      throw new Error("Device not found in MikroTik DHCP lease");
+    }
+
+    if (detectedMac !== userDevice.mac_address) {
       throw new Error("Device not registered");
     }
 
@@ -53,12 +59,11 @@ export const attendanceValidate = {
     return { isLateCheckIn };
   },
 
-  checkOut: async (userId: Types.ObjectId, device: { device_id: string }): Promise<void> => {
+  checkOut: async (userId: Types.ObjectId, clientIp: string): Promise<void> => {
     const now = dateHelper.getNowWIBAsDateTime();
     const startOfDay = dateHelper.getStartOfDayWIB();
     const endOfDay = dateHelper.getEndOfDayWIB();
     let timeOut = dateHelper.getTimeTodayWIB(11);
-    const { device_id } = device;
 
     const isRamadhan = await settingRepository.findSettingByCode("RAMADHAN");
 
@@ -66,13 +71,19 @@ export const attendanceValidate = {
       timeOut = dateHelper.getTimeTodayWIB(16);
     }
 
-    const userDevice = await userRepository.findUserDevice(userId);
+    // MikroTik DHCP-based device validation
+    const userDevice = await userRepository.findUserMacAddress(userId);
+    const detectedMac = await mikrotikService.getMacAddressByIp(clientIp);
 
-    if (!userDevice?.device_id) {
+    if (!userDevice?.mac_address) {
       throw new Error("Device not found");
     }
 
-    if (userDevice.device_id !== device_id) {
+    if (!detectedMac) {
+      throw new Error("Device not found in MikroTik DHCP lease");
+    }
+
+    if (detectedMac !== userDevice.mac_address) {
       throw new Error("Device not registered");
     }
 

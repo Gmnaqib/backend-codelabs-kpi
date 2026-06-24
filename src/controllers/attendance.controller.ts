@@ -5,16 +5,17 @@ import attendanceService from "../services/attendance.service";
 import fileUploadService from "../services/fileUpload.service";
 import attendanceRepository from "../repository/attendance.repository";
 import dateHelper from "../helper/dateHelper";
+import { getClientIp } from "../helper/networkHelper";
 import { Types } from "mongoose";
 
 const attendanceController = {
   checkin: async (req: AuthRequest, res: Response): Promise<any> => {
     try {
       const userId = req.user?.id;
-      const deviceData = req.body;
       const reason = req.body.reason;
+      const clientIp = getClientIp(req);
 
-      const result = await attendanceService.checkIn(userId, deviceData, reason);
+      const result = await attendanceService.checkIn(userId, clientIp, reason);
       return response({ res, code: 201, message: "Checkin success", data: result });
     } catch (error: any) {
       return response({ res, code: 500, message: error.message });
@@ -24,9 +25,9 @@ const attendanceController = {
   checkOut: async (req: AuthRequest, res: Response): Promise<any> => {
     try {
       const userId = req.user?.id;
-      const deviceData = req.body;
+      const clientIp = getClientIp(req);
 
-      const result = await attendanceService.checkOut(userId, deviceData);
+      const result = await attendanceService.checkOut(userId, clientIp);
       return response({ res, code: 200, message: "Checkout success", data: result });
     } catch (error: any) {
       return response({ res, code: 500, message: error.message });

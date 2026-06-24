@@ -1,6 +1,7 @@
 import userRepository from "../repository/user.repository";
 import userValidate from "../validators/user.validator";
 import IUser, { Role, Status, Research } from "../models/user/user.interface";
+import mikrotikService from "./mikrotik.service";
 import bcrypt from "bcrypt";
 import fs from "fs";
 import path from "path";
@@ -64,10 +65,10 @@ const userService = {
       status?: Status;
       research?: Research;
       product_id?: string;
-      change_device_id?: boolean;
+      change_mac_address?: boolean;
     },
   ): Promise<IUser> => {
-    const { name, password, role, status, research, product_id, change_device_id } = userData;
+    const { name, password, role, status, research, product_id, change_mac_address } = userData;
     const user = await userRepository.findUserById(userId, true);
 
     if (password) {
@@ -80,19 +81,26 @@ const userService = {
     if (status) user!.status = status;
     if (research) user!.research = research;
     if (product_id) user!.product_id = product_id;
-    if (change_device_id !== undefined) user!.change_device_id = change_device_id;
+    if (change_mac_address !== undefined) user!.change_mac_address = change_mac_address;
 
     await user!.save();
     return user!;
   },
 
-  updateDeviceId: async (userId: string, deviceId: string): Promise<IUser> => {
-    await userValidate.updateDeviceId(userId, deviceId);
+  updateDeviceId: async (userId: string, clientIp: string): Promise<IUser> => {
+    await userValidate.updateDeviceId(userId);
+
+    // Resolve MAC address from MikroTik DHCP lease using client IP
+    const detectedMac = await mikrotikService.getMacAddressByIp(clientIp);
 
     const user = await userRepository.findUserById(userId, true);
 
-    user!.device_id = deviceId;
-    user!.change_device_id = false;
+    if (!detectedMac) {
+      throw new Error("Device not found in MikroTik DHCP lease");
+    }
+
+    user!.mac_address = detectedMac;
+    user!.change_mac_address = false;
     await user!.save();
     return user!;
   },

@@ -16,6 +16,7 @@ import competitionRouter from "./routes/competition.route";
 import brandingRouter from "./routes/branding.route";
 import kpiItemRouter from "./routes/kpi.route";
 import productRouter from "./routes/product.route";
+import debugRouter from "./routes/debug.route";
 import cors from "cors";
 
 connectDB();
@@ -66,7 +67,8 @@ app.use("/competition", competitionRouter);
 app.use("/branding", brandingRouter);
 app.use("/kpi", kpiItemRouter);
 app.use("/products", productRouter);
+app.use("/debug", debugRouter);
 
-app.listen(port, () => {
+app.listen(3000,"0.0.0.0",() => {
   console.log(`App listening on http://localhost:${port}`);
 });

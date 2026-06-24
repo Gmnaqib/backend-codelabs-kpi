@@ -34,8 +34,8 @@ const convertAttendanceToIndonesiaTime = (record: any) => {
 };
 
 const attendanceService = {
-  checkIn: async (userId: Types.ObjectId, deviceId: { device_id: string }, reason?: string): Promise<IAttendance> => {
-    const validationResult = await attendanceValidate.checkIn(userId, deviceId, reason);
+  checkIn: async (userId: Types.ObjectId, clientIp: string, reason?: string): Promise<IAttendance> => {
+    const validationResult = await attendanceValidate.checkIn(userId, clientIp, reason);
     const userObjectId = new Types.ObjectId(userId);
 
     if (validationResult.isLateCheckIn) {
@@ -58,10 +58,10 @@ const attendanceService = {
     return convertAttendanceToIndonesiaTime(record);
   },
 
-  checkOut: async (userId: Types.ObjectId, deviceId: { device_id: string }): Promise<IAttendance> => {
+  checkOut: async (userId: Types.ObjectId, clientIp: string): Promise<IAttendance> => {
     const userObjectId = new Types.ObjectId(userId);
 
-    await attendanceValidate.checkOut(userObjectId, deviceId);
+    await attendanceValidate.checkOut(userObjectId, clientIp);
 
     const startOfDay = dateHelper.getStartOfDayWIB();
     const endOfDay = dateHelper.getEndOfDayWIB();

@@ -80,11 +80,11 @@ const userSchema = new Schema<IUser>(
       type: String,
       required: false,
     },
-    device_id: {
+    mac_address: {
       type: String,
       required: false,
     },
-    change_device_id: {
+    change_mac_address: {
       type: Boolean,
       default: true,
     },
