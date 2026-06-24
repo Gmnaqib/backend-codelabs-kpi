@@ -3,6 +3,8 @@ import KPIItemController from "../controllers/kpi.item.controller";
 import KPICountController from "../controllers/kpi.count.controller";
 import { authenticateToken } from "../middlewares/auth.middlewares";
 import { roleMiddlewares } from "../middlewares/role.middlewares";
+import mikrotikService from "../services/mikrotik.service";
+import response from "../helper/response";
 
 const kpiItemRouter = Router();
 
@@ -28,4 +30,15 @@ kpiItemRouter.get("/me", authenticateToken, KPICountController.getMyKPISummary);
 kpiItemRouter.get("/summary/:userId", authenticateToken, KPICountController.getKPISummaryByUserId);
 kpiItemRouter.get("/", authenticateToken, KPICountController.getAllKPISummary);
 
+
+
+// test di kpi.route.ts atau buat route baru
+kpiItemRouter.get("/mikrotik/test", authenticateToken, async (req, res) => {
+  try {
+    const arpTable = await mikrotikService.getArpTable();
+    return response({ res, code: 200, message: "MikroTik connected", data: arpTable });
+  } catch (error: any) {
+    return response({ res, code: 500, message: error.message });
+  }
+});
 export default kpiItemRouter;
