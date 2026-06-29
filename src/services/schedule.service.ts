@@ -92,6 +92,9 @@ const scheduleService = {
             description: pattern.description,
           };
 
+          // Hapus schedule lama di tanggal yang sama supaya tidak terjadi data dobel
+          await scheduleRepository.deleteSchedulesByTypeAndDate(type, currentDate);
+
           const createdSchedule = await scheduleRepository.createSchedule(scheduleData);
           createdSchedules.push(createdSchedule);
           break;

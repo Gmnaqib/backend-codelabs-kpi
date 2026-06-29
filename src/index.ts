@@ -3,7 +3,7 @@ import "dotenv/config";
 import path from "path";
 import multer from "multer";
 const app = express();
-const port = process.env.PORT;
+const port = Number(process.env.PORT) || 4000;
 import { connectDB } from "./config/db";
 import authRouter from "./routes/auth.route";
 import userRouter from "./routes/user.route";
@@ -69,6 +69,6 @@ app.use("/kpi", kpiItemRouter);
 app.use("/products", productRouter);
 app.use("/debug", debugRouter);
 
-app.listen(3000,"0.0.0.0",() => {
+app.listen(port,"0.0.0.0",() => {
   console.log(`App listening on http://localhost:${port}`);
 });
