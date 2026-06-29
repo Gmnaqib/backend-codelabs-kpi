@@ -7,6 +7,7 @@ import scheduleMiddlewareValidator from "../middlewares/schedule.middleware.vali
 const router = express.Router();
 
 router.get("/", authenticateToken, scheduleController.getAllSchedules);
+router.get("/today", authenticateToken, scheduleController.getTodayPicketSchedule);
 router.get("/:id", authenticateToken, scheduleController.getScheduleById);
 router.delete("/:id", authenticateToken, roleMiddlewares(["admin", "minister of operation"]), scheduleController.deleteSchedule);
 router.post("/", roleMiddlewares(["admin", "minister of operation"]), authenticateToken, scheduleMiddlewareValidator.createSchedule, scheduleController.createSchedule);

@@ -2,6 +2,8 @@ import scheduleRepository from "../repository/schedule.repository";
 import ISchedule, { ScheduleType } from "../models/schedule/schedule.interface";
 import { Types } from "mongoose";
 
+const MAX_PICKET_USERS_PER_DAY = 6;
+
 const rotateRight = <T>(items: T[], shift: number): T[] => {
   const n = items.length;
   if (n === 0) return items;
@@ -104,6 +106,19 @@ const scheduleService = {
 
   getAllSchedules: async (): Promise<ISchedule[]> => {
     return await scheduleRepository.findAllSchedules();
+  },
+
+  getTodayPicketSchedule: async (): Promise<any[]> => {
+    const schedules = await scheduleRepository.findSchedulesByTypeAndDate(ScheduleType.picket, new Date());
+
+    // assignedUsers sudah dirotasi saat dibuat (createBatchSchedule), di sini tinggal dipotong maksimal 6 orang
+    return schedules.map((schedule) => {
+      const plain = schedule.toObject();
+      return {
+        ...plain,
+        assignedUsers: (plain.assignedUsers ?? []).slice(0, MAX_PICKET_USERS_PER_DAY),
+      };
+    });
   },
 
   getScheduleById: async (id: Types.ObjectId): Promise<ISchedule | null> => {
