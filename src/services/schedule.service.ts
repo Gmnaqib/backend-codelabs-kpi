@@ -12,6 +12,14 @@ const rotateRight = <T>(items: T[], shift: number): T[] => {
   return [...items.slice(n - offset), ...items.slice(0, n - offset)];
 };
 
+const capToActivePicketUsers = (schedule: ISchedule & { toObject: () => any }) => {
+  const plain = schedule.toObject();
+  return {
+    ...plain,
+    assignedUsers: (plain.assignedUsers ?? []).slice(0, MAX_PICKET_USERS_PER_DAY),
+  };
+};
+
 const scheduleService = {
   createSchedule: async (type: ScheduleType, date: Date, assignedUsers?: Types.ObjectId[], description?: string): Promise<ISchedule> => {
     if (!type || !date) {
@@ -115,13 +123,21 @@ const scheduleService = {
     const schedules = await scheduleRepository.findSchedulesByTypeAndDate(ScheduleType.picket, new Date());
 
     // assignedUsers sudah dirotasi saat dibuat (createBatchSchedule), di sini tinggal dipotong maksimal 6 orang
-    return schedules.map((schedule) => {
-      const plain = schedule.toObject();
-      return {
-        ...plain,
-        assignedUsers: (plain.assignedUsers ?? []).slice(0, MAX_PICKET_USERS_PER_DAY),
-      };
-    });
+    return schedules.map(capToActivePicketUsers);
+  },
+
+  getUpcomingPicketScheduleForSwap: async (): Promise<any[]> => {
+    const startDate = new Date();
+    startDate.setHours(0, 0, 0, 0);
+
+    const endDate = new Date();
+    endDate.setDate(endDate.getDate() + 13); // 2 minggu kedepan (hari ini + 13 hari)
+    endDate.setHours(23, 59, 59, 999);
+
+    const schedules = await scheduleRepository.findSchedulesByTypeAndDateRange(ScheduleType.picket, startDate, endDate);
+
+    // hanya posisi 1-6 yang ditampilkan sebagai kandidat tukar, karena kapasitas piket per hari cuma 6 orang
+    return schedules.map(capToActivePicketUsers);
   },
 
   getScheduleById: async (id: Types.ObjectId): Promise<ISchedule | null> => {
