@@ -22,14 +22,23 @@ const parseDateFilter = (query: any): { year: number; month?: number } | undefin
 
 const KPICountController = {
 
-  // GET /kpi/me
   getMyKPISummary: async (req: AuthRequest, res: Response): Promise<any> => {
     try {
       const userId = req.user?.id;
       if (!userId) return response({ res, code: 401, message: "Authentication required" });
       const dateFilter = parseDateFilter(req.query);
-      const summary = await KPICountService.getMyKPISummary(userId, dateFilter);
-      return response({ res, code: 200, message: "KPI summary retrieved successfully", data: summary });
+
+      const allSummaries = await KPICountService.getAllKPISummary(dateFilter);
+      const rankIndex = allSummaries.findIndex((s) => s.userId.toString() === userId.toString());
+      const summary = rankIndex >= 0 ? allSummaries[rankIndex] : await KPICountService.getMyKPISummary(userId, dateFilter);
+      const rank = rankIndex >= 0 ? rankIndex + 1 : null;
+
+      return response({
+        res,
+        code: 200,
+        message: "KPI summary retrieved successfully",
+        data: { ...summary, totalPoints: summary.grand_total, rank },
+      });
     } catch (error: any) {
       return response({ res, code: 500, message: error.message });
     }
@@ -46,6 +55,7 @@ const KPICountController = {
         rank: index + 1,
         userId: s.userId,
         name: s.name,
+        totalPoints: s.grand_total,
         grand_total: s.grand_total,
         categories: s.categories,
       }));
@@ -67,7 +77,6 @@ const KPICountController = {
     }
   },
 
-  // GET /kpi/summary/:userId
   getKPISummaryByUserId: async (req: AuthRequest, res: Response): Promise<any> => {
     try {
       const userId = req.params.userId as string;
@@ -100,6 +109,17 @@ const KPICountController = {
       const dateFilter = parseDateFilter(req.query);
       const data = await KPICountService.getOperationalLeaderboard(dateFilter);
       return response({ res, code: 200, message: "Operational leaderboard retrieved successfully", data });
+    } catch (error: any) {
+      return response({ res, code: 500, message: error.message });
+    }
+  },
+
+  // GET /kpi/operational?year=2026&month=6
+  getAllOperationalBreakdown: async (req: Request, res: Response): Promise<any> => {
+    try {
+      const dateFilter = parseDateFilter(req.query);
+      const data = await KPICountService.getAllOperationalBreakdown(dateFilter);
+      return response({ res, code: 200, message: "Operational breakdown retrieved successfully", data });
     } catch (error: any) {
       return response({ res, code: 500, message: error.message });
     }

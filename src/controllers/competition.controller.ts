@@ -1,14 +1,19 @@
 import { Request, Response } from "express";
+import { Types } from "mongoose";
 import { AuthRequest } from "../middlewares/auth.middlewares";
 import response from "../helper/response";
 import CompetitionService from "../services/competition.service";
+import { resolveKpiDetailId } from "../helper/kpi.detail.validator";
 
 const competitionController = {
   addCompetition: async (req: AuthRequest, res: Response): Promise<any> => {
     try {
       const userId = req.user?.id;
-      const { name, description, deadline, link, type, id_kpi_detail } = req.body;
-      const newCompetition = await CompetitionService.addCompetition(userId, name, description, deadline, link, type, id_kpi_detail);
+      const { name, description, deadline, link, type, id_kpi_detail, category } = req.body;
+      const resolvedId = id_kpi_detail
+        ? new Types.ObjectId(id_kpi_detail)
+        : category ? await resolveKpiDetailId("competition", category) : undefined;
+      const newCompetition = await CompetitionService.addCompetition(userId, name, description, deadline, link, type, resolvedId?.toString());
       return response({ res, code: 201, message: "Competition success created", data: newCompetition });
     } catch (error: any) {
       return response({ res, code: 500, message: error.message, data: null });

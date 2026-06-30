@@ -1,13 +1,17 @@
 import IOperationalRecord from "../models/operationalRecord/operational.interface";
 import operationalRepository from "../repository/operationalRecord.repository";
 import scheduleRepository from "../repository/schedule.repository";
-import { validateKpiDetailKementerian } from "../helper/kpi.detail.validator";
+import { validateKpiDetailKementerian, resolveKpiDetailId } from "../helper/kpi.detail.validator";
 import { ScheduleType } from "../models/schedule/schedule.interface";
 
 const operationalRecordService = {
   createOperationalRecord: async (recordData: IOperationalRecord): Promise<IOperationalRecord> => {
     if (recordData.id_kpi_detail) {
       await validateKpiDetailKementerian(recordData.id_kpi_detail.toString(), "operational");
+    } else {
+      // FE belum pernah mengirim id_kpi_detail saat checkin picket/thematic, jadi dicocokkan otomatis dari kpi_item yang namanya sama dengan type
+      const resolvedId = await resolveKpiDetailId("operational", recordData.type);
+      if (resolvedId) recordData.id_kpi_detail = resolvedId;
     }
 
     const scheduleId = recordData.scheduleId;

@@ -1,15 +1,20 @@
 import { Request, Response } from "express";
+import { Types } from "mongoose";
 import { AuthRequest } from "../middlewares/auth.middlewares";
 import response from "../helper/response";
 import BrandingService from "../services/branding.service";
 import { BrandingStatus } from "../models/branding/branding.interface";
+import { resolveKpiDetailId } from "../helper/kpi.detail.validator";
 
 const brandingController = {
   addBranding: async (req: AuthRequest, res: Response): Promise<any> => {
     try {
       const userId = req.user?.id;
       const { name, description, link, research, level, id_kpi_detail } = req.body;
-      const newBranding = await BrandingService.addBranding(userId, name, description, link, research, level, id_kpi_detail);
+      const resolvedId = id_kpi_detail
+        ? new Types.ObjectId(id_kpi_detail)
+        : research ? await resolveKpiDetailId("branding", research) : undefined;
+      const newBranding = await BrandingService.addBranding(userId, name, description, link, research, level, resolvedId?.toString());
       return response({ res, code: 201, message: "Branding success created", data: newBranding });
     } catch (error: any) {
       return response({ res, code: 500, message: error.message, data: null });

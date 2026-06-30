@@ -6,6 +6,7 @@ import operationalRecordService from "./operationalRecord.service";
 import IAttendance, { attendanceStatus, approvalStatus } from "../models/attendance/attendance.Interface";
 import { Status } from "../models/user/user.interface";
 import { ScheduleType } from "../models/schedule/schedule.interface";
+import { resolveKpiDetailId } from "../helper/kpi.detail.validator";
 import { Types } from "mongoose";
 import dateHelper from "../helper/dateHelper";
 
@@ -37,10 +38,13 @@ const attendanceService = {
   checkIn: async (userId: Types.ObjectId, clientIp: string, reason?: string): Promise<IAttendance> => {
     const validationResult = await attendanceValidate.checkIn(userId, clientIp, reason);
     const userObjectId = new Types.ObjectId(userId);
+    // FE tidak mengirim id_kpi_detail saat checkin, jadi dicocokkan otomatis dari kpi_item "attendance" di kementerian operational
+    const id_kpi_detail = await resolveKpiDetailId("operational", "attendance");
 
     if (validationResult.isLateCheckIn) {
       const record = await attendanceRepository.create({
         userId: userObjectId,
+        id_kpi_detail,
         status: attendanceStatus.PRESENT,
         checkIn: new Date(),
         checkOut: null,
@@ -51,6 +55,7 @@ const attendanceService = {
 
     const record = await attendanceRepository.create({
       userId: userObjectId,
+      id_kpi_detail,
       status: attendanceStatus.PRESENT,
       checkIn: new Date(),
       checkOut: null,

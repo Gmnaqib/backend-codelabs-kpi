@@ -4,11 +4,12 @@ import { AuthRequest } from "../middlewares/auth.middlewares";
 import researchService from "../services/research.service";
 import response from "../helper/response";
 import IResearch, { progressStatus, ResearchStatus } from "../models/research/research.interface";
+import { resolveKpiDetailId } from "../helper/kpi.detail.validator";
 
 const researchController = {
   createResearch: async (req: AuthRequest, res: Response): Promise<any> => {
     try {
-      const { week, id_kpi_detail, title, link, progress, challenge } = req.body;
+      const { week, id_kpi_detail, category, title, link, progress, challenge } = req.body;
       const userId = req.user?.id;
 
       if (!userId || !week || !title || !link || !progress) {
@@ -24,17 +25,20 @@ const researchController = {
         return response({ res, code: 400, message: "Week must be a positive integer" });
       }
 
-      const researchData: IResearch = {
+      // FE belum mengirim id_kpi_detail langsung, jadi dicocokkan otomatis dari kpi_item yang namanya sama dengan category ("personal"/"product"/"workshop")
+      const resolvedId = id_kpi_detail ? new Types.ObjectId(id_kpi_detail) : category ? await resolveKpiDetailId("research", category) : undefined;
+
+      const researchData = {
         userId: new Types.ObjectId(userId),
         week: weekNumber,
-        ...(id_kpi_detail && { id_kpi_detail: new Types.ObjectId(id_kpi_detail) }),
+        ...(resolvedId && { id_kpi_detail: resolvedId }),
         title,
         link,
         progress,
         challenge: challenge || null,
       };
 
-      const newResearch = await researchService.createResearch(researchData);
+      const newResearch = await researchService.createResearch(researchData as IResearch);
       return response({ res, code: 201, message: "Research record created successfully", data: newResearch });
     } catch (error: any) {
       if (error.message?.includes("already exists") || error.message?.includes("duplicate")) {

@@ -7,6 +7,7 @@ import competitionRepository from "../repository/competition.respository";
 import userRepository from "../repository/user.repository";
 import { attendanceStatus } from "../models/attendance/attendance.Interface";
 import { CompetitionStatus } from "../models/competition/competition.interface";
+import { ScheduleType } from "../models/schedule/schedule.interface";
 import { Types } from "mongoose";
 
 const buildDateFilter = (dateFilter?: { year: number; month?: number }) => {
@@ -23,8 +24,6 @@ const buildDateFilter = (dateFilter?: { year: number; month?: number }) => {
   };
 };
 
-// REQUIRED : di-cap maksimal = point detail
-// OPTIONAL : bebas, bisa melebihi bobot item (bonus)
 const hitungPoint = (point: number, maxActivity: number, jumlahActivity: number, label: string): number => {
   const pointPerActivity = point / maxActivity;
   const raw = pointPerActivity * jumlahActivity;
@@ -202,6 +201,75 @@ const KPICountService = {
       userId: s.userId,
       point: s.grand_total,
     }));
+  },
+
+  getAllOperationalBreakdown: async (dateFilter?: { year: number; month?: number }) => {
+    const allUsers = await userRepository.findAllUsers();
+    const masters: any[] = await KPIRepository.findAllMasters();
+    const operationalMaster = masters.find((m) => m.kementerian.toLowerCase() === "operational");
+    const details: any[] = operationalMaster ? await KPIRepository.findDetailsByMasterId(operationalMaster._id.toString()) : [];
+    const findDetail = (name: string) => details.find((d) => d.kpi_item.toLowerCase() === name);
+
+    const attendanceDetail = findDetail("attendance");
+    const picketDetail = findDetail("picket");
+    const thematicDetail = findDetail("thematic");
+
+    const dateRange = buildDateFilter(dateFilter);
+    const startDate = dateFilter ? new Date(dateFilter.year, (dateFilter.month ?? 1) - 1, 1) : undefined;
+    const endDate = dateFilter ? new Date(dateFilter.year, dateFilter.month ?? 12, 0, 23, 59, 59, 999) : undefined;
+
+    const buildCategory = async (userId: string, userObjectId: Types.ObjectId, detail: any, type?: ScheduleType) => {
+      if (!detail) {
+        return { count: 0, code: "", point: 0, total: 0 };
+      }
+
+      let count = 0;
+      if (type) {
+        const records = await operationalRecordRepository.findRecordsWithFilters({
+          userId,
+          id_kpi_detail: detail._id.toString(),
+          type,
+          startDate,
+          endDate,
+        });
+        count = records.length;
+      } else {
+        const records = await attendanceRepository.findAll({
+          userId: userObjectId,
+          id_kpi_detail: detail._id,
+          status: attendanceStatus.PRESENT,
+          checkOut: { $ne: null } as any,
+          ...(dateRange && { createdAt: dateRange }),
+        });
+        count = records.length;
+      }
+
+      const total = hitungPoint(detail.point, detail.max_activity, count, detail.label);
+      return { count, code: detail.kpi_item, point: detail.point, total };
+    };
+
+    const results = [];
+    for (const user of allUsers) {
+      const userId = user._id.toString();
+      const userObjectId = new Types.ObjectId(userId);
+
+      const attendance = await buildCategory(userId, userObjectId, attendanceDetail);
+      const picket = await buildCategory(userId, userObjectId, picketDetail, ScheduleType.picket);
+      const thematic = await buildCategory(userId, userObjectId, thematicDetail, ScheduleType.thematic);
+
+      const totalPoints = parseFloat(String(Math.floor((attendance.total + picket.total + thematic.total) * 10) / 10));
+
+      results.push({
+        userId: userObjectId,
+        userName: user.name,
+        totalPoints,
+        operationalDetail: { attendance, picket, thematic },
+        year: dateFilter?.year ?? new Date().getFullYear(),
+        month: dateFilter?.month ?? new Date().getMonth() + 1,
+      });
+    }
+
+    return results.sort((a, b) => b.totalPoints - a.totalPoints);
   },
 };
 
