@@ -124,6 +124,43 @@ const KPICountController = {
       return response({ res, code: 500, message: error.message });
     }
   },
+
+  // GET /kpi/operational/me?year=2026&month=6
+  getMyOperationalSummary: async (req: AuthRequest, res: Response): Promise<any> => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) return response({ res, code: 401, message: "Authentication required" });
+      const dateFilter = parseDateFilter(req.query);
+      const data = await KPICountService.getMyOperationalSummary(userId, dateFilter);
+      return response({ res, code: 200, message: "Operational summary retrieved successfully", data });
+    } catch (error: any) {
+      return response({ res, code: 500, message: error.message });
+    }
+  },
+
+  // GET /kpi/research/me?year=2026&month=6
+  getMyResearchSummary: async (req: AuthRequest, res: Response): Promise<any> => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) return response({ res, code: 401, message: "Authentication required" });
+      const dateFilter = parseDateFilter(req.query);
+      const data = await KPICountService.getMyResearchSummary(userId, dateFilter);
+      return response({ res, code: 200, message: "Research summary retrieved successfully", data });
+    } catch (error: any) {
+      return response({ res, code: 500, message: error.message });
+    }
+  },
+
+  // GET /kpi/research?year=2026&month=6
+  getAllResearchSummary: async (req: Request, res: Response): Promise<any> => {
+    try {
+      const dateFilter = parseDateFilter(req.query);
+      const data = await KPICountService.getAllResearchSummary(dateFilter);
+      return response({ res, code: 200, message: "Research summary retrieved successfully", data });
+    } catch (error: any) {
+      return response({ res, code: 500, message: error.message });
+    }
+  },
 };
 
 export default KPICountController;

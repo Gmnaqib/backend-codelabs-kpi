@@ -203,6 +203,121 @@ const KPICountService = {
     }));
   },
 
+  getMyOperationalSummary: async (userId: string, dateFilter?: { year: number; month?: number }) => {
+    const userObjectId = new Types.ObjectId(userId);
+    const masters: any[] = await KPIRepository.findAllMasters();
+    const operationalMaster = masters.find((m) => m.kementerian.toLowerCase() === "operational");
+    const details: any[] = operationalMaster ? await KPIRepository.findDetailsByMasterId(operationalMaster._id.toString()) : [];
+    const findDetail = (name: string) => details.find((d) => d.kpi_item.toLowerCase() === name);
+
+    const attendanceDetail = findDetail("attendance");
+    const picketDetail = findDetail("picket");
+    const thematicDetail = findDetail("thematic");
+
+    const dateRange = buildDateFilter(dateFilter);
+    const startDate = dateFilter ? new Date(dateFilter.year, (dateFilter.month ?? 1) - 1, 1) : undefined;
+    const endDate = dateFilter ? new Date(dateFilter.year, dateFilter.month ?? 12, 0, 23, 59, 59, 999) : undefined;
+
+    const countAttendance = attendanceDetail ? (await attendanceRepository.findAll({
+      userId: userObjectId,
+      id_kpi_detail: attendanceDetail._id,
+      status: attendanceStatus.PRESENT,
+      checkOut: { $ne: null } as any,
+      ...(dateRange && { createdAt: dateRange }),
+    })).length : 0;
+
+    const countPicket = picketDetail ? (await operationalRecordRepository.findRecordsWithFilters({
+      userId, id_kpi_detail: picketDetail._id.toString(), type: ScheduleType.picket, startDate, endDate,
+    })).length : 0;
+
+    const countThematic = thematicDetail ? (await operationalRecordRepository.findRecordsWithFilters({
+      userId, id_kpi_detail: thematicDetail._id.toString(), type: ScheduleType.thematic, startDate, endDate,
+    })).length : 0;
+
+    const totalAttendance = attendanceDetail ? hitungPoint(attendanceDetail.point, attendanceDetail.max_activity, countAttendance, attendanceDetail.label) : 0;
+    const totalPicket = picketDetail ? hitungPoint(picketDetail.point, picketDetail.max_activity, countPicket, picketDetail.label) : 0;
+    const totalThematic = thematicDetail ? hitungPoint(thematicDetail.point, thematicDetail.max_activity, countThematic, thematicDetail.label) : 0;
+
+    return {
+      totalAttendance: countAttendance,
+      totalPicket: countPicket,
+      totalTematik: countThematic,
+      totalPoint: Math.floor((totalAttendance + totalPicket + totalThematic) * 10) / 10,
+      year: dateFilter?.year ?? new Date().getFullYear(),
+      month: dateFilter?.month ?? new Date().getMonth() + 1,
+    };
+  },
+
+  getMyResearchSummary: async (userId: string, dateFilter?: { year: number; month?: number }) => {
+    const masters: any[] = await KPIRepository.findAllMasters();
+    const researchMaster = masters.find((m) => m.kementerian.toLowerCase() === "research");
+    if (!researchMaster) return { totalApproved: 0, totalPoint: 0 };
+
+    const details: any[] = await KPIRepository.findDetailsByMasterId(researchMaster._id.toString());
+    let totalApproved = 0;
+    let totalPoint = 0;
+
+    for (const detail of details) {
+      const records = await researchRepository.findResearchWithFilters({
+        userId,
+        id_kpi_detail: detail._id.toString(),
+        status: { $ne: null } as any,
+        ...(dateFilter && { date: dateFilter }),
+      });
+      totalApproved += records.length;
+      const rawTotal = records.reduce((sum: number, r: any) => {
+        return sum + hitungPointRange(detail.point, detail.max_activity, r.status || 0, detail.label);
+      }, 0);
+      totalPoint += rawTotal;
+    }
+
+    return {
+      totalApproved,
+      totalPoint: Math.floor(totalPoint * 10) / 10,
+    };
+  },
+
+  getAllResearchSummary: async (dateFilter?: { year: number; month?: number }) => {
+    const allUsers = await userRepository.findAllUsers();
+    const masters: any[] = await KPIRepository.findAllMasters();
+    const researchMaster = masters.find((m) => m.kementerian.toLowerCase() === "research");
+    const details: any[] = researchMaster ? await KPIRepository.findDetailsByMasterId(researchMaster._id.toString()) : [];
+
+    const results = [];
+    for (const user of allUsers) {
+      const userId = user._id.toString();
+      const byCategory: Record<string, { count: number; total: number }> = {};
+      let totalPoints = 0;
+
+      for (const detail of details) {
+        const records = await researchRepository.findResearchWithFilters({
+          userId,
+          id_kpi_detail: detail._id.toString(),
+          status: { $ne: null } as any,
+          ...(dateFilter && { date: dateFilter }),
+        });
+        const count = records.length;
+        const raw = records.reduce((sum: number, r: any) => {
+          return sum + hitungPointRange(detail.point, detail.max_activity, r.status || 0, detail.label);
+        }, 0);
+        const total = Math.floor(raw * 10) / 10;
+        byCategory[detail.kpi_item] = { count, total };
+        totalPoints += total;
+      }
+
+      results.push({
+        userId: user._id,
+        userName: user.name,
+        totalPoints: Math.floor(totalPoints * 10) / 10,
+        byCategory,
+        year: dateFilter?.year ?? new Date().getFullYear(),
+        month: dateFilter?.month ?? new Date().getMonth() + 1,
+      });
+    }
+
+    return results.sort((a, b) => b.totalPoints - a.totalPoints);
+  },
+
   getAllOperationalBreakdown: async (dateFilter?: { year: number; month?: number }) => {
     const allUsers = await userRepository.findAllUsers();
     const masters: any[] = await KPIRepository.findAllMasters();

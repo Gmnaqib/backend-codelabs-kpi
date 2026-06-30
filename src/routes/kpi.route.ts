@@ -24,6 +24,9 @@ kpiItemRouter.put("/detail/:id", authenticateToken, roleMiddlewares(["admin"]), 
 kpiItemRouter.delete("/detail/:id", authenticateToken, roleMiddlewares(["admin"]), KPIItemController.deleteDetail);
 
 // KPI Summary & Statistic
+kpiItemRouter.get("/research/me", authenticateToken, KPICountController.getMyResearchSummary);
+kpiItemRouter.get("/research", authenticateToken, KPICountController.getAllResearchSummary);
+kpiItemRouter.get("/operational/me", authenticateToken, KPICountController.getMyOperationalSummary);
 kpiItemRouter.get("/statistic", authenticateToken, KPICountController.getKpiStatistic);
 kpiItemRouter.get("/me/operational", authenticateToken, KPICountController.getOperationalLeaderboard);
 kpiItemRouter.get("/operational", authenticateToken, KPICountController.getAllOperationalBreakdown);
