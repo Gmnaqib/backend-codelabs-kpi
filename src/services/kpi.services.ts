@@ -9,7 +9,7 @@ const KPIItemService = {
     const newTotal = totalExisting + (data.point || 0);
 
     if (newTotal > 100) {
-      throw new Error(`Total weight of all departments must not exceed 100%. Current total is ${totalExisting}%, cannot add ${data.point}%`);
+      throw new Error(`Weight exceeds 100%. Used: ${totalExisting}%, adding: ${data.point}%`);
     }
 
     return await KPIRepository.createMaster(data);
@@ -36,7 +36,16 @@ const KPIItemService = {
       const newTotal = totalLain + data.point;
 
       if (newTotal > 100) {
-        throw new Error(`Total weight of all departments must not exceed 100%. Other departments total is ${totalLain}%, cannot set ${data.point}%`);
+        throw new Error(`Weight exceeds 100%. Others: ${totalLain}%, requested: ${data.point}%`);
+      }
+
+      const existingDetails = await KPIRepository.findDetailsByMasterId(id);
+      const requiredTotal = existingDetails
+        .filter((d) => d.label === "REQUIRED")
+        .reduce((sum, d) => sum + d.point, 0);
+
+      if (data.point < requiredTotal) {
+        throw new Error(`Cannot reduce to ${data.point}%. REQUIRED items already use ${requiredTotal}%`);
       }
     }
 
@@ -60,7 +69,7 @@ const KPIItemService = {
 
       const newTotal = totalRequired + data.point;
       if (newTotal > master.point) {
-        throw new Error(`Total REQUIRED items must not exceed master weight (${master.point}%). Current total is ${totalRequired}%, cannot add ${data.point}%`);
+        throw new Error(`Exceeds ministry weight (${master.point}%). Used: ${totalRequired}%, adding: ${data.point}%`);
       }
     }
 
@@ -98,7 +107,7 @@ const KPIItemService = {
 
           const newTotal = totalRequired + data.point;
           if (newTotal > master.point) {
-            throw new Error(`Total REQUIRED items must not exceed master weight (${master.point}%). Other items total is ${totalRequired}%, cannot set ${data.point}%`);
+            throw new Error(`Exceeds ministry weight (${master.point}%). Others: ${totalRequired}%, requested: ${data.point}%`);
           }
         }
       }
