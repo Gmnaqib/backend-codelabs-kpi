@@ -3,20 +3,41 @@ import { attendanceStatus } from "../models/attendance/attendance.Interface";
 import userRepository from "../repository/user.repository";
 import settingRepository from "../repository/setting.respository";
 import mikrotikService from "../services/mikrotik.service";
+import timeSettingService from "../services/timeSetting.service";
 import dateHelper from "../helper/dateHelper";
+import { DateTime } from "luxon";
 import { Types } from "mongoose";
+
+const parseTime = (hhmm: string): { hour: number; minute: number } => {
+  const [hour, minute] = hhmm.split(":").map(Number);
+  return { hour, minute };
+};
+
+const getDayCode = (): "WEEKDAY" | "SATURDAY" => {
+  const weekday = DateTime.now().setZone("Asia/Jakarta").weekday;
+  if (weekday === 6) return "SATURDAY";
+  return "WEEKDAY";
+};
 
 export const attendanceValidate = {
   checkIn: async (userId: Types.ObjectId, clientIp: string, reason?: string): Promise<{ isLateCheckIn: boolean }> => {
     const now = dateHelper.getNowWIBAsDateTime();
     const startOfDay = dateHelper.getStartOfDayWIB();
     const endOfDay = dateHelper.getEndOfDayWIB();
-    const timeIn = dateHelper.getTimeTodayWIB(6);
-    const timeLimit = dateHelper.getTimeTodayWIB(12);
-    const timeLateLimit = dateHelper.getTimeTodayWIB(14);
+
+    const dayCode = getDayCode();
+    const setting = await timeSettingService.findByCode(dayCode);
+
+    const { hour: inH, minute: inM } = parseTime(setting.checkin);
+    const { hour: limH, minute: limM } = parseTime(setting.checkinlimit);
+    const { hour: lateLimH, minute: lateLimM } = parseTime(setting.checkinlatelimit);
+
+    const timeIn = dateHelper.getTimeTodayWIB(inH, inM);
+    const timeLimit = dateHelper.getTimeTodayWIB(limH, limM);
+    const timeLateLimit = dateHelper.getTimeTodayWIB(lateLimH, lateLimM);
 
     if (now < timeIn) {
-      throw new Error("You can check in after 6:00");
+      throw new Error(`You can check in after ${setting.checkin}`);
     }
 
     if (now > timeLateLimit) {
@@ -63,10 +84,13 @@ export const attendanceValidate = {
     const now = dateHelper.getNowWIBAsDateTime();
     const startOfDay = dateHelper.getStartOfDayWIB();
     const endOfDay = dateHelper.getEndOfDayWIB();
-    let timeOut = dateHelper.getTimeTodayWIB(11);
+
+    const dayCode = getDayCode();
+    const setting = await timeSettingService.findByCode(dayCode);
+    const { hour: outH, minute: outM } = parseTime(setting.checkout);
+    let timeOut = dateHelper.getTimeTodayWIB(outH, outM);
 
     const isRamadhan = await settingRepository.findSettingByCode("RAMADHAN");
-
     if (isRamadhan?.value === true) {
       timeOut = dateHelper.getTimeTodayWIB(16);
     }
@@ -141,22 +165,26 @@ export const attendanceValidate = {
 
   checkOutByMinister: async (targetUserId: Types.ObjectId): Promise<void> => {
     const now = dateHelper.getNowWIBAsDateTime();
-    let timeOutStart = dateHelper.getTimeTodayWIB(17);
-    const timeOutEnd = dateHelper.getTimeTodayWIB(19);
 
-    // Check for Ramadhan setting
+    const dayCode = getDayCode();
+    const setting = await timeSettingService.findByCode(dayCode);
+    const { hour: outH, minute: outM } = parseTime(setting.checkout);
+    const { hour: lateH, minute: lateM } = parseTime(setting.checkoutlate);
+
+    let timeOutStart = dateHelper.getTimeTodayWIB(outH, outM);
+    const timeOutEnd = dateHelper.getTimeTodayWIB(lateH, lateM);
+
     const isRamadhan = await settingRepository.findSettingByCode("RAMADHAN");
     if (isRamadhan?.value === true) {
       timeOutStart = dateHelper.getTimeTodayWIB(16);
     }
 
-    // Validate checkout time is within allowed range (17:00-19:00 or 16:00-19:00 during Ramadhan)
     if (now < timeOutStart) {
       throw new Error("Too early to check out");
     }
 
     if (now > timeOutEnd) {
-      throw new Error("Checkout time has passed (allowed until 19:00)");
+      throw new Error(`Checkout time has passed (allowed until ${setting.checkoutlate})`);
     }
   },
 };
