@@ -569,6 +569,34 @@ const attendanceService = {
     return convertAttendanceToIndonesiaTime(result);
   },
 
+  checkOutAllByMinister: async (reasonCheckOut: string): Promise<{ checkedOut: number }> => {
+    if (!reasonCheckOut || reasonCheckOut.trim() === "") {
+      throw new Error("Reason for checkout is required");
+    }
+
+    await attendanceValidate.checkOutByMinister(new Types.ObjectId());
+
+    const startOfDay = dateHelper.getStartOfDayWIB();
+    const endOfDay = dateHelper.getEndOfDayWIB();
+
+    const pending = await attendanceRepository.findAll({
+      checkIn: { $gte: startOfDay, $lt: endOfDay } as any,
+      checkOut: null as any,
+    });
+
+    const toUpdate = pending.filter((a) => a.checkIn && !a.checkOut);
+
+    await Promise.all(
+      toUpdate.map(async (a) => {
+        a.checkOut = new Date();
+        a.reasonCheckOut = reasonCheckOut;
+        await a.save();
+      })
+    );
+
+    return { checkedOut: toUpdate.length };
+  },
+
   submitLeaveByOperational: async (
     operationalUserId: Types.ObjectId,
     userId: Types.ObjectId,

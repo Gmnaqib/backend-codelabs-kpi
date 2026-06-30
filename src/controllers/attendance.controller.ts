@@ -208,6 +208,21 @@ const attendanceController = {
     }
   },
 
+  checkOutAllByMinister: async (req: AuthRequest, res: Response): Promise<any> => {
+    try {
+      const { reasonCheckOut } = req.body;
+
+      if (!reasonCheckOut || reasonCheckOut.trim() === "") {
+        return response({ res, code: 400, message: "Reason for checkout is required" });
+      }
+
+      const result = await attendanceService.checkOutAllByMinister(reasonCheckOut);
+      return response({ res, code: 200, message: `Checkout all success. ${result.checkedOut} user(s) checked out`, data: result });
+    } catch (error: any) {
+      return response({ res, code: 500, message: error.message });
+    }
+  },
+
   networkCheck: async (req: Request, res: Response): Promise<any> => {
     const clientIp = getClientIp(req).replace(/^::ffff:/, "").trim();
     const mikrotikHost = process.env.MIKROTIK_HOST ?? "";
