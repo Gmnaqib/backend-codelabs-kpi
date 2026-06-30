@@ -27,6 +27,7 @@ attendanceRouter.get(
 );
 
 // Attendance endpoints
+attendanceRouter.get("/network-check", authenticateToken, attendanceController.networkCheck);
 attendanceRouter.post("/checkin", authenticateToken, attendanceController.checkin);
 attendanceRouter.patch("/checkout", authenticateToken, attendanceController.checkOut);
 attendanceRouter.patch("/leave-requests/review/:requestId", authenticateToken, roleMiddlewares(["admin", "minister of operation"]), attendanceController.reviewLeaveRequests);

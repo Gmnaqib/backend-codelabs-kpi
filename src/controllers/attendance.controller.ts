@@ -8,6 +8,32 @@ import dateHelper from "../helper/dateHelper";
 import { getClientIp } from "../helper/networkHelper";
 import { Types } from "mongoose";
 
+const resolveAttendanceError = (message: string): { code: number; message: string } => {
+  const msg = message.toLowerCase();
+  if (msg.includes("mikrotik") || msg.includes("dhcp") || msg.includes("timed out") || msg.includes("failed to connect")) {
+    return { code: 403, message: "You are not connected to the Codelabs network" };
+  }
+  if (msg.includes("device not found in") || msg.includes("device not registered")) {
+    return { code: 403, message: "Your device is not registered on the Codelabs network" };
+  }
+  if (msg.includes("device not found")) {
+    return { code: 403, message: "MAC address is not registered in your profile" };
+  }
+  if (msg.includes("already checked in") || msg.includes("already check")) {
+    return { code: 400, message: "You have already checked in today" };
+  }
+  if (msg.includes("too late to check in") || msg.includes("too early") || msg.includes("check in after")) {
+    return { code: 400, message: message };
+  }
+  if (msg.includes("not checkin today")) {
+    return { code: 400, message: "You have not checked in today" };
+  }
+  if (msg.includes("reason is required")) {
+    return { code: 400, message: "Reason is required for late check-in" };
+  }
+  return { code: 500, message: "An internal server error occurred" };
+};
+
 const attendanceController = {
   checkin: async (req: AuthRequest, res: Response): Promise<any> => {
     try {
@@ -18,7 +44,8 @@ const attendanceController = {
       const result = await attendanceService.checkIn(userId, clientIp, reason);
       return response({ res, code: 201, message: "Checkin success", data: result });
     } catch (error: any) {
-      return response({ res, code: 500, message: error.message });
+      const { code, message: msg } = resolveAttendanceError(error.message ?? "");
+      return response({ res, code, message: msg });
     }
   },
 
@@ -30,7 +57,8 @@ const attendanceController = {
       const result = await attendanceService.checkOut(userId, clientIp);
       return response({ res, code: 200, message: "Checkout success", data: result });
     } catch (error: any) {
-      return response({ res, code: 500, message: error.message });
+      const { code, message: msg } = resolveAttendanceError(error.message ?? "");
+      return response({ res, code, message: msg });
     }
   },
 
@@ -178,6 +206,14 @@ const attendanceController = {
     } catch (error: any) {
       return response({ res, code: 500, message: error.message });
     }
+  },
+
+  networkCheck: async (req: Request, res: Response): Promise<any> => {
+    const clientIp = getClientIp(req).replace(/^::ffff:/, "").trim();
+    const mikrotikHost = process.env.MIKROTIK_HOST ?? "";
+    const subnetPrefix = mikrotikHost.split(".").slice(0, 3).join(".") + ".";
+    const connected = clientIp.startsWith(subnetPrefix);
+    return response({ res, code: 200, message: "Network check", data: { connected, clientIp } });
   },
 
   submitLeaveByOperational: async (req: AuthRequest, res: Response): Promise<any> => {
