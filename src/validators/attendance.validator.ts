@@ -93,7 +93,9 @@ export const attendanceValidate = {
     const dayCode = getDayCode();
     const setting = await timeSettingService.findByCode(dayCode);
     const { hour: outH, minute: outM } = parseTime(setting.checkout);
+    const { hour: lateH, minute: lateM } = parseTime(setting.checkoutlate);
     let timeOut = dateHelper.getTimeTodayWIB(outH, outM);
+    const timeOutEnd = dateHelper.getTimeTodayWIB(lateH, lateM);
 
     const isRamadhan = await settingRepository.findSettingByCode("RAMADHAN");
     if (isRamadhan?.value === true) {
@@ -135,6 +137,10 @@ export const attendanceValidate = {
 
     if (now < timeOut) {
       throw new Error("Too early to check out");
+    }
+
+    if (now > timeOutEnd) {
+      throw new Error(`Checkout time has passed (allowed until ${setting.checkoutlate})`);
     }
   },
 
