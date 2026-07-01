@@ -48,7 +48,7 @@ const userController = {
   updateByAdmin: async (req: Request, res: Response): Promise<any> => {
     try {
       const userId = req.params.id as string;
-      const { name, password, role, status, research, change_mac_address, product_id } = req.body;
+      const { name, password, role, status, research, change_mac_address, mac_address, product_id } = req.body;
 
       const user = await userService.updateByAdmin(userId as string, {
         name,
@@ -57,6 +57,7 @@ const userController = {
         status,
         research,
         change_mac_address,
+        mac_address,
         product_id,
       });
 

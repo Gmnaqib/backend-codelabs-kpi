@@ -46,18 +46,23 @@ export const attendanceValidate = {
 
     // MikroTik DHCP-based device validation
     const userDevice = await userRepository.findUserMacAddress(userId);
-    const detectedMac = await mikrotikService.getMacAddressByIp(clientIp);
 
     if (!userDevice?.mac_address) {
       throw new Error("Device not found");
     }
 
-    if (!detectedMac) {
-      throw new Error("Device not found in MikroTik DHCP lease");
-    }
-
-    if (detectedMac !== userDevice.mac_address) {
-      throw new Error("Device not registered");
+    const isLoopback = clientIp === "127.0.0.1" || clientIp === "::1";
+    if (isLoopback) {
+      const leases = await mikrotikService.getDhcpLeases();
+      const onNetwork = leases.some((lease: any) => {
+        const mac = (lease["active-mac-address"] || lease["mac-address"] || "").toUpperCase().replace(/-/g, ":");
+        return mac === userDevice.mac_address!.toUpperCase();
+      });
+      if (!onNetwork) throw new Error("Device not found in MikroTik DHCP lease");
+    } else {
+      const detectedMac = await mikrotikService.getMacAddressByIp(clientIp);
+      if (!detectedMac) throw new Error("Device not found in MikroTik DHCP lease");
+      if (detectedMac !== userDevice.mac_address) throw new Error("Device not registered");
     }
 
     const userAttendance = await attendanceRepository.findOne({
@@ -97,18 +102,23 @@ export const attendanceValidate = {
 
     // MikroTik DHCP-based device validation
     const userDevice = await userRepository.findUserMacAddress(userId);
-    const detectedMac = await mikrotikService.getMacAddressByIp(clientIp);
 
     if (!userDevice?.mac_address) {
       throw new Error("Device not found");
     }
 
-    if (!detectedMac) {
-      throw new Error("Device not found in MikroTik DHCP lease");
-    }
-
-    if (detectedMac !== userDevice.mac_address) {
-      throw new Error("Device not registered");
+    const isLoopbackOut = clientIp === "127.0.0.1" || clientIp === "::1";
+    if (isLoopbackOut) {
+      const leases = await mikrotikService.getDhcpLeases();
+      const onNetwork = leases.some((lease: any) => {
+        const mac = (lease["active-mac-address"] || lease["mac-address"] || "").toUpperCase().replace(/-/g, ":");
+        return mac === userDevice.mac_address!.toUpperCase();
+      });
+      if (!onNetwork) throw new Error("Device not found in MikroTik DHCP lease");
+    } else {
+      const detectedMac = await mikrotikService.getMacAddressByIp(clientIp);
+      if (!detectedMac) throw new Error("Device not found in MikroTik DHCP lease");
+      if (detectedMac !== userDevice.mac_address) throw new Error("Device not registered");
     }
 
     const userAttendance = await attendanceRepository.findOne({

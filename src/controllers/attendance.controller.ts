@@ -4,6 +4,8 @@ import { AuthRequest } from "../middlewares/auth.middlewares";
 import attendanceService from "../services/attendance.service";
 import fileUploadService from "../services/fileUpload.service";
 import attendanceRepository from "../repository/attendance.repository";
+import userRepository from "../repository/user.repository";
+import mikrotikService from "../services/mikrotik.service";
 import dateHelper from "../helper/dateHelper";
 import { getClientIp } from "../helper/networkHelper";
 import { Types } from "mongoose";
@@ -223,11 +225,46 @@ const attendanceController = {
     }
   },
 
-  networkCheck: async (req: Request, res: Response): Promise<any> => {
+  getMyStatusToday: async (req: AuthRequest, res: Response): Promise<any> => {
+    try {
+      const userId = req.user?.id;
+      const startOfDay = dateHelper.getStartOfDayWIB();
+      const endOfDay = dateHelper.getEndOfDayWIB();
+      const record = await attendanceRepository.findOne({
+        userId: new Types.ObjectId(userId),
+        checkIn: { $gte: startOfDay, $lt: endOfDay },
+      });
+      return response({ res, code: 200, message: "Status today", data: {
+        checkedIn: !!record,
+        checkedOut: !!record?.checkOut,
+      }});
+    } catch (error: any) {
+      return response({ res, code: 500, message: error.message });
+    }
+  },
+
+  networkCheck: async (req: AuthRequest, res: Response): Promise<any> => {
     const clientIp = getClientIp(req).replace(/^::ffff:/, "").trim();
     const mikrotikHost = process.env.MIKROTIK_HOST ?? "";
     const subnetPrefix = mikrotikHost.split(".").slice(0, 3).join(".") + ".";
-    const connected = clientIp.startsWith(subnetPrefix);
+    let connected = clientIp.startsWith(subnetPrefix);
+
+    // Fallback: jika request dari loopback (dev/same machine), cek MAC user di DHCP MikroTik
+    if (!connected && (clientIp === "127.0.0.1" || clientIp === "::1") && req.user?.id) {
+      try {
+        const userDevice = await userRepository.findUserMacAddress(new Types.ObjectId(req.user.id));
+        if (userDevice?.mac_address) {
+          const leases = await mikrotikService.getDhcpLeases();
+          connected = leases.some((lease: any) => {
+            const mac = (lease["active-mac-address"] || lease["mac-address"] || "").toUpperCase().replace(/-/g, ":");
+            return mac === userDevice.mac_address!.toUpperCase();
+          });
+        }
+      } catch {
+        connected = false;
+      }
+    }
+
     return response({ res, code: 200, message: "Network check", data: { connected, clientIp } });
   },
 

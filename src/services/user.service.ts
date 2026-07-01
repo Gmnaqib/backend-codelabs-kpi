@@ -66,9 +66,10 @@ const userService = {
       research?: Research;
       product_id?: string;
       change_mac_address?: boolean;
+      mac_address?: string;
     },
   ): Promise<IUser> => {
-    const { name, password, role, status, research, product_id, change_mac_address } = userData;
+    const { name, password, role, status, research, product_id, change_mac_address, mac_address } = userData;
     const user = await userRepository.findUserById(userId, true);
 
     if (password) {
@@ -82,6 +83,7 @@ const userService = {
     if (research) user!.research = research;
     if (product_id) user!.product_id = product_id;
     if (change_mac_address !== undefined) user!.change_mac_address = change_mac_address;
+    if (mac_address) user!.mac_address = mac_address.toUpperCase().replace(/-/g, ":");
 
     await user!.save();
     return user!;
