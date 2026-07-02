@@ -88,6 +88,10 @@ const userSchema = new Schema<IUser>(
       type: Boolean,
       default: true,
     },
+    image_updated_at: {
+      type: Date,
+      required: false,
+    },
   },
   { timestamps: true },
 );

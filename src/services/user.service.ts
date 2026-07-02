@@ -39,6 +39,18 @@ const userService = {
 
     // Handle image upload
     if (imageFile) {
+      // Check 24-hour cooldown (skip for admin)
+      if (user!.role !== "admin" && user!.image_updated_at) {
+        const diffMs = Date.now() - new Date(user!.image_updated_at).getTime();
+        if (diffMs < 7 * 24 * 60 * 60 * 1000) {
+          const remaining = 7 * 24 * 60 * 60 * 1000 - diffMs;
+          const days = Math.floor(remaining / (1000 * 60 * 60 * 24));
+          const hours = Math.floor((remaining % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+          const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+          throw new Error(`Foto baru bisa diubah dalam ${days} hari ${hours} jam ${minutes} menit lagi`);
+        }
+      }
+
       // Delete old image if exists
       if (user!.image) {
         const oldImagePath = path.join(process.cwd(), user!.image);
@@ -47,9 +59,10 @@ const userService = {
         }
       }
 
-      // Save new image path
+      // Save new image path and update timestamp
       const imageUrl = `/uploads/profiles/${imageFile.filename}`;
       user!.image = imageUrl;
+      (user as any).image_updated_at = new Date();
     }
 
     await user!.save();

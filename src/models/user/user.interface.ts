@@ -16,6 +16,7 @@ interface IUser {
   mac_address?: string;
   change_mac_address?: boolean;
   product_id?: string;
+  image_updated_at?: Date;
 }
 
 export enum Role {

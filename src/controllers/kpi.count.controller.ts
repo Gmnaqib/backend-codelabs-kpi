@@ -55,6 +55,7 @@ const KPICountController = {
         rank: index + 1,
         userId: s.userId,
         name: s.name,
+        image: s.image ?? null,
         totalPoints: s.grand_total,
         grand_total: s.grand_total,
         categories: s.categories,
