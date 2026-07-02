@@ -35,5 +35,6 @@ attendanceRouter.patch("/leave-requests/review/:requestId", authenticateToken, r
 attendanceRouter.patch("/checkout-by-operational", authenticateToken, roleMiddlewares(["minister of operation", "admin"]), attendanceController.checkOutByMinister);
 attendanceRouter.patch("/checkout-all-by-operational", authenticateToken, roleMiddlewares(["minister of operation", "admin", "president"]), attendanceController.checkOutAllByMinister);
 attendanceRouter.post("/leave-requests-by-operational",authenticateToken,upload.single("attachment"),roleMiddlewares(["minister of operation", "admin"]),attendanceController.submitLeaveByOperational);
+attendanceRouter.post("/checkin-by-admin", authenticateToken, roleMiddlewares(["admin", "minister of operation", "president"]), attendanceController.checkinByAdmin);
 
 export default attendanceRouter;

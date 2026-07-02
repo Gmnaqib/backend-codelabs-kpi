@@ -243,6 +243,21 @@ const attendanceController = {
     }
   },
 
+  checkinByAdmin: async (req: AuthRequest, res: Response): Promise<any> => {
+    try {
+      const { userId } = req.body;
+
+      if (!userId) {
+        return response({ res, code: 400, message: "Target user ID is required" });
+      }
+
+      const result = await attendanceService.checkinByAdmin(new Types.ObjectId(userId));
+      return response({ res, code: 201, message: "Checkin by admin success", data: result });
+    } catch (error: any) {
+      return response({ res, code: 400, message: error.message });
+    }
+  },
+
   networkCheck: async (req: AuthRequest, res: Response): Promise<any> => {
     const clientIp = getClientIp(req).replace(/^::ffff:/, "").trim();
     const mikrotikHost = process.env.MIKROTIK_HOST ?? "";

@@ -148,6 +148,33 @@ const attendanceService = {
     await searchLeaveRequest!.save();
   },
 
+  checkinByAdmin: async (targetUserId: Types.ObjectId): Promise<IAttendance> => {
+    const userObjectId = new Types.ObjectId(targetUserId);
+    const startOfDay = dateHelper.getStartOfDayWIB();
+    const endOfDay = dateHelper.getEndOfDayWIB();
+
+    const existing = await attendanceRepository.findOne({
+      userId: userObjectId,
+      checkIn: { $gte: startOfDay, $lt: endOfDay },
+    });
+
+    if (existing) {
+      throw new Error("User has already checked in today");
+    }
+
+    const id_kpi_detail = await resolveKpiDetailId("operational", "attendance");
+
+    const record = await attendanceRepository.create({
+      userId: userObjectId,
+      id_kpi_detail,
+      status: attendanceStatus.PRESENT,
+      checkIn: new Date(),
+      checkOut: null,
+    });
+
+    return convertAttendanceToIndonesiaTime(record);
+  },
+
   getAttendance: async (year?: number, month?: number, day?: number): Promise<IAttendance[]> => {
     if (year !== undefined || month !== undefined || day !== undefined) {
       const records = await attendanceRepository.findAllWithDate({ year, month, day });
