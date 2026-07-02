@@ -26,7 +26,7 @@ const userService = {
   },
 
   updateByUser: async (userId: string, userData: { name?: string; password?: string; address?: string }, imageFile?: Express.Multer.File): Promise<IUser> => {
-    await userValidate.updateByUser(userId, userData);
+    await userValidate.updateByUser(userId, userData, !!imageFile);
     const { name, password, address } = userData;
     const user = await userRepository.findUserById(userId, true);
 

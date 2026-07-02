@@ -3,7 +3,7 @@ import { Types } from "mongoose";
 import { Role, Status, Research } from "../models/user/user.interface";
 
 export const userValidate = {
-  updateByUser: async (userId: string, userData: { name?: string; password?: string; address?: string }): Promise<void> => {
+  updateByUser: async (userId: string, userData: { name?: string; password?: string; address?: string }, hasFile?: boolean): Promise<void> => {
     if (!userId) {
       throw new Error("User ID is required");
     }
@@ -14,8 +14,8 @@ export const userValidate = {
 
     const { name, password, address } = userData || {};
 
-    // At least one field must be provided
-    if (!name && !password && !address) {
+    // At least one field must be provided (or a file upload)
+    if (!name && !password && !address && !hasFile) {
       throw new Error("At least one field (name, password, or address) must be provided");
     }
 
