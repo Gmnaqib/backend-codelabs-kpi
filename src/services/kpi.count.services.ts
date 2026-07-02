@@ -140,6 +140,7 @@ const KPICountService = {
     return {
       userId: userObjectId,
       name: user.name,
+      image: (user as any).image ?? null,
       month: dateFilter?.month ?? new Date().getMonth() + 1,
       year: dateFilter?.year ?? new Date().getFullYear(),
       categories,
